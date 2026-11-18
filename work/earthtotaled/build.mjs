@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url));
+const out=process.argv[2]?path.resolve(process.argv[2]):path.join(root,'standalone');
+const three=fs.readFileSync(path.join(root,'dist/vendor/three.module.js'),'utf8');
+const match=three.match(/export\s*\{([^}]+)\};?\s*$/);
+if(!match)throw new Error('Three.js export list not found');
+const entries=match[1].split(',').map(entry=>{const [original,alias]=entry.trim().split(/\s+as\s+/);return alias?`${alias}:${original}`:original;}).join(',');
+const modules=['arsenal.js','environment.js','expansion.js','wilderness.js','wildlife.js','skill-web.js'].map(name=>{const source=fs.readFileSync(path.join(root,'dist',name),'utf8'),names=[...source.matchAll(/^export\s+(?:const|function|class)\s+(\w+)/gm)].map(m=>m[1]);return `const {${names.join(',')}}=(()=>{\n${source.replace(/^export\s+/gm,'')}\nreturn {${names.join(',')}};\n})();`;}).join('\n');
+const bundled=`/* Three.js r160 — MIT license; see license below. */\nconst THREE=(()=>{\n${three.slice(0,match.index)}\nreturn {${entries}};\n})();\n`+modules+'\n'+fs.readFileSync(path.join(root,'dist/game.js'),'utf8').replace(/^import[^\n]+\n/gm,'');
+const css=(fs.readFileSync(path.join(root,'dist/style.css'),'utf8')+'\n'+fs.readFileSync(path.join(root,'dist/skill-web.css'),'utf8')).replace("@import url('data:text/css,');\n",'');
+const license=fs.readFileSync(path.join(root,'dist/vendor/THREE-LICENSE.txt'),'utf8');
+const html=fs.readFileSync(path.join(root,'dist/index.html'),'utf8').replace('<link rel="stylesheet" href="style.css">',()=>`<style>${css}</style>`).replace('<link rel="stylesheet" href="skill-web.css">','').replace('<script type="module" src="game.js"></script>',()=>`<!-- ${license.replaceAll('--','—')} -->\n<script type="module">${bundled.replace(/<\/script/gi,'<\\/script')}</script>`);
+fs.mkdirSync(out,{recursive:true});
+fs.writeFileSync(path.join(out,'EARTHtotaled.html'),html);
+console.log('Built EARTHtotaled.html: '+(Buffer.byteLength(html)/1024/1024).toFixed(2)+' MB; fully self-contained.');

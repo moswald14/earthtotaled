@@ -1,0 +1,10 @@
+newmtl Base
+Kd 0.5 0.5 0.5
+newmtl DarkMetal
+Kd 0.5 0.5 0.5
+newmtl Glass
+Kd 0.5 0.5 0.5
+newmtl Rubber
+Kd 0.5 0.5 0.5
+newmtl Wood
+Kd 0.5 0.5 0.5

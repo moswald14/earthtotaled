@@ -1,0 +1,474 @@
+{
+  "SM_House": {
+    "triangles": 10568,
+    "vertices": 23004,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "DarkMetal",
+      "Glass",
+      "Plaster",
+      "Wood"
+    ]
+  },
+  "SM_Tenement": {
+    "triangles": 35820,
+    "vertices": 77652,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "DarkMetal",
+      "Glass",
+      "Plaster",
+      "Rust",
+      "Wood"
+    ]
+  },
+  "SM_Block": {
+    "triangles": 12,
+    "vertices": 24,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Roof": {
+    "triangles": 1192,
+    "vertices": 2240,
+    "materials": [
+      "Brick",
+      "DarkMetal",
+      "Rust",
+      "Wood"
+    ]
+  },
+  "SM_Interior": {
+    "triangles": 880,
+    "vertices": 1920,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Cache": {
+    "triangles": 176,
+    "vertices": 384,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Core": {
+    "triangles": 264,
+    "vertices": 576,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Trap": {
+    "triangles": 884,
+    "vertices": 1440,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Tree": {
+    "triangles": 3450,
+    "vertices": 6438,
+    "materials": [
+      "Bark"
+    ]
+  },
+  "SM_Trunk": {
+    "triangles": 60,
+    "vertices": 96,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Pine": {
+    "triangles": 23404,
+    "vertices": 57556,
+    "materials": [
+      "Bark",
+      "Leaf",
+      "Pine"
+    ]
+  },
+  "SM_Wreck": {
+    "triangles": 776,
+    "vertices": 1344,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Rock": {
+    "triangles": 1628,
+    "vertices": 3168,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Grass": {
+    "triangles": 92,
+    "vertices": 184,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Robot": {
+    "triangles": 11108,
+    "vertices": 22640,
+    "materials": [
+      "Base",
+      "Rubber",
+      "Signal",
+      "Steel"
+    ]
+  },
+  "SM_Contact": {
+    "triangles": 12188,
+    "vertices": 24920,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber",
+      "Skin",
+      "Steel"
+    ]
+  },
+  "SM_Deer": {
+    "triangles": 10120,
+    "vertices": 20288,
+    "materials": [
+      "Base",
+      "Rubber",
+      "Wood"
+    ]
+  },
+  "SM_Boar": {
+    "triangles": 9632,
+    "vertices": 19520,
+    "materials": [
+      "Base",
+      "Rubber"
+    ]
+  },
+  "SM_Wolf": {
+    "triangles": 9632,
+    "vertices": 19520,
+    "materials": [
+      "Base",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon0": {
+    "triangles": 4536,
+    "vertices": 8856,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber",
+      "Wood"
+    ]
+  },
+  "SM_Weapon1": {
+    "triangles": 7868,
+    "vertices": 15368,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber",
+      "Wood"
+    ]
+  },
+  "SM_Weapon2": {
+    "triangles": 8552,
+    "vertices": 16744,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Glass",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon3": {
+    "triangles": 4064,
+    "vertices": 7896,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon4": {
+    "triangles": 8980,
+    "vertices": 17608,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Glass",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon5": {
+    "triangles": 5604,
+    "vertices": 10776,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Gold",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon6": {
+    "triangles": 4324,
+    "vertices": 8136,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber",
+      "Wood"
+    ]
+  },
+  "SM_Weapon7": {
+    "triangles": 5524,
+    "vertices": 10744,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon8": {
+    "triangles": 4152,
+    "vertices": 8088,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Rubber"
+    ]
+  },
+  "SM_Weapon9": {
+    "triangles": 10104,
+    "vertices": 19864,
+    "materials": [
+      "Base",
+      "DarkMetal",
+      "Glass",
+      "Rubber",
+      "Wood"
+    ]
+  },
+  "SM_Tower": {
+    "triangles": 3900,
+    "vertices": 6240,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Shop": {
+    "triangles": 8150,
+    "vertices": 17692,
+    "materials": [
+      "Brick",
+      "Canvas",
+      "Concrete",
+      "DarkMetal",
+      "Plaster",
+      "Rust",
+      "Wood"
+    ]
+  },
+  "SM_Warehouse": {
+    "triangles": 1708,
+    "vertices": 3392,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "Rust"
+    ]
+  },
+  "SM_Canopy": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Pump": {
+    "triangles": 192,
+    "vertices": 384,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_WaterTank": {
+    "triangles": 328,
+    "vertices": 624,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Barrel": {
+    "triangles": 304,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Shelves": {
+    "triangles": 484,
+    "vertices": 1056,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Bench": {
+    "triangles": 176,
+    "vertices": 384,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Lamp": {
+    "triangles": 164,
+    "vertices": 288,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Sign": {
+    "triangles": 164,
+    "vertices": 288,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_CampShelter": {
+    "triangles": 288,
+    "vertices": 488,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_Toolbox": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_MedCase": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_PantryCase": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_WeaponCase": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_ElectronicsCase": {
+    "triangles": 220,
+    "vertices": 480,
+    "materials": [
+      "Base"
+    ]
+  },
+  "SM_PineB": {
+    "triangles": 21184,
+    "vertices": 52056,
+    "materials": [
+      "Bark",
+      "Leaf",
+      "Pine"
+    ]
+  },
+  "SM_Birch": {
+    "triangles": 10314,
+    "vertices": 27030,
+    "materials": [
+      "BirchBark",
+      "Leaf",
+      "Moss"
+    ]
+  },
+  "SM_Fern": {
+    "triangles": 1826,
+    "vertices": 4950,
+    "materials": [
+      "Leaf",
+      "Moss"
+    ]
+  },
+  "SM_Shrub": {
+    "triangles": 1530,
+    "vertices": 3930,
+    "materials": [
+      "Bark",
+      "Leaf",
+      "Moss"
+    ]
+  },
+  "SM_FallenLog": {
+    "triangles": 1628,
+    "vertices": 3444,
+    "materials": [
+      "Bark",
+      "Moss",
+      "Wood"
+    ]
+  },
+  "SM_Stump": {
+    "triangles": 332,
+    "vertices": 576,
+    "materials": [
+      "Bark",
+      "Wood"
+    ]
+  },
+  "SM_Rubble": {
+    "triangles": 2184,
+    "vertices": 4716,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "Rust"
+    ]
+  },
+  "SM_WallRuin": {
+    "triangles": 7324,
+    "vertices": 15960,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "Rust"
+    ]
+  },
+  "SM_Rebar": {
+    "triangles": 156,
+    "vertices": 288,
+    "materials": [
+      "Rust"
+    ]
+  },
+  "SM_Wrappers": {
+    "triangles": 384,
+    "vertices": 1152,
+    "materials": [
+      "Canvas",
+      "Greenline",
+      "Signal",
+      "Steel"
+    ]
+  }
+}

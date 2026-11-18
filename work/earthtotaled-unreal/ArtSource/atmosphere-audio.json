@@ -1,0 +1,60 @@
+{
+  "license": "Original EARTHtotaled compositions and synthesized weather; no third-party samples.",
+  "sample_rate": 44100,
+  "sounds": {
+    "MusicForest": {
+      "title": "Embers in the Canopy",
+      "seconds": 64.0,
+      "channels": 2,
+      "loop": true,
+      "rms": 0.14661,
+      "peak": 0.67999267578125,
+      "join_delta": 0.006584995273220809
+    },
+    "MusicCity": {
+      "title": "Concrete Echoes",
+      "seconds": 64.0,
+      "channels": 2,
+      "loop": true,
+      "rms": 0.15012,
+      "peak": 0.67999267578125,
+      "join_delta": 0.004229813632558862
+    },
+    "MusicNight": {
+      "title": "The Last Frequency",
+      "seconds": 64.0,
+      "channels": 2,
+      "loop": true,
+      "rms": 0.15234,
+      "peak": 0.67999267578125,
+      "join_delta": 0.007378317141890199
+    },
+    "WeatherRain": {
+      "title": "",
+      "seconds": 16.0,
+      "channels": 1,
+      "loop": true,
+      "rms": 0.18336,
+      "peak": 0.719970703125,
+      "join_delta": 0.16671331551529076
+    },
+    "WeatherWind": {
+      "title": "",
+      "seconds": 24.0,
+      "channels": 1,
+      "loop": true,
+      "rms": 0.13429,
+      "peak": 0.719970703125,
+      "join_delta": 0.0123094649197424
+    },
+    "WeatherThunder": {
+      "title": "",
+      "seconds": 8.0,
+      "channels": 1,
+      "loop": false,
+      "rms": 0.07957,
+      "peak": 0.719970703125,
+      "join_delta": 2.2528859918117699e-10
+    }
+  }
+}

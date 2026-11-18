@@ -1,0 +1,50 @@
+# Track only the two EARTHtotaled projects and their shared documentation.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/docs/
+!/work/
+/work/*
+!/work/earthtotaled/
+!/work/earthtotaled-unreal/
+
+# Duplicate exports and downloaded build dependencies for the historical edition.
+/work/earthtotaled/source-package/
+/work/earthtotaled/previous-release/
+/work/earthtotaled/standalone/
+/work/earthtotaled/preview/
+/work/earthtotaled/itch-build/
+/work/earthtotaled/itch-preview.html
+/work/earthtotaled/desktop/vendor/
+/work/earthtotaled/test-runtime.mjs
+/work/earthtotaled/environment-runtime.mjs
+/work/earthtotaled/bundle-check.mjs
+
+# Local work logs are not part of the source release.
+/work/earthtotaled-unreal/MIGRATION-STATUS.md
+
+# Generated files, private settings, credentials, and player data.
+**/node_modules/
+**/__pycache__/
+**/.vs/
+**/Binaries/
+**/Intermediate/
+**/Saved/
+**/DerivedDataCache/
+**/.env
+**/.env.*
+*.sav
+*.log
+*.pdb
+*.exe
+*.dll
+*.zip
+*.pem
+*.key
+*.pfx
+*.p12
+*.suo
+*.sln
+Thumbs.db
+.DS_Store

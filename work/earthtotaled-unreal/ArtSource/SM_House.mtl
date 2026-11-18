@@ -1,0 +1,12 @@
+newmtl Brick
+Kd 0.5 0.5 0.5
+newmtl Concrete
+Kd 0.5 0.5 0.5
+newmtl DarkMetal
+Kd 0.5 0.5 0.5
+newmtl Glass
+Kd 0.5 0.5 0.5
+newmtl Plaster
+Kd 0.5 0.5 0.5
+newmtl Wood
+Kd 0.5 0.5 0.5

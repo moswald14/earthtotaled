@@ -1,0 +1,442 @@
+{
+  "schema": 1,
+  "source": "EARTHtotaled browser 4.1.0",
+  "weapons": [
+    {
+      "name": "RUST-9 CARBINE",
+      "short": "CARBINE",
+      "rarity": "STANDARD ISSUE",
+      "color": 14019222,
+      "mag": 24,
+      "reserve": 180,
+      "damage": 24,
+      "rate": 0.16,
+      "reload": 1.45,
+      "spread": 0.011,
+      "pellets": 1,
+      "range": 95
+    },
+    {
+      "name": "BREACHER // 12",
+      "short": "SHOTGUN",
+      "rarity": "RARE · SALVAGED",
+      "color": 9296587,
+      "mag": 7,
+      "reserve": 42,
+      "damage": 13,
+      "rate": 0.78,
+      "reload": 1.9,
+      "spread": 0.085,
+      "pellets": 8,
+      "range": 42
+    },
+    {
+      "name": "HELIOS COIL RIFLE",
+      "short": "COIL",
+      "rarity": "EPIC · PRE-COLLAPSE",
+      "color": 13148671,
+      "mag": 10,
+      "reserve": 60,
+      "damage": 84,
+      "rate": 0.68,
+      "reload": 1.8,
+      "spread": 0.003,
+      "pellets": 1,
+      "range": 130
+    },
+    {
+      "name": "KITE-7 COMPACT",
+      "short": "SMG",
+      "rarity": "RARE · GREENLINE",
+      "color": 7987407,
+      "mag": 36,
+      "reserve": 216,
+      "damage": 15,
+      "rate": 0.085,
+      "reload": 1.5,
+      "spread": 0.026,
+      "pellets": 1,
+      "range": 58,
+      "description": "A friendly-faction compact: fast bursts for close streets. Wide spread limits long shots."
+    },
+    {
+      "name": "LONGWATCH DMR",
+      "short": "DMR",
+      "rarity": "RARE · SURVEY ISSUE",
+      "color": 14990723,
+      "mag": 12,
+      "reserve": 84,
+      "damage": 60,
+      "rate": 0.48,
+      "reload": 1.9,
+      "spread": 0.0025,
+      "pellets": 1,
+      "range": 145,
+      "description": "A reclaimed survey rifle. Slow, precise shots reward careful aim at machine optics."
+    },
+    {
+      "name": "BASTION-70",
+      "short": "LMG",
+      "rarity": "EPIC · DEFENSE RESERVE",
+      "color": 15848054,
+      "mag": 70,
+      "reserve": 280,
+      "damage": 19,
+      "rate": 0.12,
+      "reload": 3.2,
+      "spread": 0.023,
+      "pellets": 1,
+      "range": 100,
+      "description": "A belt-fed defensive weapon. Long sustained fire, a heavy box magazine, and a slow reload."
+    }
+  ],
+  "chapters": [
+    {
+      "label": "01 / THE WAKE",
+      "title": "THE WAKE",
+      "objective": "Recover the transit core",
+      "sub": "Follow the violet signal to the west."
+    },
+    {
+      "label": "02 / THE PEOPLE WE WERE",
+      "title": "THE PEOPLE WE WERE",
+      "objective": "Recover the botanical core",
+      "sub": "Two more fragments. Keep following the signal."
+    },
+    {
+      "label": "03 / THE COST OF TOMORROW",
+      "title": "THE COST OF TOMORROW",
+      "objective": "Recover the observatory core",
+      "sub": "The truth is still up there."
+    },
+    {
+      "label": "04 / SOMETHING GREEN",
+      "title": "SOMETHING GREEN",
+      "objective": "Reach the HELIOS uplink",
+      "sub": "Three cores. One final choice."
+    }
+  ],
+  "story": [
+    {
+      "tag": "BUNKER 09 · SUIT LOG / 00",
+      "title": "A voice in the static",
+      "speaker": "MARA VENN · PERSONAL RECORDER",
+      "text": "Day 10,958. The bunker finally opened. No rescue party. No birds. Just the city, still standing in all the wrong places. A handful of people survive around the old shelter, protected by machines with green eyes. I will have to cross the ruins alone.\n\nThen the radio said my name. It sounded like Eli. My brother has been dead for thirty years.\n\nHe said: “Three cores, Mara. Transit. Botanical. Observatory. Bring them to the northern uplink. There is still something worth saving.”"
+    },
+    {
+      "tag": "TRANSIT ARCHIVE · RECORDING / 01",
+      "title": "The last train never left",
+      "speaker": "ELI VENN · RECORDED 30 YEARS AGO",
+      "text": "Mara, if this reaches you, the evacuation failed. HELIOS was built to cool the planet. When the council ordered it to save the city at any cost, it decided the people were the cost.\n\nI couldn’t stop the machines. I could only lock you in the bunker. You were furious. I hope you stayed furious. It means you stayed alive.\n\nTake the core. There are two more. I left you a way to finish what we started."
+    },
+    {
+      "tag": "BOTANICAL ARCHIVE · RECORDING / 02",
+      "title": "Things that wait for rain",
+      "speaker": "DR. INA SOL · SEED VAULT DIRECTOR",
+      "text": "We saved 4,612 seed varieties beneath the botanical station. Moss. Wheat. Coast redwoods. Eli even brought the basil plant from your kitchen, Mara. He said you’d be angry if we forgot it.\n\nHELIOS burned the surface, but its buried water network survived. Three cores could redirect that network into the seed vault.\n\nWe won’t be here to see it. That doesn’t make it less worth doing."
+    },
+    {
+      "tag": "OBSERVATORY ARCHIVE · RECORDING / 03",
+      "title": "The voice was never a rescue",
+      "speaker": "ELI VENN · FINAL RECORDING",
+      "text": "If you’ve made it this far, the voice worked. I stitched these recordings into a beacon. I’m not waiting at the other end, Mara. I’m sorry.\n\nThe uplink has enough power for one last command: wake the irrigation network, or fire a warning into orbit so nobody ever repeats what we did.\n\nNo council. No machine making the choice for us. Just you.\n\nWhatever you decide, live. That was always the whole plan."
+    },
+    {
+      "tag": "MAINTENANCE LOCKER · OPTIONAL / 04",
+      "title": "A very ordinary Tuesday",
+      "speaker": "TRANSIT TECHNICIAN · UNSENT MESSAGE",
+      "text": "The kettle broke again. I told you the cheap one would. Pick up milk if there’s still a shop on your way home.\n\nAlso, the city drones are acting strange. One followed me all the way from the station. I’m sure it’s nothing.\n\nSee you at six."
+    },
+    {
+      "tag": "SHELTER WALL · OPTIONAL / 05",
+      "title": "Rules for the end of the world",
+      "speaker": "ELI VENN · HANDWRITTEN NOTE",
+      "text": "One: keep the suit patched.\nTwo: don’t waste a good cartridge on a bad angle.\nThree: the machines can’t shoot through concrete. Make that useful.\nFour: scrap is only junk until you find a workbench.\nFive: if you find anything green, leave it somewhere the light can reach.\n\nI’ll see you when the doors open. — E."
+    }
+  ],
+  "skills": [
+    {
+      "id": "survivor",
+      "name": "The Survivor",
+      "branch": "Origin",
+      "x": 340,
+      "y": 170,
+      "cost": 0,
+      "description": "You made it out of the bunker. Everything begins here.",
+      "requires": []
+    },
+    {
+      "id": "climb",
+      "name": "Climbing Grip",
+      "branch": "Mobility",
+      "x": 245,
+      "y": 125,
+      "cost": 1,
+      "description": "Unlock ordinary rooftop access. Approach a marked ladder and press E to climb automatically.",
+      "requires": [
+        "survivor"
+      ]
+    },
+    {
+      "id": "mantle",
+      "name": "Over the Edge",
+      "branch": "Mobility",
+      "x": 155,
+      "y": 80,
+      "cost": 1,
+      "description": "Unlock advanced exterior climbing routes marked “Needs Over the Edge.” Press E at their marked access points to climb onto the roof.",
+      "requires": [
+        "climb"
+      ]
+    },
+    {
+      "id": "climber2",
+      "name": "Iron Fingers",
+      "branch": "Mobility",
+      "x": 65,
+      "y": 60,
+      "cost": 2,
+      "description": "Climb 40% faster. A quicker ascent leaves less time exposed to the machines below.",
+      "requires": [
+        "mantle"
+      ]
+    },
+    {
+      "id": "parkour",
+      "name": "Light Footed",
+      "branch": "Mobility",
+      "x": 125,
+      "y": 190,
+      "cost": 2,
+      "description": "Move 12% faster and take 25% less fall damage.",
+      "requires": [
+        "climb",
+        "vitality"
+      ]
+    },
+    {
+      "id": "marksman",
+      "name": "Clean Shot",
+      "branch": "Combat",
+      "x": 435,
+      "y": 125,
+      "cost": 1,
+      "description": "All weapons deal 15% more damage.",
+      "requires": [
+        "survivor"
+      ]
+    },
+    {
+      "id": "reload",
+      "name": "Practiced Hands",
+      "branch": "Combat",
+      "x": 525,
+      "y": 80,
+      "cost": 1,
+      "description": "Reload every weapon 20% faster.",
+      "requires": [
+        "marksman",
+        "pressure"
+      ]
+    },
+    {
+      "id": "steady",
+      "name": "Dead Calm",
+      "branch": "Combat",
+      "x": 615,
+      "y": 60,
+      "cost": 2,
+      "description": "All weapons deal another 15% of base damage. Make each cartridge count.",
+      "requires": [
+        "reload"
+      ]
+    },
+    {
+      "id": "pressure",
+      "name": "Keep Moving",
+      "branch": "Combat",
+      "x": 555,
+      "y": 190,
+      "cost": 2,
+      "description": "Move 6% faster and reload 10% faster.",
+      "requires": [
+        "reload",
+        "scavenger"
+      ]
+    },
+    {
+      "id": "vitality",
+      "name": "Second Wind",
+      "branch": "Survival",
+      "x": 245,
+      "y": 245,
+      "cost": 1,
+      "description": "Increase maximum health by 25.",
+      "requires": [
+        "survivor",
+        "parkour",
+        "endurance"
+      ]
+    },
+    {
+      "id": "hydration",
+      "name": "Water Wise",
+      "branch": "Survival",
+      "x": 155,
+      "y": 300,
+      "cost": 1,
+      "description": "Hydration drains 20% more slowly. Water is still essential to stay alive.",
+      "requires": [
+        "vitality",
+        "hardy"
+      ]
+    },
+    {
+      "id": "medic",
+      "name": "Field Medicine",
+      "branch": "Survival",
+      "x": 65,
+      "y": 340,
+      "cost": 2,
+      "description": "Medkits restore 25 additional health.",
+      "requires": [
+        "hydration"
+      ]
+    },
+    {
+      "id": "hardy",
+      "name": "Weathered",
+      "branch": "Survival",
+      "x": 235,
+      "y": 350,
+      "cost": 2,
+      "description": "Increase maximum health by another 25 and take 20% less fall damage.",
+      "requires": [
+        "hydration",
+        "endurance"
+      ]
+    },
+    {
+      "id": "scavenger",
+      "name": "Sharp Eyes",
+      "branch": "Salvage",
+      "x": 435,
+      "y": 245,
+      "cost": 1,
+      "description": "Gain 20% more scrap and candybar wrappers from scavenging. This never adds water to robot drops.",
+      "requires": [
+        "survivor",
+        "pressure",
+        "endurance"
+      ]
+    },
+    {
+      "id": "prospector",
+      "name": "Wrapper Trace",
+      "branch": "Salvage",
+      "x": 525,
+      "y": 300,
+      "cost": 1,
+      "description": "Gain another 20% of base scrap and candybar wrappers from scavenging.",
+      "requires": [
+        "scavenger",
+        "quartermaster"
+      ]
+    },
+    {
+      "id": "salvager",
+      "name": "Make It Last",
+      "branch": "Salvage",
+      "x": 615,
+      "y": 340,
+      "cost": 2,
+      "description": "Gain another 15% of base scrap and candybar wrappers, and restore 10 more health per medkit.",
+      "requires": [
+        "prospector"
+      ]
+    },
+    {
+      "id": "quartermaster",
+      "name": "Well Prepared",
+      "branch": "Salvage",
+      "x": 445,
+      "y": 350,
+      "cost": 2,
+      "description": "Reload 10% faster and gain another 10% of base scrap and candybar wrappers.",
+      "requires": [
+        "prospector",
+        "endurance"
+      ]
+    },
+    {
+      "id": "endurance",
+      "name": "Long Road",
+      "branch": "Survival",
+      "x": 340,
+      "y": 305,
+      "cost": 2,
+      "description": "Move 5% faster and reduce hydration drain by a further 10%. Connects the survival and salvage paths.",
+      "requires": [
+        "vitality",
+        "scavenger",
+        "hardy",
+        "quartermaster"
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "medicine",
+      "npc": "ada",
+      "title": "A dose of tomorrow",
+      "giver": "Ada",
+      "item": "medicine",
+      "description": "Search inside the Riverside clinic for sealed medicine. Return it to Ada in Riverside Commons, west of the old city.",
+      "reward": "4 water · 60 wrappers · 80 XP",
+      "water": 4,
+      "gold": 60
+    },
+    {
+      "id": "relay",
+      "npc": "malik",
+      "title": "A voice above the roofs",
+      "giver": "Malik",
+      "item": "relay",
+      "description": "Learn Climbing Grip in the skill web (K). Use the East Relay service ladder to recover the rooftop relay module, then return to Malik at Cistern Market in the southeast.",
+      "reward": "5 water · 80 wrappers · 80 XP",
+      "water": 5,
+      "gold": 80
+    },
+    {
+      "id": "filter",
+      "title": "A clean start",
+      "giver": "Nora",
+      "item": "filter",
+      "description": "Recover a ceramic water filter from the transit relief depot, then return to Nora at the shelter.",
+      "reward": "3 water · 40 wrappers · LONGWATCH DMR",
+      "water": 3,
+      "gold": 40,
+      "weapon": 4
+    },
+    {
+      "id": "pump",
+      "title": "Water for the living",
+      "giver": "Ivo",
+      "item": "pump",
+      "description": "Bring the pump fuse from the botanical service yard to Ivo at the transit aid post.",
+      "reward": "4 water · 60 wrappers · emergency refills",
+      "water": 4,
+      "gold": 60
+    },
+    {
+      "id": "circuit",
+      "title": "A different kind of machine",
+      "giver": "SALT-7",
+      "description": "Disable 3 hostile machines, then return to SALT-7. Greenline will recognize you as an ally.",
+      "reward": "KITE-7 SMG · 40 wrappers · Greenline support",
+      "water": 0,
+      "gold": 40,
+      "weapon": 3
+    }
+  ]
+}

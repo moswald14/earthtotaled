@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const messages=[],events=[],listeners={},classes=new Set();
+const context={window:{chrome:{webview:{postMessage:m=>messages.push(m),addEventListener:(n,f)=>listeners[n]=f}},dispatchEvent:e=>events.push(e)},document:{documentElement:{classList:{toggle:(n,on)=>on?classes.add(n):classes.delete(n)}},addEventListener:(n,f)=>listeners[n]=f,createElement:()=>({}),head:{append(){}}},Event:class{constructor(type){this.type=type;}},CustomEvent:class{constructor(type,opts){this.type=type;Object.assign(this,opts);}},Number};
+vm.runInNewContext(fs.readFileSync('desktop/desktop-bridge.js','utf8'),context);
+const bridge=context.window.earthDesktop;
+bridge.capture();assert.deepEqual(messages,['earth:capture']);assert.equal(bridge.captured,false);
+listeners.message({data:{type:'earth:mouse',dx:30,dy:10}});assert.equal(events.length,0);
+listeners.message({data:{type:'earth:capture',captured:true}});assert.equal(bridge.captured,true);assert(classes.has('desktop-mouse-captured'));
+listeners.message({data:{type:'earth:mouse',dx:30,dy:-10}});assert.equal(events.at(-1).detail.dx,30);assert.equal(events.at(-1).detail.dy,-10);
+const count=events.length;listeners.message({data:{type:'earth:mouse',dx:NaN,dy:10}});assert.equal(events.length,count);
+bridge.release();assert.equal(messages.at(-1),'earth:release');listeners.message({data:{type:'earth:capture',captured:false}});assert.equal(bridge.captured,false);assert(!classes.has('desktop-mouse-captured'));
+listeners.message({data:{type:'earth:mouse',dx:20,dy:10}});assert.equal(events.at(-1).type,'earth-desktop-capture');
+console.log('PASS Desktop bridge: capture acknowledgements, raw movement, inactive/malformed input, release and cursor state.');

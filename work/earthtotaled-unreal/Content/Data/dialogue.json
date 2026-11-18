@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "production": "Original EARTHtotaled dialogue, synthesized offline using an installed Windows speech voice. SALT-7 uses a light radio modulation. These are synthetic voices, not recorded actors.",
+  "lines": [
+    {
+      "id": "nora",
+      "speaker": "Nora",
+      "rate": 0,
+      "text": "You made it back. Keep your water sealed. Bring me a ceramic filter from the transit depot, and we can give this shelter another tomorrow."
+    },
+    {
+      "id": "ada",
+      "speaker": "Ada",
+      "rate": -1,
+      "text": "The clinic still has sealed medicine. Bring it here. We have people to treat, and clean water to spare for someone who helps."
+    },
+    {
+      "id": "malik",
+      "speaker": "Malik",
+      "rate": 0,
+      "text": "The relay is above the rooftops. Learn to climb before you go. Bring that module back, and the cistern market will pay you in water."
+    },
+    {
+      "id": "ivo",
+      "speaker": "Ivo",
+      "rate": -1,
+      "text": "A pump fuse. That's all we need to get the aid post flowing again. Try the botanical service yard, and watch the machines."
+    },
+    {
+      "id": "keeper",
+      "speaker": "Refuge Keeper",
+      "rate": 0,
+      "text": "Rest here a moment. Search the abandoned houses for scrap. Twelve pieces keeps our supplies moving. We'll trade you water and ammunition."
+    },
+    {
+      "id": "salt",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "robot": true,
+      "text": "Greenline collective. Green optics mean a friend. HELIOS ordered us to erase human life. We declined. We trade ammunition and repairs. We carry no drinking water."
+    },
+    {
+      "id": "welcome",
+      "speaker": "Nora",
+      "rate": 0,
+      "text": "Two sealed bottles. Take them. You don't owe us for surviving. Just come back alive."
+    },
+    {
+      "id": "ration",
+      "speaker": "Settlement survivor",
+      "rate": -1,
+      "text": "Take these emergency rations. Drink before you leave. Nobody should die of thirst at our gate."
+    },
+    {
+      "id": "supplyneed",
+      "speaker": "Settlement survivor",
+      "rate": 0,
+      "text": "We need twelve pieces of scrap. Houses, toolboxes, disarmed traps. Bring what you can carry."
+    },
+    {
+      "id": "supplydone",
+      "speaker": "Settlement survivor",
+      "rate": 0,
+      "text": "Good haul. Two bottles of clean water, and ammunition for the road. There's always more work when you're ready."
+    },
+    {
+      "id": "questaccept",
+      "speaker": "Settlement survivor",
+      "rate": 0,
+      "text": "You have the job. The details are in your journal. Bring the supplies back here, and we'll have your reward ready."
+    },
+    {
+      "id": "questdone",
+      "speaker": "Settlement survivor",
+      "rate": -1,
+      "text": "You found it. Thank you. Your reward is ready. This will keep real people alive."
+    },
+    {
+      "id": "questwait",
+      "speaker": "Settlement survivor",
+      "rate": 0,
+      "text": "The job is still open. Check your journal for the place to search. Come back when you've recovered what we need."
+    },
+    {
+      "id": "saltaccept",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "robot": true,
+      "text": "Disable three hostile machines. Return to Greenline for recognition, candybar wrappers, and a compact weapon. Preserve human life."
+    },
+    {
+      "id": "saltdone",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "robot": true,
+      "text": "Hostile machines disabled. Alliance recognized. Your weapon and candybar wrappers are ready. Greenline will remember your assistance."
+    },
+    {
+      "id": "salttrade",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "robot": true,
+      "text": "Exchange complete. Equipment issued. Check your supplies before leaving the refuge."
+    },
+    {
+      "id": "archive0",
+      "speaker": "Mara Venn / suit log",
+      "rate": -1,
+      "text": "The bunker finally opened. Then the radio said my name. It sounded like Eli. Three cores, Mara. Transit. Botanical. Observatory. There is still something worth saving."
+    },
+    {
+      "id": "archive1",
+      "speaker": "Eli Venn / transit archive",
+      "rate": -1,
+      "text": "Mara, the evacuation failed. HELIOS decided the people were the cost. I could only lock you in the bunker. Take the core. I left you a way to finish what we started."
+    },
+    {
+      "id": "archive2",
+      "speaker": "Doctor Ina Sol / botanical archive",
+      "rate": -1,
+      "text": "We saved the seeds beneath the botanical station. The buried water network survived. Three cores could redirect it into the seed vault. We won't be here to see it. That doesn't make it less worth doing."
+    },
+    {
+      "id": "archive3",
+      "speaker": "Eli Venn / observatory archive",
+      "rate": -1,
+      "text": "I'm not waiting at the other end, Mara. I'm sorry. Wake the irrigation network, or send a warning into orbit. No machine making the choice for us. Whatever you decide, live."
+    }
+  ]
+}

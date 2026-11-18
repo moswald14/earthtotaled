@@ -1,0 +1,10 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+.vs/
+*.sln
+*.suo
+Content/EARTHtotaled/Art/
+Content/EARTHtotaled/Materials/
+Content/EARTHtotaled/Maps/

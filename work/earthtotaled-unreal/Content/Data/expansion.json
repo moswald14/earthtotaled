@@ -1,0 +1,35 @@
+{
+  "version": "1.1.0",
+  "weapons": [
+    {"name":"DRIFTER .44", "mag":6,"reserve":60,"damage":58,"rate":0.42,"reload":2.1,"spread":0.007,"pellets":1,"range":90},
+    {"name":"ASHFALL AUTO-12", "mag":10,"reserve":60,"damage":8,"rate":0.38,"reload":2.6,"spread":0.09,"pellets":9,"range":45},
+    {"name":"NEEDLER PDW", "mag":48,"reserve":240,"damage":12,"rate":0.065,"reload":1.65,"spread":0.021,"pellets":1,"range":65},
+    {"name":"RANGER BOLT RIFLE", "mag":5,"reserve":40,"damage":135,"rate":1.25,"reload":2.75,"spread":0.0008,"pellets":1,"range":220}
+  ],
+  "items": [
+    {"id":"cloth","name":"Clean cloth","description":"Bandages and medkits.","usable":false},
+    {"id":"chemicals","name":"Antiseptic chemicals","description":"Medicine and endurance injectors.","usable":false},
+    {"id":"circuit","name":"Circuit boards","description":"Scavenge electronics for crafting.","usable":false},
+    {"id":"alloy","name":"Alloy sheets","description":"Build replacement suit plates.","usable":false},
+    {"id":"gunparts","name":"Weapon parts","description":"Craft ammunition at a workbench.","usable":false},
+    {"id":"food","name":"Sealed trail ration","description":"Restores 15 health. Does not replace water.","usable":true},
+    {"id":"bandage","name":"Field bandage","description":"Restores 25 health.","usable":true},
+    {"id":"armorplate","name":"Suit plate","description":"Restores 35 armor.","usable":true},
+    {"id":"stim","name":"Endurance injector","description":"Three minutes of faster travel and slower thirst.","usable":true}
+  ],
+  "recipes": [
+    {"id":"bandage","name":"Field bandage","output":"bandage","count":1,"scrap":0,"ingredients":{"cloth":2,"chemicals":1}},
+    {"id":"armorplate","name":"Suit plate","output":"armorplate","count":1,"scrap":6,"ingredients":{"alloy":2}},
+    {"id":"ammo","name":"Two magazines of ammo","output":"ammo","count":2,"scrap":8,"ingredients":{"gunparts":1}},
+    {"id":"medkit","name":"Medkit","output":"medkit","count":1,"scrap":0,"ingredients":{"cloth":3,"chemicals":2}},
+    {"id":"stim","name":"Endurance injector","output":"stim","count":1,"scrap":0,"ingredients":{"chemicals":2,"circuit":1,"cloth":1}}
+  ],
+  "lootTables": {
+    "pantry":[{"id":"food","min":1,"max":3},{"id":"water","min":1,"max":2},{"id":"cloth","min":1,"max":3}],
+    "medical":[{"id":"bandage","min":1,"max":2},{"id":"chemicals","min":1,"max":3},{"id":"medkit","min":1,"max":1},{"id":"stim","min":1,"max":1}],
+    "tools":[{"id":"alloy","min":1,"max":3},{"id":"gunparts","min":1,"max":2},{"id":"cloth","min":1,"max":2}],
+    "electronics":[{"id":"circuit","min":1,"max":3},{"id":"alloy","min":1,"max":2},{"id":"gunparts","min":1,"max":2}],
+    "armory":[{"id":"ammo","min":1,"max":3},{"id":"armorplate","min":1,"max":2},{"id":"gunparts","min":1,"max":3}],
+    "relief":[{"id":"water","min":2,"max":3},{"id":"food","min":1,"max":2},{"id":"bandage","min":1,"max":2}]
+  }
+}

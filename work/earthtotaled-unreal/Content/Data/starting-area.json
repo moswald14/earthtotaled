@@ -1,0 +1,7093 @@
+{
+  "version": 2,
+  "name": "Shelter 09 / Greenline Square",
+  "seed": 6184,
+  "actors": [
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -12000,
+        -4000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        -12000,
+        -4000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -12000,
+        -4000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        11500,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        11500,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        11500,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -9000,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        -9000,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -9000,
+        8500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -11500,
+        11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        -11500,
+        11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -11500,
+        11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        12500,
+        -9000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        12500,
+        -9000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        12500,
+        -9000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -12500,
+        -11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Steel",
+      "position": [
+        -12500,
+        -11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -12500,
+        -11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        0,
+        -4400,
+        7
+      ],
+      "scale": [
+        320,
+        6,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        -4400,
+        0,
+        7
+      ],
+      "scale": [
+        6,
+        320,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        -4770,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        -4770,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        -4030,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        -4030,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -15000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -13000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -11000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -9000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -7000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -5000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -3000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -1000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        -1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        1000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        3000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        5000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        7000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        11000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        13000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        15000,
+        -4400,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -4400,
+        15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -6000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        -6000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -6000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        1000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        1000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        1000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        8000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        8000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8000,
+        -8800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        0,
+        2600,
+        7
+      ],
+      "scale": [
+        320,
+        6,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        2600,
+        0,
+        7
+      ],
+      "scale": [
+        6,
+        320,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        2230,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        2230,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        2970,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        2970,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -15000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -13000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -11000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -9000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -7000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -5000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -3000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -1000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        -1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        1000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        3000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        5000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        7000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        11000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        13000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        15000,
+        2600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        2600,
+        15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -6000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        -6000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -6000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        8000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        8000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        0,
+        9600,
+        7
+      ],
+      "scale": [
+        320,
+        6,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Asphalt",
+      "position": [
+        9600,
+        0,
+        7
+      ],
+      "scale": [
+        6,
+        320,
+        0.08
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        9230,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        9230,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        9970,
+        14
+      ],
+      "scale": [
+        320,
+        1.2,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        9970,
+        0,
+        14
+      ],
+      "scale": [
+        1.2,
+        320,
+        0.2
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -15000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -13000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -11000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -9000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -7000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -5000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -3000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        -1000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        -1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        1000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        1000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        3000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        3000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        5000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        5000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        7000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        7000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        9000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        11000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        11000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        13000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        13000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        15000,
+        9600,
+        12
+      ],
+      "scale": [
+        3,
+        0.12,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Canvas",
+      "position": [
+        9600,
+        15000,
+        12
+      ],
+      "scale": [
+        0.12,
+        3,
+        0.02
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        -6000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        -6000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -6000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        1000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        1000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        1000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_House",
+      "material": "Concrete",
+      "position": [
+        8000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Roof",
+      "material": "Rust",
+      "position": [
+        8000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8000,
+        5200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Block",
+      "material": "Concrete",
+      "position": [
+        0,
+        -1400,
+        0
+      ],
+      "scale": [
+        10,
+        16,
+        0.16
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -950,
+        -1300,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Bench",
+      "material": "Wood",
+      "position": [
+        -950,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 90
+    },
+    {
+      "mesh": "SM_CampShelter",
+      "material": "Canvas",
+      "position": [
+        -1520.0,
+        -200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_WaterTank",
+      "material": "Greenline",
+      "position": [
+        -1425.0,
+        650,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        950,
+        -1300,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Bench",
+      "material": "Wood",
+      "position": [
+        950,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -90
+    },
+    {
+      "mesh": "SM_CampShelter",
+      "material": "Canvas",
+      "position": [
+        1520.0,
+        -200,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_WaterTank",
+      "material": "Greenline",
+      "position": [
+        1425.0,
+        650,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shop",
+      "material": "Concrete",
+      "position": [
+        -2800,
+        -800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Wood",
+      "position": [
+        -3350,
+        -600,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 90
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Wood",
+      "position": [
+        -2350,
+        -450,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Sign",
+      "material": "Greenline",
+      "position": [
+        -2800,
+        -1500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shop",
+      "material": "Concrete",
+      "position": [
+        2800,
+        -800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Wood",
+      "position": [
+        2250,
+        -600,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 90
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Wood",
+      "position": [
+        3250,
+        -450,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Sign",
+      "material": "Greenline",
+      "position": [
+        2800,
+        -1500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Canopy",
+      "material": "Steel",
+      "position": [
+        5000,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shop",
+      "material": "Concrete",
+      "position": [
+        5000,
+        300,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Pump",
+      "material": "Rust",
+      "position": [
+        4500,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Pump",
+      "material": "Rust",
+      "position": [
+        5500,
+        -1800,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Warehouse",
+      "material": "Concrete",
+      "position": [
+        -5400,
+        1100,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Steel",
+      "position": [
+        -6200,
+        1600,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Shelves",
+      "material": "Steel",
+      "position": [
+        -4600,
+        1600,
+        16
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Tenement",
+      "material": "Concrete",
+      "position": [
+        -7200,
+        -6500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -7200,
+        -6500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -7200,
+        -6500,
+        380
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -7200,
+        -6500,
+        760
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Tenement",
+      "material": "Concrete",
+      "position": [
+        8200,
+        4000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8200,
+        4000,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8200,
+        4000,
+        380
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        8200,
+        4000,
+        760
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Tenement",
+      "material": "Concrete",
+      "position": [
+        -2500,
+        6500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -2500,
+        6500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -2500,
+        6500,
+        380
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        -2500,
+        6500,
+        760
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Tenement",
+      "material": "Concrete",
+      "position": [
+        6500,
+        11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        6500,
+        11500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        6500,
+        11500,
+        380
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Interior",
+      "material": "Wood",
+      "position": [
+        6500,
+        11500,
+        760
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Tower",
+      "material": "Steel",
+      "position": [
+        0,
+        -15500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Sign",
+      "material": "Greenline",
+      "position": [
+        -700,
+        -700,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        -2600,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 3.56397166391109
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        -1350,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 22.039055606770845
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        -100,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 13.491470757449065
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        1150,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 14.19709508498542
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        2400,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 16.904245212273203
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        3650,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -0.9716650288618744
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        4900,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -8.042836696548555
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        6150,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -20.070191157814033
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        7400,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -19.768735806206866
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        8650,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 10.819653121584558
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        9900,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": -24.5092793977678
+    },
+    {
+      "mesh": "SM_Wreck",
+      "material": "Rust",
+      "position": [
+        11150,
+        2950,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0.5216253182703205
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -14000,
+        -3930,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -7000,
+        -3930,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        0,
+        -3930,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        7000,
+        -3930,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        14000,
+        -3930,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -14000,
+        3070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -7000,
+        3070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        0,
+        3070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        7000,
+        3070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        14000,
+        3070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -14000,
+        10070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        -7000,
+        10070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        0,
+        10070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        7000,
+        10070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Lamp",
+      "material": "Steel",
+      "position": [
+        14000,
+        10070,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        -2200,
+        550,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        -2000,
+        550,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        2000,
+        650,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        2300,
+        650,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        -5000,
+        2100,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        -5200,
+        2100,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Barrel",
+      "material": "Rust",
+      "position": [
+        5400,
+        500,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        8360.364133298926,
+        -2852.9737615406066,
+        0
+      ],
+      "scale": [
+        0.4386322684246216,
+        0.4386322684246216,
+        0.7806333566505668
+      ],
+      "yaw": 12.037555772786192
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        6919.228601732792,
+        -2912.303241397553,
+        0
+      ],
+      "scale": [
+        0.5918850646124227,
+        0.5918850646124227,
+        0.7851333577275944
+      ],
+      "yaw": 323.0939574121712
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        7741.028420825336,
+        -3257.820803628008,
+        0
+      ],
+      "scale": [
+        0.5384558256628561,
+        0.5384558256628561,
+        0.6744736006388895
+      ],
+      "yaw": 40.32346041595242
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        8107.047050006913,
+        -3483.801718595703,
+        0
+      ],
+      "scale": [
+        0.5279033532840199,
+        0.5279033532840199,
+        0.7225268141923353
+      ],
+      "yaw": 355.62866435436433
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        7431.038061348038,
+        -2890.812852717386,
+        0
+      ],
+      "scale": [
+        0.6411805045153478,
+        0.6411805045153478,
+        0.5762000407908701
+      ],
+      "yaw": 347.16646923098125
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        6996.055227801227,
+        -3597.943339786223,
+        0
+      ],
+      "scale": [
+        0.5500862444075293,
+        0.5500862444075293,
+        0.722361603658987
+      ],
+      "yaw": 154.36577015796425
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        8771.869664575635,
+        -3017.096828584968,
+        0
+      ],
+      "scale": [
+        0.4596674718729355,
+        0.4596674718729355,
+        0.7464155340947778
+      ],
+      "yaw": 95.49075535759742
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        8609.430152081033,
+        -3583.0594960315975,
+        0
+      ],
+      "scale": [
+        0.6034416127805882,
+        0.6034416127805882,
+        0.8060171617940952
+      ],
+      "yaw": 297.4453354754418
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        6515.982162872753,
+        -3519.3244752556825,
+        0
+      ],
+      "scale": [
+        0.42340928863310284,
+        0.42340928863310284,
+        0.6987476786131368
+      ],
+      "yaw": 180.56979078050392
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        7271.490004551188,
+        -3218.567103012053,
+        0
+      ],
+      "scale": [
+        0.6130825132713538,
+        0.6130825132713538,
+        0.6465581849941349
+      ],
+      "yaw": 53.25096919978312
+    },
+    {
+      "mesh": "SM_Pine",
+      "material": "Pine",
+      "position": [
+        7424.598783819759,
+        -3572.984098112016,
+        0
+      ],
+      "scale": [
+        0.48800907121623327,
+        0.48800907121623327,
+        0.7781518426363208
+      ],
+      "yaw": 102.08192080855865
+    },
+    {
+      "mesh": "SM_Bench",
+      "material": "Wood",
+      "position": [
+        6800,
+        -3300,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_Bench",
+      "material": "Wood",
+      "position": [
+        8700,
+        -3300,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "yaw": 0
+    },
+    {
+      "mesh": "SM_WallRuin",
+      "material": "Concrete",
+      "position": [
+        -10500,
+        5600,
+        0
+      ],
+      "scale": [
+        1.1,
+        0.9,
+        0.85
+      ],
+      "yaw": 4.293020255494458,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_Rebar",
+      "material": "Rust",
+      "position": [
+        -10390,
+        5600,
+        110
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "yaw": 247.59922912745327,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -10420,
+        5440,
+        -5
+      ],
+      "scale": [
+        1.2,
+        1.1,
+        0.7
+      ],
+      "yaw": 218.07112440267287,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -10358.355210497979,
+        6005.286118997205,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 255.7472721275463,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9800.398426253158,
+        5259.101084654253,
+        -2
+      ],
+      "scale": [
+        0.5847889317397267,
+        0.5847889317397267,
+        0.5847889317397267
+      ],
+      "yaw": 314.5580111480926,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11136.568178656164,
+        5932.167489367126,
+        -2
+      ],
+      "scale": [
+        0.5574516483587777,
+        0.5574516483587777,
+        0.5574516483587777
+      ],
+      "yaw": 58.07736185071761,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10033.36689343819,
+        6468.456584760228,
+        -2
+      ],
+      "scale": [
+        0.5211801926230019,
+        0.5211801926230019,
+        0.5211801926230019
+      ],
+      "yaw": 358.2527838276266,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -10293.956627799567,
+        5949.442488483731,
+        -2
+      ],
+      "scale": [
+        0.5389731220102006,
+        0.5389731220102006,
+        0.5389731220102006
+      ],
+      "yaw": 209.49082988047078,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9900.228820719965,
+        6616.409716087675,
+        -2
+      ],
+      "scale": [
+        0.42347024165835884,
+        0.42347024165835884,
+        0.42347024165835884
+      ],
+      "yaw": 198.69590212115827,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11232.647809893348,
+        6079.377142682259,
+        -2
+      ],
+      "scale": [
+        0.7790711606774954,
+        0.7790711606774954,
+        0.7790711606774954
+      ],
+      "yaw": 87.81420464948894,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -9427.906866672336,
+        6182.3066686716875,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 188.28716742391427,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -10129.599685574543,
+        5855.865341033926,
+        -2
+      ],
+      "scale": [
+        0.5200421821760641,
+        0.5200421821760641,
+        0.5200421821760641
+      ],
+      "yaw": 140.00725948839283,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9886.061225867303,
+        4504.0489680725,
+        -2
+      ],
+      "scale": [
+        0.7199795421923523,
+        0.7199795421923523,
+        0.7199795421923523
+      ],
+      "yaw": 143.82689423515188,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11136.898447999985,
+        6526.101684160625,
+        -2
+      ],
+      "scale": [
+        0.5794411146691634,
+        0.5794411146691634,
+        0.5794411146691634
+      ],
+      "yaw": 9.736735776405476,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9237.454825837176,
+        5530.4074812296285,
+        -2
+      ],
+      "scale": [
+        0.7971790791211303,
+        0.7971790791211303,
+        0.7971790791211303
+      ],
+      "yaw": 298.4165190100192,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -11134.296912146345,
+        6754.040682975552,
+        -2
+      ],
+      "scale": [
+        0.6596033838535554,
+        0.6596033838535554,
+        0.6596033838535554
+      ],
+      "yaw": 131.38221368816903,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10250.452280622092,
+        6823.085091083944,
+        -2
+      ],
+      "scale": [
+        0.5786845600431523,
+        0.5786845600431523,
+        0.5786845600431523
+      ],
+      "yaw": 356.1348477907406,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -9632.15989851507,
+        5236.039040760962,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 222.18516716464129,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10496.500610987692,
+        6485.328137636993,
+        -2
+      ],
+      "scale": [
+        0.5788442246822985,
+        0.5788442246822985,
+        0.5788442246822985
+      ],
+      "yaw": 64.96939996976151,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -10128.553592841574,
+        5073.113470078373,
+        -2
+      ],
+      "scale": [
+        0.6958347181986226,
+        0.6958347181986226,
+        0.6958347181986226
+      ],
+      "yaw": 230.3709763259932,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9857.09638287466,
+        6260.022389073328,
+        -2
+      ],
+      "scale": [
+        0.49723536812429087,
+        0.49723536812429087,
+        0.49723536812429087
+      ],
+      "yaw": 154.49953029631817,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10492.982740177207,
+        4723.425144212404,
+        -2
+      ],
+      "scale": [
+        0.777664280582671,
+        0.777664280582671,
+        0.777664280582671
+      ],
+      "yaw": 235.59467850832084,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11870.058983693645,
+        5345.582732751874,
+        -2
+      ],
+      "scale": [
+        0.7945124087261489,
+        0.7945124087261489,
+        0.7945124087261489
+      ],
+      "yaw": 107.07614008456258,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        -9850,
+        6150,
+        -3
+      ],
+      "scale": [
+        0.8,
+        0.75,
+        0.9
+      ],
+      "yaw": 70.3204654283073,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_WallRuin",
+      "material": "Concrete",
+      "position": [
+        11700,
+        -6200,
+        0
+      ],
+      "scale": [
+        1.1,
+        0.9,
+        0.9299999999999999
+      ],
+      "yaw": -6.295225089290993,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_Rebar",
+      "material": "Rust",
+      "position": [
+        11810,
+        -6200,
+        110
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "yaw": 60.25739115056741,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        11780,
+        -6360,
+        -5
+      ],
+      "scale": [
+        1.2,
+        1.1,
+        0.7
+      ],
+      "yaw": 299.267098659729,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        12362.878062724281,
+        -5657.384306992057,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 91.286685622408,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11187.292586081006,
+        -5110.582833996333,
+        -2
+      ],
+      "scale": [
+        0.4970222304068258,
+        0.4970222304068258,
+        0.4970222304068258
+      ],
+      "yaw": 13.940942028417549,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11376.348309257586,
+        -5894.14119289484,
+        -2
+      ],
+      "scale": [
+        0.7169545035463468,
+        0.7169545035463468,
+        0.7169545035463468
+      ],
+      "yaw": 66.10209964215149,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        12768.647511775467,
+        -5341.837648369151,
+        -2
+      ],
+      "scale": [
+        0.5082297950911612,
+        0.5082297950911612,
+        0.5082297950911612
+      ],
+      "yaw": 53.55589133746924,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        10804.038801538663,
+        -5908.651889113142,
+        -2
+      ],
+      "scale": [
+        0.6221611561745275,
+        0.6221611561745275,
+        0.6221611561745275
+      ],
+      "yaw": 343.34270472414005,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        10667.10652226894,
+        -5966.2274590078505,
+        -2
+      ],
+      "scale": [
+        0.6660872835049758,
+        0.6660872835049758,
+        0.6660872835049758
+      ],
+      "yaw": 141.59796355140767,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11768.47381843909,
+        -6736.193489786752,
+        -2
+      ],
+      "scale": [
+        0.5931611907160157,
+        0.5931611907160157,
+        0.5931611907160157
+      ],
+      "yaw": 88.44157202696626,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        12343.544546845209,
+        -6459.54622019273,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 1.0253469415996896,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        10704.859681852222,
+        -6465.068927818639,
+        -2
+      ],
+      "scale": [
+        0.4571978894120709,
+        0.4571978894120709,
+        0.4571978894120709
+      ],
+      "yaw": 254.67681708314169,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11058.458346878884,
+        -5943.972481800868,
+        -2
+      ],
+      "scale": [
+        0.6161050170325848,
+        0.6161050170325848,
+        0.6161050170325848
+      ],
+      "yaw": 59.70121739590019,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11380.25403997037,
+        -5263.447864498969,
+        -2
+      ],
+      "scale": [
+        0.6856703321009191,
+        0.6856703321009191,
+        0.6856703321009191
+      ],
+      "yaw": 278.21816993318765,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        13062.908454824676,
+        -6486.505013365171,
+        -2
+      ],
+      "scale": [
+        0.6548856964329823,
+        0.6548856964329823,
+        0.6548856964329823
+      ],
+      "yaw": 1.7035355090468318,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        10894.086816135576,
+        -6950.299122625854,
+        -2
+      ],
+      "scale": [
+        0.7657874614806863,
+        0.7657874614806863,
+        0.7657874614806863
+      ],
+      "yaw": 329.7820460503874,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        12740.65282262474,
+        -5958.567595776309,
+        -2
+      ],
+      "scale": [
+        0.5611410849484884,
+        0.5611410849484884,
+        0.5611410849484884
+      ],
+      "yaw": 79.0400127476717,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        10680.365817466503,
+        -5247.756256773871,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 327.8579415677085,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        12731.829937791,
+        -6911.774539949955,
+        -2
+      ],
+      "scale": [
+        0.518929076582991,
+        0.518929076582991,
+        0.518929076582991
+      ],
+      "yaw": 354.64099672742515,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        12060.767454423256,
+        -6062.240404098305,
+        -2
+      ],
+      "scale": [
+        0.7671420300025863,
+        0.7671420300025863,
+        0.7671420300025863
+      ],
+      "yaw": 137.72498663113765,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        12553.390234893319,
+        -7068.196330227385,
+        -2
+      ],
+      "scale": [
+        0.43153137029898897,
+        0.43153137029898897,
+        0.43153137029898897
+      ],
+      "yaw": 330.3499623611295,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        12709.296138162215,
+        -7047.344224222717,
+        -2
+      ],
+      "scale": [
+        0.42067276193000464,
+        0.42067276193000464,
+        0.42067276193000464
+      ],
+      "yaw": 234.38997994756437,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        11699.209812996987,
+        -5317.913073808499,
+        -2
+      ],
+      "scale": [
+        0.42269230274078423,
+        0.42269230274078423,
+        0.42269230274078423
+      ],
+      "yaw": 191.6608832168896,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        12350,
+        -5650,
+        -3
+      ],
+      "scale": [
+        0.8,
+        0.75,
+        0.9
+      ],
+      "yaw": 90.13975205125863,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_WallRuin",
+      "material": "Concrete",
+      "position": [
+        4500,
+        7100,
+        0
+      ],
+      "scale": [
+        1.1,
+        0.9,
+        1.01
+      ],
+      "yaw": 0.2613685334807272,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_Rebar",
+      "material": "Rust",
+      "position": [
+        4610,
+        7100,
+        110
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "yaw": 179.7211844485327,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        4580,
+        6940,
+        -5
+      ],
+      "scale": [
+        1.2,
+        1.1,
+        0.7
+      ],
+      "yaw": 192.00509030925826,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        3685.2459525482013,
+        6590.3762452690735,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 215.1637060980958,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4888.929393251603,
+        7403.609065487461,
+        -2
+      ],
+      "scale": [
+        0.7211516664699164,
+        0.7211516664699164,
+        0.7211516664699164
+      ],
+      "yaw": 258.69215805645894,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        5471.743401071262,
+        6782.659164365115,
+        -2
+      ],
+      "scale": [
+        0.665494107700886,
+        0.665494107700886,
+        0.665494107700886
+      ],
+      "yaw": 36.57600493281888,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4529.324898921426,
+        8465.113847307819,
+        -2
+      ],
+      "scale": [
+        0.5871434948455618,
+        0.5871434948455618,
+        0.5871434948455618
+      ],
+      "yaw": 94.93756979520899,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        4561.473499769202,
+        6484.927593304008,
+        -2
+      ],
+      "scale": [
+        0.7056030518823909,
+        0.7056030518823909,
+        0.7056030518823909
+      ],
+      "yaw": 238.46770418394033,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        5600.650796680834,
+        6401.00176141861,
+        -2
+      ],
+      "scale": [
+        0.5285982499623054,
+        0.5285982499623054,
+        0.5285982499623054
+      ],
+      "yaw": 197.3618422081195,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        5186.573113395324,
+        8160.790881369117,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 151.61897517665682,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        4960.517005332231,
+        6544.29954457743,
+        -2
+      ],
+      "scale": [
+        0.5608281045797067,
+        0.5608281045797067,
+        0.5608281045797067
+      ],
+      "yaw": 227.38285667389377,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4636.284668676252,
+        6575.414428389573,
+        -2
+      ],
+      "scale": [
+        0.612741246749043,
+        0.612741246749043,
+        0.612741246749043
+      ],
+      "yaw": 26.073436868856398,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4216.023004058116,
+        7764.278108089211,
+        -2
+      ],
+      "scale": [
+        0.5236003576527484,
+        0.5236003576527484,
+        0.5236003576527484
+      ],
+      "yaw": 217.8978196183823,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4344.862066095939,
+        7465.253409842348,
+        -2
+      ],
+      "scale": [
+        0.6597812872542672,
+        0.6597812872542672,
+        0.6597812872542672
+      ],
+      "yaw": 102.71158600424594,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        4691.33259144794,
+        7563.776913163691,
+        -2
+      ],
+      "scale": [
+        0.5421739533043616,
+        0.5421739533043616,
+        0.5421739533043616
+      ],
+      "yaw": 345.0855162545191,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4130.21868197902,
+        6581.364994846339,
+        -2
+      ],
+      "scale": [
+        0.7425242605947296,
+        0.7425242605947296,
+        0.7425242605947296
+      ],
+      "yaw": 271.14356880279615,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        5277.234862818345,
+        7222.257758068698,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 314.945520311889,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4555.597776058998,
+        7486.637779499814,
+        -2
+      ],
+      "scale": [
+        0.5530544791385514,
+        0.5530544791385514,
+        0.5530544791385514
+      ],
+      "yaw": 11.84757181831969,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        4477.505526820439,
+        6727.170016254494,
+        -2
+      ],
+      "scale": [
+        0.764950241483211,
+        0.764950241483211,
+        0.764950241483211
+      ],
+      "yaw": 285.50651445117444,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        3691.6160503235124,
+        6157.498605534099,
+        -2
+      ],
+      "scale": [
+        0.551892873260583,
+        0.551892873260583,
+        0.551892873260583
+      ],
+      "yaw": 238.61217690580833,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4130.089328814473,
+        6716.223007116832,
+        -2
+      ],
+      "scale": [
+        0.5409025157175189,
+        0.5409025157175189,
+        0.5409025157175189
+      ],
+      "yaw": 164.87754172557797,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        4044.26429253268,
+        7263.407044570689,
+        -2
+      ],
+      "scale": [
+        0.4752784882884548,
+        0.4752784882884548,
+        0.4752784882884548
+      ],
+      "yaw": 41.47338807535325,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        5150,
+        7650,
+        -3
+      ],
+      "scale": [
+        0.8,
+        0.75,
+        0.9
+      ],
+      "yaw": 176.23016299263296,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_WallRuin",
+      "material": "Concrete",
+      "position": [
+        -10900,
+        -1800,
+        0
+      ],
+      "scale": [
+        1.1,
+        0.9,
+        1.0899999999999999
+      ],
+      "yaw": -3.412450197519046,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_Rebar",
+      "material": "Rust",
+      "position": [
+        -10790,
+        -1800,
+        110
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "yaw": 276.26380494923075,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -10820,
+        -1960,
+        -5
+      ],
+      "scale": [
+        1.2,
+        1.1,
+        0.7
+      ],
+      "yaw": 324.8026958788072,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -10484.496874877763,
+        -2102.419930615683,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 36.881218821799926,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11447.134522354034,
+        -1569.69183877981,
+        -2
+      ],
+      "scale": [
+        0.468142271004542,
+        0.468142271004542,
+        0.468142271004542
+      ],
+      "yaw": 35.384138581044795,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11752.164771969841,
+        -2515.259701805754,
+        -2
+      ],
+      "scale": [
+        0.6483596386302238,
+        0.6483596386302238,
+        0.6483596386302238
+      ],
+      "yaw": 286.52266239413984,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10475.4939883207,
+        -1350.9821870915903,
+        -2
+      ],
+      "scale": [
+        0.416944757695223,
+        0.416944757695223,
+        0.416944757695223
+      ],
+      "yaw": 137.86630677265487,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -9575.680740132866,
+        -1417.1746949362105,
+        -2
+      ],
+      "scale": [
+        0.7581635532829555,
+        0.7581635532829555,
+        0.7581635532829555
+      ],
+      "yaw": 126.84806199566655,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10619.220074868674,
+        -2366.420866527679,
+        -2
+      ],
+      "scale": [
+        0.5505653886769534,
+        0.5505653886769534,
+        0.5505653886769534
+      ],
+      "yaw": 155.1155525362743,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -9820.047085911354,
+        -2605.9149975874793,
+        -2
+      ],
+      "scale": [
+        0.581337355343068,
+        0.581337355343068,
+        0.581337355343068
+      ],
+      "yaw": 127.74206535764607,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -11491.933052131992,
+        -1923.962912812287,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 273.13563367491656,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -9712.522803308668,
+        -1820.3173276864145,
+        -2
+      ],
+      "scale": [
+        0.493192778092495,
+        0.493192778092495,
+        0.493192778092495
+      ],
+      "yaw": 152.40230470036076,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10590.584692617422,
+        -2432.6723851368215,
+        -2
+      ],
+      "scale": [
+        0.5804119388261918,
+        0.5804119388261918,
+        0.5804119388261918
+      ],
+      "yaw": 141.34670388604698,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11319.236038663175,
+        -1062.8779889773377,
+        -2
+      ],
+      "scale": [
+        0.5617425656229607,
+        0.5617425656229607,
+        0.5617425656229607
+      ],
+      "yaw": 210.77348968671285,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10227.266285858042,
+        -930.0907913040464,
+        -2
+      ],
+      "scale": [
+        0.4239174239822683,
+        0.4239174239822683,
+        0.4239174239822683
+      ],
+      "yaw": 252.86827988578298,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -10351.375870441023,
+        -2623.11878624214,
+        -2
+      ],
+      "scale": [
+        0.769112802583012,
+        0.769112802583012,
+        0.769112802583012
+      ],
+      "yaw": 349.6065147633886,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11411.531517811967,
+        -2182.4253688421304,
+        -2
+      ],
+      "scale": [
+        0.43336608348599454,
+        0.43336608348599454,
+        0.43336608348599454
+      ],
+      "yaw": 23.795003108802945,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -10280.05471447491,
+        -942.0629495786369,
+        -3
+      ],
+      "scale": [
+        0.65,
+        0.6,
+        0.55
+      ],
+      "yaw": 137.46438057370935,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10215.009604508406,
+        -2265.010815168668,
+        -2
+      ],
+      "scale": [
+        0.7326464947891975,
+        0.7326464947891975,
+        0.7326464947891975
+      ],
+      "yaw": 62.472249453562284,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -11078.561026223158,
+        -582.7631792032014,
+        -2
+      ],
+      "scale": [
+        0.439009191705937,
+        0.439009191705937,
+        0.439009191705937
+      ],
+      "yaw": 332.90273478175976,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11992.522456618239,
+        -1254.1791683134827,
+        -2
+      ],
+      "scale": [
+        0.5213921827752842,
+        0.5213921827752842,
+        0.5213921827752842
+      ],
+      "yaw": 23.7730262362761,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -11815.440417932381,
+        -1179.3482152911236,
+        -2
+      ],
+      "scale": [
+        0.555460122885675,
+        0.555460122885675,
+        0.555460122885675
+      ],
+      "yaw": 285.4882674560765,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -10209.633279707574,
+        -685.0828997790404,
+        -2
+      ],
+      "scale": [
+        0.7771787925384067,
+        0.7771787925384067,
+        0.7771787925384067
+      ],
+      "yaw": 297.8769271598377,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Birch",
+      "material": "Bark",
+      "position": [
+        -10250,
+        -1250,
+        -3
+      ],
+      "scale": [
+        0.8,
+        0.75,
+        0.9
+      ],
+      "yaw": 354.29266349362433,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 35000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -1804.2671690805184,
+        -2300,
+        0
+      ],
+      "scale": [
+        0.38471528083937184,
+        0.38471528083937184,
+        0.38471528083937184
+      ],
+      "yaw": 111.88931734078061,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -1802.134965977875,
+        -2185,
+        0
+      ],
+      "scale": [
+        0.4819573040235663,
+        0.4819573040235663,
+        0.4819573040235663
+      ],
+      "yaw": 146.10330544474328,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -1875.0759834890796,
+        -2070,
+        0
+      ],
+      "scale": [
+        0.42423128563220175,
+        0.42423128563220175,
+        0.42423128563220175
+      ],
+      "yaw": 185.9735541448362,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -1864.5007917468906,
+        -1955,
+        0
+      ],
+      "scale": [
+        0.4834148739886127,
+        0.4834148739886127,
+        0.4834148739886127
+      ],
+      "yaw": 349.1694669303753,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        -1826.973801747213,
+        -1840,
+        0
+      ],
+      "scale": [
+        0.45454734325214685,
+        0.45454734325214685,
+        0.45454734325214685
+      ],
+      "yaw": 102.91892302000744,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        1948.7047559978057,
+        -2300,
+        0
+      ],
+      "scale": [
+        0.3656830144776818,
+        0.3656830144776818,
+        0.3656830144776818
+      ],
+      "yaw": 345.8680674321959,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        1892.1703591820815,
+        -1955,
+        0
+      ],
+      "scale": [
+        0.41880043454820226,
+        0.41880043454820226,
+        0.41880043454820226
+      ],
+      "yaw": 310.0828365257333,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7556.742867163533,
+        -3226.908094097694,
+        -3
+      ],
+      "scale": [
+        0.5692765244488728,
+        0.5692765244488728,
+        0.5692765244488728
+      ],
+      "yaw": 201.0164624829022,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8219.67534150949,
+        -3271.85553631887,
+        -3
+      ],
+      "scale": [
+        0.4945704470218091,
+        0.4945704470218091,
+        0.4945704470218091
+      ],
+      "yaw": 92.96880558596736,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8034.880391079045,
+        -3651.903622964778,
+        -3
+      ],
+      "scale": [
+        0.4844592437282996,
+        0.4844592437282996,
+        0.4844592437282996
+      ],
+      "yaw": 33.75475502451022,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6585.093262564418,
+        -2964.449043992733,
+        -3
+      ],
+      "scale": [
+        0.7189589000805,
+        0.7189589000805,
+        0.7189589000805
+      ],
+      "yaw": 324.4184978476314,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8007.371072274938,
+        -3265.0216826464593,
+        -3
+      ],
+      "scale": [
+        0.5877483288631427,
+        0.5877483288631427,
+        0.5877483288631427
+      ],
+      "yaw": 29.268828089090874,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7132.709272398201,
+        -3629.199674232976,
+        -3
+      ],
+      "scale": [
+        0.7159680804068207,
+        0.7159680804068207,
+        0.7159680804068207
+      ],
+      "yaw": 61.13072875770606,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6920.151071706292,
+        -2806.7737278421137,
+        -3
+      ],
+      "scale": [
+        0.496911961199284,
+        0.496911961199284,
+        0.496911961199284
+      ],
+      "yaw": 133.17487048322172,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7628.122473463994,
+        -3206.112811473935,
+        -3
+      ],
+      "scale": [
+        0.7181349843584689,
+        0.7181349843584689,
+        0.7181349843584689
+      ],
+      "yaw": 359.3785754586497,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7131.169957881029,
+        -3478.963398699445,
+        -3
+      ],
+      "scale": [
+        0.6290753848961571,
+        0.6290753848961571,
+        0.6290753848961571
+      ],
+      "yaw": 254.011642798018,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7054.051106284912,
+        -2930.447227395207,
+        -3
+      ],
+      "scale": [
+        0.405735584898441,
+        0.405735584898441,
+        0.405735584898441
+      ],
+      "yaw": 339.4245671371243,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7566.53456062817,
+        -3576.19041393605,
+        -3
+      ],
+      "scale": [
+        0.7310339873051976,
+        0.7310339873051976,
+        0.7310339873051976
+      ],
+      "yaw": 198.59571119113338,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6653.055939292264,
+        -3127.9523923373267,
+        -3
+      ],
+      "scale": [
+        0.40031221362750086,
+        0.40031221362750086,
+        0.40031221362750086
+      ],
+      "yaw": 260.671970815084,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8837.82223929499,
+        -2906.801540221253,
+        -3
+      ],
+      "scale": [
+        0.44846678386086625,
+        0.44846678386086625,
+        0.44846678386086625
+      ],
+      "yaw": 185.21578441636137,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6704.576335469816,
+        -3565.354408363049,
+        -3
+      ],
+      "scale": [
+        0.7452617047541356,
+        0.7452617047541356,
+        0.7452617047541356
+      ],
+      "yaw": 255.92187213292848,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7967.606985607201,
+        -3396.770462025661,
+        -3
+      ],
+      "scale": [
+        0.5772204956419218,
+        0.5772204956419218,
+        0.5772204956419218
+      ],
+      "yaw": 197.25651385824193,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7159.461492291406,
+        -2891.878260326223,
+        -3
+      ],
+      "scale": [
+        0.5767017605027968,
+        0.5767017605027968,
+        0.5767017605027968
+      ],
+      "yaw": 191.76908927287235,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7551.392729019247,
+        -3194.304763969734,
+        -3
+      ],
+      "scale": [
+        0.5445310827457759,
+        0.5445310827457759,
+        0.5445310827457759
+      ],
+      "yaw": 77.76133588429765,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8289.559429055405,
+        -2881.6452061044633,
+        -3
+      ],
+      "scale": [
+        0.5390244440718326,
+        0.5390244440718326,
+        0.5390244440718326
+      ],
+      "yaw": 162.67330187968574,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8631.470399717959,
+        -2845.9347571670423,
+        -3
+      ],
+      "scale": [
+        0.6807077515604973,
+        0.6807077515604973,
+        0.6807077515604973
+      ],
+      "yaw": 40.81599898218605,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7962.685334616605,
+        -3585.533092995672,
+        -3
+      ],
+      "scale": [
+        0.5894874859314416,
+        0.5894874859314416,
+        0.5894874859314416
+      ],
+      "yaw": 195.87918992060918,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8513.835781165311,
+        -3675.853277064968,
+        -3
+      ],
+      "scale": [
+        0.5417134312974232,
+        0.5417134312974232,
+        0.5417134312974232
+      ],
+      "yaw": 130.71672995188354,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7306.465570727989,
+        -3539.3168874011812,
+        -3
+      ],
+      "scale": [
+        0.6836590964685549,
+        0.6836590964685549,
+        0.6836590964685549
+      ],
+      "yaw": 185.4562845429884,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7048.571395055381,
+        -3323.6606086960255,
+        -3
+      ],
+      "scale": [
+        0.7303879881492319,
+        0.7303879881492319,
+        0.7303879881492319
+      ],
+      "yaw": 312.4992513107267,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8541.809301352332,
+        -2912.4617747653247,
+        -3
+      ],
+      "scale": [
+        0.44929604956496155,
+        0.44929604956496155,
+        0.44929604956496155
+      ],
+      "yaw": 346.3093255065812,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8050.82077877448,
+        -3312.5726678547308,
+        -3
+      ],
+      "scale": [
+        0.5733819861853053,
+        0.5733819861853053,
+        0.5733819861853053
+      ],
+      "yaw": 31.465998375784704,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8904.965172037773,
+        -3045.8115804140016,
+        -3
+      ],
+      "scale": [
+        0.6978437045830975,
+        0.6978437045830975,
+        0.6978437045830975
+      ],
+      "yaw": 58.371447462107994,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7228.295629878081,
+        -3099.6214830130684,
+        -3
+      ],
+      "scale": [
+        0.6398322132662572,
+        0.6398322132662572,
+        0.6398322132662572
+      ],
+      "yaw": 194.31273353390657,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6989.146049813549,
+        -3000.6905244254954,
+        -3
+      ],
+      "scale": [
+        0.45586171050536933,
+        0.45586171050536933,
+        0.45586171050536933
+      ],
+      "yaw": 183.14956006506574,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        6743.767168457971,
+        -2958.120131638858,
+        -3
+      ],
+      "scale": [
+        0.5323173005316792,
+        0.5323173005316792,
+        0.5323173005316792
+      ],
+      "yaw": 251.5908356315616,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7167.446699561367,
+        -3724.373196783306,
+        -3
+      ],
+      "scale": [
+        0.7297712504542315,
+        0.7297712504542315,
+        0.7297712504542315
+      ],
+      "yaw": 4.896214475853697,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7046.381988655115,
+        -2959.8950603326566,
+        -3
+      ],
+      "scale": [
+        0.5386617618244607,
+        0.5386617618244607,
+        0.5386617618244607
+      ],
+      "yaw": 9.96577661774313,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8761.58862905085,
+        -3534.287003403595,
+        -3
+      ],
+      "scale": [
+        0.7123053454150334,
+        0.7123053454150334,
+        0.7123053454150334
+      ],
+      "yaw": 227.40764377214046,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7681.949880098147,
+        -3325.776815463692,
+        -3
+      ],
+      "scale": [
+        0.6272043395571435,
+        0.6272043395571435,
+        0.6272043395571435
+      ],
+      "yaw": 235.1047197248569,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7797.828758163838,
+        -3723.6805338195727,
+        -3
+      ],
+      "scale": [
+        0.40333833082455,
+        0.40333833082455,
+        0.40333833082455
+      ],
+      "yaw": 192.94517605072434,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8399.183439039763,
+        -3748.4935034558675,
+        -3
+      ],
+      "scale": [
+        0.6916196240747892,
+        0.6916196240747892,
+        0.6916196240747892
+      ],
+      "yaw": 46.46691608901006,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        6772.53200836577,
+        -3016.148935156422,
+        -3
+      ],
+      "scale": [
+        0.5226969500229586,
+        0.5226969500229586,
+        0.5226969500229586
+      ],
+      "yaw": 190.96286006095696,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7628.289671168266,
+        -3042.2590787648205,
+        -3
+      ],
+      "scale": [
+        0.42844544900585685,
+        0.42844544900585685,
+        0.42844544900585685
+      ],
+      "yaw": 329.21046888179364,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8967.682031784243,
+        -3534.257179164901,
+        -3
+      ],
+      "scale": [
+        0.4249569344267334,
+        0.4249569344267334,
+        0.4249569344267334
+      ],
+      "yaw": 294.5697252752095,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7691.797016116366,
+        -2759.0853900109632,
+        -3
+      ],
+      "scale": [
+        0.6793106068338146,
+        0.6793106068338146,
+        0.6793106068338146
+      ],
+      "yaw": 80.83783329996216,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6716.941558714379,
+        -3084.8275372748944,
+        -3
+      ],
+      "scale": [
+        0.4986939011362084,
+        0.4986939011362084,
+        0.4986939011362084
+      ],
+      "yaw": 270.5769560318998,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6947.758508288576,
+        -3519.0745416065697,
+        -3
+      ],
+      "scale": [
+        0.5648275087178549,
+        0.5648275087178549,
+        0.5648275087178549
+      ],
+      "yaw": 113.2030418053669,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7859.893505433072,
+        -2994.304918899852,
+        -3
+      ],
+      "scale": [
+        0.531839814975137,
+        0.531839814975137,
+        0.531839814975137
+      ],
+      "yaw": 183.86747930877203,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        6537.637894818992,
+        -2976.650724622996,
+        -3
+      ],
+      "scale": [
+        0.6123054274807339,
+        0.6123054274807339,
+        0.6123054274807339
+      ],
+      "yaw": 38.35447463593526,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7676.022452704306,
+        -3560.0024404176706,
+        -3
+      ],
+      "scale": [
+        0.6142872268478671,
+        0.6142872268478671,
+        0.6142872268478671
+      ],
+      "yaw": 205.559816093366,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7155.983786857676,
+        -3003.730505098981,
+        -3
+      ],
+      "scale": [
+        0.4133878597454167,
+        0.4133878597454167,
+        0.4133878597454167
+      ],
+      "yaw": 10.972141945171874,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7560.356162134639,
+        -3097.9918051469076,
+        -3
+      ],
+      "scale": [
+        0.746061006824642,
+        0.746061006824642,
+        0.746061006824642
+      ],
+      "yaw": 74.7003219321378,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7055.814406525121,
+        -2951.647839489531,
+        -3
+      ],
+      "scale": [
+        0.7152302078110306,
+        0.7152302078110306,
+        0.7152302078110306
+      ],
+      "yaw": 332.96663345812146,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        8511.139386095949,
+        -3626.7020910392866,
+        -3
+      ],
+      "scale": [
+        0.634908296215912,
+        0.634908296215912,
+        0.634908296215912
+      ],
+      "yaw": 229.37315370787334,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7095.359441714035,
+        -3322.4458904256144,
+        -3
+      ],
+      "scale": [
+        0.5778731650295323,
+        0.5778731650295323,
+        0.5778731650295323
+      ],
+      "yaw": 250.56905888916296,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Fern",
+      "material": "Grass",
+      "position": [
+        7478.752311765865,
+        -3391.6038130173392,
+        -3
+      ],
+      "scale": [
+        0.44188204221558036,
+        0.44188204221558036,
+        0.44188204221558036
+      ],
+      "yaw": 281.63897257732856,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_FallenLog",
+      "material": "Bark",
+      "position": [
+        7350,
+        -3400,
+        -5
+      ],
+      "scale": [
+        0.65,
+        0.65,
+        0.65
+      ],
+      "yaw": -14.642730442671539,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_FallenLog",
+      "material": "Bark",
+      "position": [
+        8500,
+        -3500,
+        -5
+      ],
+      "scale": [
+        0.65,
+        0.65,
+        0.65
+      ],
+      "yaw": -9.610498419056782,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -350,
+        1190,
+        -4
+      ],
+      "scale": [
+        0.6401375902296507,
+        0.6401375902296507,
+        0.44809631316075543
+      ],
+      "yaw": 292.30798641377237,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -100,
+        1340,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 244.6246801478394,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -12350,
+        -2810,
+        -4
+      ],
+      "scale": [
+        0.5747581183324852,
+        0.5747581183324852,
+        0.40233068283273965
+      ],
+      "yaw": 263.82850658798566,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -12100,
+        -2660,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 264.5463585708286,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -11850,
+        12690,
+        -4
+      ],
+      "scale": [
+        0.5609363043388018,
+        0.5609363043388018,
+        0.3926554130371612
+      ],
+      "yaw": 316.32315489770326,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -11600,
+        12840,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 196.39840600733507,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        12150,
+        -7810,
+        -4
+      ],
+      "scale": [
+        0.5885435246401596,
+        0.5885435246401596,
+        0.41198046724811166
+      ],
+      "yaw": 251.49673971523947,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        12400,
+        -7660,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 202.90119581651336,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -12850,
+        -10310,
+        -4
+      ],
+      "scale": [
+        0.7312160167391045,
+        0.7312160167391045,
+        0.5118512117173731
+      ],
+      "yaw": 172.44276341532827,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -12600,
+        -10160,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 329.98418457240604,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        650,
+        -7610,
+        -4
+      ],
+      "scale": [
+        0.7998565345598438,
+        0.7998565345598438,
+        0.5598995741918906
+      ],
+      "yaw": 157.29679501860997,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        900,
+        -7460,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 245.30284263540628,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        7650,
+        -7610,
+        -4
+      ],
+      "scale": [
+        0.7824803998693788,
+        0.7824803998693788,
+        0.5477362799085651
+      ],
+      "yaw": 229.79702777754343,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7900,
+        -7460,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 135.99629916284078,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -6350,
+        -610,
+        -4
+      ],
+      "scale": [
+        0.542878088141175,
+        0.542878088141175,
+        0.3800146616988225
+      ],
+      "yaw": 29.856350626569366,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -6100,
+        -460,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 177.4326733365422,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        7650,
+        -610,
+        -4
+      ],
+      "scale": [
+        0.7719353273465106,
+        0.7719353273465106,
+        0.5403547291425573
+      ],
+      "yaw": 111.3518914322259,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7900,
+        -460,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 337.8795449989143,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -6350,
+        6390,
+        -4
+      ],
+      "scale": [
+        0.6650831270420394,
+        0.6650831270420394,
+        0.4655581889294276
+      ],
+      "yaw": 155.66567647878787,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -6100,
+        6540,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 307.9225871290546,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        650,
+        6390,
+        -4
+      ],
+      "scale": [
+        0.5923245274028135,
+        0.5923245274028135,
+        0.4146271691819694
+      ],
+      "yaw": 43.54442732273421,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        900,
+        6540,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 100.11309664224052,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        7650,
+        6390,
+        -4
+      ],
+      "scale": [
+        0.6114066723471736,
+        0.6114066723471736,
+        0.4279846706430215
+      ],
+      "yaw": 15.054333895255665,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        7900,
+        6540,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 143.33236349112823,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -3150,
+        440,
+        -4
+      ],
+      "scale": [
+        0.5414914734510511,
+        0.5414914734510511,
+        0.3790440314157357
+      ],
+      "yaw": 271.0332658270738,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -2900,
+        590,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 171.0578427600946,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        4650,
+        1540,
+        -4
+      ],
+      "scale": [
+        0.5519933870178677,
+        0.5519933870178677,
+        0.38639537091250736
+      ],
+      "yaw": 248.6348139305816,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        4900,
+        1690,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 229.7853160952537,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -7250,
+        -5060,
+        -4
+      ],
+      "scale": [
+        0.6935212249936713,
+        0.6935212249936713,
+        0.4854648574955699
+      ],
+      "yaw": 121.09413385698105,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        -2550,
+        7940,
+        -4
+      ],
+      "scale": [
+        0.7153758859168514,
+        0.7153758859168514,
+        0.5007631201417959
+      ],
+      "yaw": 270.31305553726736,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        -2300,
+        8090,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 216.03009535631023,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    },
+    {
+      "mesh": "SM_Rubble",
+      "material": "Concrete",
+      "position": [
+        6450,
+        12940,
+        -4
+      ],
+      "scale": [
+        0.5685131621662223,
+        0.5685131621662223,
+        0.39795921351635555
+      ],
+      "yaw": 97.88620786201975,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 24000
+    },
+    {
+      "mesh": "SM_Shrub",
+      "material": "Grass",
+      "position": [
+        6700,
+        13090,
+        -3
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.6
+      ],
+      "yaw": 333.2383721787915,
+      "decor": true,
+      "collision": false,
+      "cull_distance": 14000
+    }
+  ]
+}

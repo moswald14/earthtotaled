@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#151917"><meta name="description" content="EARTHtotaled — a solo survivor story. Scavenge the ruins. Follow the signal. Decide what grows next.">
+<title>EARTHtotaled — The Last Signal</title>
+<link rel="stylesheet" href="../dist/style.css?v=4">
+<link rel="stylesheet" href="../dist/skill-web.css?v=4">
+</head>
+<body>
+<canvas id="world" aria-label="First-person view of the ruins"></canvas>
+<div id="grain"></div><div id="vignette"></div><div id="damage"></div>
+<div id="loading"><span class="eyebrow">SURFACE RECONNECTION</span><strong>EARTH<span>totaled</span></strong><p id="loadMessage">Tuning to the last frequency…</p></div>
+<main id="menu" class="screen hidden">
+  <header class="menu-header"><div class="brand-small">E<span>t</span><i></i></div><span>SINGLE PLAYER · STORY FPS</span><div class="menu-tools"><button id="fullscreenMenu" class="quiet" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button><button id="soundMenu" class="quiet" type="button">SOUND ON</button></div></header>
+  <section class="hero">
+    <div class="eyebrow"><i class="live-dot"></i> EPISODE 01 / THE LAST SIGNAL</div>
+    <h1>EARTH<span>totaled</span><b>™</b></h1>
+    <div class="hero-line"></div>
+    <h2>The world ended.<br>You didn’t.</h2>
+    <p class="intro">Thirty years after the sky burned, your bunker opens.<br>A dead frequency knows your name. The living need water.<br>Beyond the city: ash forests, abandoned homes, and things still alive.</p>
+    <div class="start-buttons"><button id="start" class="primary"><span>ENTER THE RUINS</span><span>↗</span></button><button id="continue" class="secondary hidden">CONTINUE STORY <span>→</span></button></div>
+    <div class="menu-options"><label>EXPERIENCE <select id="difficulty"><option value="wanderer">Wanderer — story first</option><option value="survivor" selected>Survivor — balanced</option><option value="desolate">Desolate — unforgiving</option></select></label><button id="howTo" class="text-button">FIELD MANUAL ↗</button></div>
+  </section>
+  <aside class="world-caption"><div class="bracket">⌖</div><span>NEW CARTHAGE<br>EXCLUSION ZONE 09</span><em>34° 03′ N &nbsp; 118° 15′ W</em></aside>
+  <footer class="menu-footer"><span><b>01</b> &nbsp; ONE SURVIVOR. ONE LAST CHANCE.</span><span>EXPLORE / CLIMB / SURVIVE</span><span class="version">WILDERNESS UPDATE · v4.0</span></footer>
+</main>
+<section id="hud" class="hidden" aria-label="Game status">
+  <div class="hud-top"><div class="mission"><div class="eyebrow" id="chapter">01 / THE WAKE</div><strong id="objective">Find the signal at the transit station</strong><span id="objectiveSub">Recover the three HELIOS cores.</span><span id="sideObjective" class="side-objective"></span></div><div class="location"><span id="district">THE SHELTER</span><small id="heading">N · 000</small></div><div class="radar-wrap"><canvas id="radar" width="150" height="150"></canvas><span id="coreCount">HELIOS CORES <b>0 / 3</b></span></div></div>
+  <div id="markers"></div><div id="crosshair"><i></i><i></i><i></i><i></i><b></b></div><div id="hitmarker">×</div>
+  <div id="banner" class="hidden"><small id="bannerLabel">NEW CARTHAGE</small><strong id="bannerText">THE WAKE</strong></div>
+  <div id="toast" aria-live="polite"></div>
+  <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
+  <div id="subtitle" class="hidden"><small>SUIT RECORDER</small><p></p></div>
+  <div class="hud-bottom"><div class="vitals"><div class="health-line"><span>+</span><b id="health">100</b><small>VITALS</small><em id="armor">40 ARMOR</em></div><div class="health-track"><i id="healthBar"></i></div><div id="waterReadout" class="water-readout"><div><span>◈ HYDRATION</span><b id="hydration">100%</b><span><kbd>H</kbd> <b id="water">3</b> BOTTLES</span></div><div class="hydration-track"><i id="hydrationBar"></i></div><small id="waterNote">WATER IS LIFE</small></div><div class="supplies"><span><kbd>F</kbd> MEDKIT <b id="meds">2</b></span><span>◇ <b id="scrap">0</b> SCRAP</span><span class="gold-count">◈ <b id="gold">0</b> GOLD</span></div></div><div class="control-hint"><div class="hud-actions"><button id="perkButton" class="perk-button">K · SKILL WEB / 2 POINTS</button><button id="fullscreenHUD" class="fullscreen-button" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button></div><small id="levelReadout">LEVEL 1 · 0 / 100 XP</small><span class="control-keys"><kbd>J</kbd> JOURNAL &nbsp; <kbd>TAB</kbd> MAP &nbsp; <kbd>ESC</kbd> PAUSE</span></div><div class="weapon-hud"><span id="rarity">STANDARD ISSUE</span><strong id="weaponName">RUST-9 CARBINE</strong><div class="ammo"><b id="ammo">24</b><span>/ <i id="reserve">120</i></span><small id="reloadHint">R RELOAD</small></div><div class="weapon-slots"><button id="slot0" class="weapon-slot">1 CARBINE</button><button id="slot1" class="weapon-slot">2 LOCKED</button><button id="slot2" class="weapon-slot">3 LOCKED</button><button id="slot3" class="weapon-slot">4 LOCKED</button><button id="slot4" class="weapon-slot">5 LOCKED</button><button id="slot5" class="weapon-slot">6 LOCKED</button></div></div></div>
+</section>
+<button id="captureMouse" class="capture-mouse hidden" type="button" aria-label="Resume mouse look">CLICK TO RESUME MOUSE LOOK</button>
+<section id="overlay" class="overlay hidden" aria-modal="true" role="dialog"><div class="panel" id="panel"></div></section>
+<div id="touchControls" class="hidden"><div id="joystick"><i></i></div><div id="lookZone"></div><button id="touchFire">FIRE</button><button id="touchUse">E</button><button id="touchReload">R</button><button id="touchHeal">+</button><button id="touchDrink">H₂O</button><button id="touchPause">Ⅱ</button></div>
+<script type="module" src="qa-runtime.js?v=4"></script>
+</body></html>
