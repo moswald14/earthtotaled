@@ -18,7 +18,25 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "HAL/FileManager.h"
 #include "HAL/IConsoleManager.h"
+
+namespace
+{
+    // Shipping builds strip UE_LOG. Keep opt-in input evidence in the QA user directory.
+    void WriteInputAudit(const FString& Line)
+    {
+        static int32 Lines=0;
+        if(Lines>=4096) return;
+        const FString Directory=FPaths::ProjectSavedDir();
+        IFileManager::Get().MakeDirectory(*Directory,true);
+        FFileHelper::SaveStringToFile(Line+TEXT("\n"),*(Directory/TEXT("input-verification.txt")),
+            FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,&IFileManager::Get(),FILEWRITE_Append);
+        ++Lines;
+    }
+}
 
 AETCharacter::AETCharacter()
 {
@@ -83,6 +101,7 @@ void AETCharacter::Turn(float V) {
         if(InputAudit&&!FMath::IsNearlyZero(V)) {
             auto PC=Cast<APlayerController>(Controller);
             UE_LOG(LogTemp,Display,TEXT("ET_MOUSE axis=%.3f yaw=%.2f left=%d right=%d ignored=%d cursor=%d"),V,GetControlRotation().Yaw,PC?PC->IsInputKeyDown(EKeys::LeftMouseButton):0,PC?PC->IsInputKeyDown(EKeys::RightMouseButton):0,PC?PC->IsLookInputIgnored():1,PC?PC->bShowMouseCursor:1);
+            WriteInputAudit(FString::Printf(TEXT("ET_MOUSE axis=%.3f yaw=%.2f left=%d right=%d ignored=%d cursor=%d"),V,GetControlRotation().Yaw,PC?PC->IsInputKeyDown(EKeys::LeftMouseButton):0,PC?PC->IsInputKeyDown(EKeys::RightMouseButton):0,PC?PC->IsLookInputIgnored():1,PC?PC->bShowMouseCursor:1));
         }
     }
 }
@@ -223,6 +242,7 @@ void AETCharacter::SetMouseMode(bool Menu)
         if(FSlateApplication::IsInitialized()) FSlateApplication::Get().SetAllUserFocusToGameViewport();
     }
     if(InputAudit) UE_LOG(LogTemp,Display,TEXT("ET_CAPTURE panel=%s menu=%d ignored=%d cursor=%d"),*Panel,Menu,PC->IsLookInputIgnored(),PC->bShowMouseCursor);
+    if(InputAudit) WriteInputAudit(FString::Printf(TEXT("ET_CAPTURE panel=%s menu=%d ignored=%d cursor=%d fullscreen=%d"),*Panel,Menu,PC->IsLookInputIgnored(),PC->bShowMouseCursor,UGameUserSettings::GetGameUserSettings()?int32(UGameUserSettings::GetGameUserSettings()->GetFullscreenMode()):-1));
 }
 void AETCharacter::OpenPanel(const FString& Kind,const FString& Title,const FString& Body)
 {

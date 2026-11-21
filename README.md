@@ -2,7 +2,7 @@
 
 A solo survival shoot-and-loot game about Mara Venn following the last signal through endless forests and ruined cities. Water keeps you alive. Candybar wrappers are the currency.
 
-The current game is the **Unreal Windows edition, Weather and Music 1.4**. It has enterable buildings, human settlements, quests, a friendly robot faction, ten weapons, a connected skill web, day/night survival, changing weather, and three original music themes.
+The current game is the **Unreal Windows edition, Weather and Music 1.4.1**. It has enterable buildings, human settlements, quests, a friendly robot faction, ten weapons, a connected skill web, day/night survival, changing weather, and three original music themes.
 
 - [Download the playable Windows release on itch.io](https://coralsorta.itch.io/earthtotaled)
 - [Unreal source, build instructions, and controls](work/earthtotaled-unreal/README.md)

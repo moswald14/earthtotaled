@@ -1,5 +1,21 @@
 # EARTHtotaled release record
 
+## Unreal 1.4.1 — Fullscreen rebuild
+
+Published on November 21, 2026 (Eastern) at [coralsorta.itch.io/earthtotaled](https://coralsorta.itch.io/earthtotaled). This rebuild retains the Weather and Music game content and save format. The stable local executable path is unchanged, so existing game shortcuts keep working.
+
+Editor and Shipping compilation, cooking, staging, and archiving completed successfully with Unreal 5.8.4. Fresh verification passed 1,415 source/content checks and all 230 checks in the packaged executable. Those native checks cover capture restoration after repeated workbench, skill, contact, journal, pause, and inventory panels, along with game content and save roundtrips.
+
+An actual fullscreen session on the development PC checked workbench interaction and return, pause/resume, inventory return, F11 switching, and Alt-Tab/return. Mouse movement changed the camera yaw with both mouse buttons released, look input enabled, and the game cursor hidden. Five such samples were recorded by the new opt-in Shipping input audit. All tests used temporary QA data; the player's existing survivor remained byte-for-byte unchanged. This is not a clean-machine installation or long-session endurance test.
+
+The Windows archive contains 34 files matching the verified installed build, excluding saves, test logs, and debug symbols. The public page shows 1.4.1 as the current Windows download; 1.4.0 is retained but hidden, and the legacy browser download remains separate. Pricing and the existing AI disclosure were preserved. A fresh download through Chrome's public free-download flow matched the uploaded archive's size and SHA-256 exactly.
+
+Release archive: `EARTHtotaled-Unreal-Windows-v1.4.1.zip` (407,098,669 bytes).
+
+SHA-256: `e0e0d6588ff36a98b1398c478603b7716a4fb60958ee676c6c69d6c0bd43d150`.
+
+Shipping executable SHA-256: `48307710478a7fff880c8817413f75579cc4c3b62db15412bcd3dbd13dec8b71`.
+
 ## Source maintenance — November 21, 2026
 
 The complete source export is now `EARTHtotaled-complete-source.zip`. It preserves both project folders, shared documentation, original art/audio, and the sibling browser data needed by the Unreal design-export tool. It includes a file-hash manifest and excludes local work logs, player saves, compiled builds, and caches. The older Unreal-only source ZIP is obsolete.

@@ -22,6 +22,10 @@ python Tools/check-project.py
 
 `Content` compiles the editor module, imports original source meshes, textures and sounds, creates the map, and records success only after Unreal finishes. `Package` builds a Windows game in `outputs/EARTHtotaled-Unreal-Windows`. Keep all packaged files together; pin the packaged game executable after opening it. Do not replace the existing executable with an editor binary.
 
+To check a separate candidate build, run `./Tools/verify-packaged.ps1 -GameRoot <candidate-Windows-folder> -QaRoot <temporary-QA-folder>`. It runs the packaged game with a transient survivor and an isolated user directory. `python Tools/package-release.py --game-root <candidate-Windows-folder>` can archive that candidate after verification.
+
+For an on-screen mouse check, launch the Shipping executable with `-ETReview=bench -ETInputAudit -UserDir="<temporary-QA-folder>"`. This opens a workbench in a temporary session that does not load or save the player's survivor. The opt-in `Saved/input-verification.txt` records capture state and mouse axes in Shipping builds, where ordinary diagnostic logging is stripped. Move the mouse without holding a button after returning from menus and compare the recorded camera yaw. The audit is off during normal play and bounded to 4,096 entries.
+
 ## Controls
 
 WASD move; mouse look; Shift sprint; Space jump; left mouse fire; right mouse aim; R reload; 1–0 or mouse wheel switch owned weapons; Tab pack/arsenal; E interact; H drink water; Q medkit; F flashlight; K skill web; J journal; Escape pause/resume; F11 fullscreen/windowed.
