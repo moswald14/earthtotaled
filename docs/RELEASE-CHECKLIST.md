@@ -2,6 +2,7 @@
 
 The Windows Unreal game is already published through version 1.4. This checklist carries the remaining full-release work into the same project rather than treating the earlier migration plan as a current blocker. Unchecked items are future verification gates, not new implementation commitments.
 
+- [x] Export the complete source layout and check a fresh extraction. Verified November 21, 2026: all 327 source-file hashes and archive contents; legacy standalone build and 64 gameplay plus 18 wilderness checks; sibling design-data export; 1,415 Unreal content checks; six weather/music audio checks. These are source checks, not a clean Unreal compile or installation test.
 - [ ] Play the entire story from a fresh survivor through the irrigation ending.
 - [ ] Play the warning ending separately and verify continued exploration after both endings.
 - [ ] Test installation on a clean Windows PC, fullscreen/mouse behavior, and taskbar launching.

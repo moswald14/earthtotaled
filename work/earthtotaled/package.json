@@ -1,1 +1,1 @@
-{"name":"earthtotaled","version":"4.1.0","private":true,"type":"module","scripts":{"build":"node build.mjs","build:itch":"node build-itch.mjs","test":"node build.mjs && node test.mjs ../../outputs/EARTHtotaled.html && node wilderness-check.mjs"}}
+{"name":"earthtotaled","version":"4.1.0","private":true,"type":"module","scripts":{"build":"node build.mjs","build:itch":"node build-itch.mjs","test":"node build.mjs && node test.mjs && node wilderness-check.mjs"}}

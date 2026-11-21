@@ -1,5 +1,15 @@
 # EARTHtotaled release record
 
+## Source maintenance — November 21, 2026
+
+The complete source export is now `EARTHtotaled-complete-source.zip`. It preserves both project folders, shared documentation, original art/audio, and the sibling browser data needed by the Unreal design-export tool. It includes a file-hash manifest and excludes local work logs, player saves, compiled builds, and caches. The older Unreal-only source ZIP is obsolete.
+
+The legacy `npm test` command now checks the standalone HTML it just built. Its former output path failed in a fresh extraction and could read an unrelated old build in an existing workspace.
+
+Validation used a new extraction with Node.js 24.22.2 and Python 3.15.0: all 327 source files matched their manifest hashes and the checkout; the standalone build and 64 gameplay plus 18 wilderness checks passed; the design-data export reproduced the checked-in data apart from line endings; 1,415 Unreal content checks and six weather/music audio checks passed. The browser suite also passed in the original checkout.
+
+This source-maintenance update does not rebuild or republish the Windows game. Unreal compilation, cooking, rendered gameplay, installation, and the remaining full-release checks require separate verification.
+
 ## Unreal 1.4.0 — Weather and Music
 
 Published on November 16, 2026 (Eastern) at [coralsorta.itch.io/earthtotaled](https://coralsorta.itch.io/earthtotaled). This is a playable game in development, not a claim that every full-release milestone is complete.
