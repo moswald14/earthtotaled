@@ -54,8 +54,8 @@ void AETWorld::UpdateVisibility(FVector P)
     auto Apply=[&](AActor* A) {
         if(!IsValid(A)) return;
         const bool Near=FVector::DistSquared2D(A->GetActorLocation(),P)<FMath::Square(Distance+5000);
-        A->SetActorHiddenInGame(!Near);
-        if(Cast<AETAgent>(A)) A->SetActorTickEnabled(Near&&FVector::DistSquared2D(A->GetActorLocation(),P)<FMath::Square(14000.f));
+        if(auto* Agent=Cast<AETAgent>(A)) Agent->UpdatePresence(P);
+        else A->SetActorHiddenInGame(!Near);
         TInlineComponentArray<UPrimitiveComponent*> Components(A);
         for(auto Component:Components) {
             float Cap=Component->ComponentHasTag(TEXT("ET_DetailNear"))?14000.f:Component->ComponentHasTag(TEXT("ET_DetailMid"))?24000.f:Component->ComponentHasTag(TEXT("ET_DetailFar"))?35000.f:Distance;
@@ -63,6 +63,7 @@ void AETWorld::UpdateVisibility(FVector P)
         }
     };
     for(auto A:StoryActors) Apply(A);
+    for(auto& It:LiveThreats) if(IsValid(It.Value)) It.Value->UpdatePresence(P);
     for(auto It:Regions) {
         auto R=It.Value;
         for(auto H:R->Instances) {

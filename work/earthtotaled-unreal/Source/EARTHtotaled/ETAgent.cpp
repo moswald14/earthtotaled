@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETGeology.h"
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -9,63 +10,212 @@ AETAgent::AETAgent()
 {
     PrimaryActorTick.bCanEverTick=true; Pivot=CreateDefaultSubobject<USceneComponent>(TEXT("Body")); SetRootComponent(Pivot);
 }
+bool AETAgent::IsMachine() const {return Kind==TEXT("robot")||Kind==TEXT("drone");}
+bool AETAgent::Awake() const {return World&&(FrontUnit||Kind==TEXT("deer")||World->IsNight());}
+void AETAgent::UpdatePresence(FVector Viewer)
+{
+    const double Distance=FVector::DistSquared2D(GetActorLocation(),Viewer);
+    const bool Present=Awake()&&Distance<FMath::Square(World->State->ViewDistance*100.+5000.);
+    SetActorHiddenInGame(!Present);
+    SetActorEnableCollision(Present);
+    SetActorTickEnabled(Present&&Distance<FMath::Square(14000.));
+}
+bool AETAgent::IsBrood() const {return Kind==TEXT("runner")||Kind==TEXT("spitter")||Kind==TEXT("bulwark")||Kind==TEXT("skimmer")||Kind==TEXT("hive");}
+void AETAgent::Snapshot(FETThreat& Record) const
+{
+    Record.Position=GetActorLocation();
+    Record.Health=Health;
+    Record.AttackCooldown=FMath::Max(0.f,AttackTime);
+}
 void AETAgent::Configure(AETWorld* InWorld,const FString& InId,const FString& InKind)
 {
     World=InWorld; Id=InId; Kind=InKind; Home=GetActorLocation();
     if(World->State->Consumed.Contains(Id)) {Destroy(); return;}
-    Health=World->State->AgentHealth.Contains(Id)?World->State->AgentHealth[Id]:(Kind==TEXT("robot")?120.f:Kind==TEXT("boar")?85.f:60.f);
+    if(Kind==TEXT("robot")) Health=120;
+    else if(Kind==TEXT("drone")) Health=30;
+    else if(Kind==TEXT("hive")) Health=480;
+    else if(Kind==TEXT("bulwark")) Health=168;
+    else if(Kind==TEXT("skimmer")) Health=62;
+    else if(Kind==TEXT("spitter")) Health=78;
+    else if(Kind==TEXT("runner")) Health=52;
+    else Health=Kind==TEXT("boar")?85:60;
+    if(const float* Saved=World->State->AgentHealth.Find(Id)) Health=*Saved;
     FString Asset=Kind==TEXT("robot")?TEXT("SM_Robot"):Kind==TEXT("deer")?TEXT("SM_Deer"):Kind==TEXT("boar")?TEXT("SM_Boar"):TEXT("SM_Wolf");
+    if(Kind==TEXT("drone")) Asset=TEXT("SM_ShardDrone");
+    if(Kind==TEXT("hive")) {Asset=TEXT("SM_BroodBulwark"); SetActorScale3D(FVector(2.5,2.7,2.4));}
+    if(Kind==TEXT("bulwark")) Asset=TEXT("SM_BroodBulwark");
+    if(Kind==TEXT("skimmer")) Asset=TEXT("SM_BroodSkimmer");
+    if(Kind==TEXT("runner")) Asset=TEXT("SM_BroodRunner");
+    if(Kind==TEXT("spitter")) Asset=TEXT("SM_BroodSpitter");
     auto M=NewObject<UStaticMeshComponent>(this); M->SetupAttachment(Pivot); M->RegisterComponent();
     M->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     World->DressMesh(M,Kind==TEXT("robot")?TEXT("Rust"):TEXT("Hide")); M->SetCollisionProfileName(TEXT("BlockAll")); Parts.Add(M);
     SetActorTickInterval(.04f);
+    UpdatePresence(UGameplayStatics::GetPlayerPawn(this,0)?UGameplayStatics::GetPlayerPawn(this,0)->GetActorLocation():World->State->Position);
+}
+void AETAgent::Fly(float D,AETCharacter* Player,AETAgent* Enemy)
+{
+    const bool Wing=Kind==TEXT("skimmer");
+    const bool Siege=World->RaidMember(Id);
+    const auto* Relay=Siege?World->State->Builds.Find(World->State->RaidCore):nullptr;
+    const FVector Here=GetActorLocation(),Target=Relay?Relay->Anchor+FVector(0,0,100):Enemy?Enemy->AimPoint():Player->GetActorLocation()+FVector(0,0,35);
+    const FVector To=Target-Here;
+    if(To.SizeSquared()>FMath::Square(8500.)) return;
+    const FVector Radial=To.GetSafeNormal2D();
+    const double Hand=Id.EndsWith(TEXT("1"))?-1.:1.;
+    const FVector Orbit(-Radial.Y*Hand,Radial.X*Hand,0);
+    const FVector Goal=Target-Radial*690+Orbit*(210+90*FMath::Sin(Phase))+FVector(0,0,95+65*FMath::Sin(Phase*2));
+    FVector Step=(Goal-Here).GetClampedToMaxSize((Siege&&World->State->RaidStage==1?65:Wing?610:485)*D);
+    FCollisionQueryParams Q(SCENE_QUERY_STAT(ETDrone),false,this);
+    FHitResult H;
+    if(GetWorld()->SweepSingleByChannel(H,Here,Here+Step,FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(22),Q)) {
+        Step=FVector::VectorPlaneProject(Step,H.ImpactNormal)+Orbit*80*D;
+        if(GetWorld()->SweepSingleByChannel(H,Here,Here+Step,FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(22),Q)) Step*=H.Time*.85;
+    }
+    SetActorLocation(Here+Step); SetActorRotation(FRotator(5*FMath::Sin(Phase*4),To.Rotation().Yaw,11*FMath::Sin(Phase*3)));
+    if((!Relay&&!Enemy&&Player->EnemyReacquireTime>0)||(Siege&&World->State->RaidStage==1)||AttackTime>0||To.SizeSquared()>FMath::Square(2700.)) return;
+    const bool Blocked=GetWorld()->LineTraceSingleByChannel(H,Here,Target,ECC_Visibility,Q);
+    if(Blocked&&H.GetActor()!=(Enemy?static_cast<AActor*>(Enemy):Player)&&!Cast<AETConstruction>(H.GetActor())) return;
+    if(auto* Bolt=GetWorld()->SpawnActor<AETEnemyBolt>(Here,To.Rotation())) Bolt->Launch(this,Target,Wing);
+    AttackTime=1.55f; World->Sound(TEXT("ShardChirp"),.25f,1.25f);
 }
 void AETAgent::Tick(float D)
 {
-    Super::Tick(D); if(!World||Health<=0) return;
+    Super::Tick(D); if(!Awake()||Health<=0) return;
     auto Player=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!Player||!Player->Panel.IsEmpty()) return;
+    TickImpact(D);
     Phase+=D; AttackTime-=D;
-    FVector P=GetActorLocation(), To=Player->GetActorLocation()-P; To.Z=0; float Distance=To.Size();
+    if(Kind==TEXT("hive")) {
+        if(AttackTime<=0&&FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.)) {
+            AttackTime=14;
+            for(int32 I=0;I<3;++I) {
+                const FString Guard=Id+FString::Printf(TEXT("/guard%d"),I);
+                if(World->State->Threats.Contains(Guard)) continue;
+                FVector Spot=GetActorLocation()+FRotator(0,I*120,0).Vector()*240;
+                Spot.Z=World->SurfaceHeight(Spot.X,Spot.Y)+9;
+                World->AddThreat(Guard,I==2&&World->ThreatTier()>=2?TEXT("skimmer"):TEXT("runner"),Spot); break;
+            }
+        }
+        return;
+    }
+    const bool Siege=World->RaidMember(Id);
+    PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
+    AETAgent* Enemy=Siege?nullptr:FindRival(D);
+    if(World->IsNight()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
+       (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
+    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&(World->AtRefuge||!World->IsNight())) return;
+    if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
+    AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
+    if(Siege) {
+        auto* Relay=World->LiveBuilds.FindRef(World->State->RaidCore).Get();
+        if(!Relay) return;
+        if(World->State->RaidStage==1||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())>FMath::Square(470.)) Target=Relay;
+    }
+    FVector P=GetActorLocation(), To=Target->GetActorLocation()-P; To.Z=0; float Distance=To.Size();
+    const bool Staging=Siege&&World->State->RaidStage==1;
+    if(Staging&&Distance<1750) return;
     if(Distance>14000) return;
     FCollisionQueryParams Params; Params.AddIgnoredActor(this); FHitResult Sight;
-    bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,P+FVector(0,0,120),Player->GetActorLocation(),ECC_Visibility,Params)||Sight.GetActor()==Player;
-    bool Robot=Kind==TEXT("robot"), Flee=Kind==TEXT("deer");
+    const bool Robot=Kind==TEXT("robot"), Flee=Kind==TEXT("deer"), Brood=IsBrood(), Spitter=Kind==TEXT("spitter");
+    const FVector Eye=P+FVector(0,0,Robot?120:65);
+    const FVector Aim=Enemy?Enemy->AimPoint():Target->GetActorLocation();
+    bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,Eye,Aim,ECC_Visibility,Params)||Sight.GetActor()==Target;
+    auto* Cover=Cast<AETConstruction>(Sight.GetActor());
+    const float Engage=Robot?6000:Brood?5200:Flee?2200:1800;
     FVector Direction;
-    if(Distance<(Flee?2200:Robot?4800:1500)&&Clear) Direction=To.GetSafeNormal()*(Flee?-1:1);
+    if(Distance<Engage&&(Clear||Managed||Cover||Enemy)) Direction=To.GetSafeNormal()*(Flee?-1:1);
     else Direction=(Home+FVector(FMath::Cos(Phase*.15f)*800,FMath::Sin(Phase*.15f)*800,0)-P).GetSafeNormal2D();
-    const float Speed=Robot?165:Flee?410:260;
-    if((Distance>(Robot?1800:160)||Flee)||!Clear)
+    if(Brood&&!Spitter&&Distance>460) Direction=(Direction+FVector(-Direction.Y,Direction.X,0)*.29*FMath::Sin(Phase+double(GetTypeHash(Id)%9))).GetSafeNormal2D();
+    const float Speed=Staging?55:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
+    if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
         FVector Next=P+Direction*Speed*D; Next.Z=World->Height(Next.X,Next.Y)+8;
+        const auto Rock=ETRock::Chunk(Next);
+        if(FrontUnit||World->Geology->ReplacesSurface({Rock.X,Rock.Y})) {
+            FHitResult Ground;
+            if(GetWorld()->LineTraceSingleByChannel(Ground,FVector(Next.X,Next.Y,P.Z+80),FVector(Next.X,Next.Y,P.Z-160),ECC_Visibility,Params)&&Ground.ImpactNormal.Z>.65)
+                Next.Z=Ground.ImpactPoint.Z+8;
+            else {
+                // Stay on the bank. If the survivor excavates directly underneath,
+                // settle onto the uppermost remaining floor instead of hovering.
+                if(World->Geology->IsOpen(P-FVector(0,0,28))&&GetWorld()->LineTraceSingleByChannel(Ground,P+FVector(0,0,16),P-FVector(0,0,6000),ECC_Visibility,Params))
+                    SetActorLocation(Ground.ImpactPoint+FVector(0,0,8));
+                Home=P-Direction*650;
+                return;
+            }
+        }
         FHitResult Obstacle;
         bool Blocked=GetWorld()->LineTraceSingleByChannel(Obstacle,P+FVector(0,0,65),Next+Direction*90+FVector(0,0,65),ECC_Visibility,Params);
         if(!Blocked&&FMath::Abs(Next.Z-P.Z)<90) SetActorLocation(Next);
-        else Home=P+FVector(-Direction.Y,Direction.X,0)*600;
+        else {
+            const float Hand=GetTypeHash(Id)%2?1.f:-1.f;
+            FVector Side=FVector(-Direction.Y,Direction.X,0)*Hand;
+            FVector Around=P+Side*Speed*D;
+            FHitResult Bank;
+            if(!GetWorld()->LineTraceTestByChannel(P+FVector(0,0,60),Around+Side*70+FVector(0,0,60),ECC_Visibility,Params)&&
+               GetWorld()->LineTraceSingleByChannel(Bank,Around+FVector(0,0,68),Around-FVector(0,0,85),ECC_Visibility,Params)&&Bank.ImpactNormal.Z>.62)
+                SetActorLocation(Bank.ImpactPoint+FVector(0,0,8));
+            Home=P+Side*600;
+        }
         SetActorRotation(Direction.Rotation());
     }
-    if(!Flee&&Clear&&Distance<(Robot?4300:180)&&AttackTime<=0)
+    if(Staging||(Target==Player&&Player->EnemyReacquireTime>0)) return;
+    const double AttackDistance=Cover?FVector::Dist(Eye,Sight.ImpactPoint):FVector::Dist(Eye,Aim);
+    if(!Flee&&(Clear||Cover)&&AttackDistance<(Robot?4300:Spitter?2700:200)&&AttackTime<=0)
     {
         AttackTime=Robot?1.8f:1.1f;
-        World->Sound(Robot?TEXT("Robot"):TEXT("Animal"),FMath::Clamp(1-Distance/5000,.08f,.6f));
+        World->Sound(Robot?TEXT("Robot"):Brood?TEXT("BroodCall"):TEXT("Animal"),FMath::Clamp(1-Distance/5000,.08f,.6f));
         // Allied Greenline suppresses hostile robots near the shelter.
         if(Robot&&World->State->Allied&&P.Size2D()<6500) {TakeDamage(55,FDamageEvent(),nullptr,Player); World->Say(TEXT("GREENLINE / SALT-7 covering your approach"));}
-        else Player->TakeDamage(Robot?13:Kind==TEXT("boar")?19:14,FDamageEvent(),nullptr,this);
+        else if(Spitter||Robot) {
+            if(auto* Bolt=GetWorld()->SpawnActor<AETEnemyBolt>(Eye,(Aim-Eye).Rotation())) Bolt->Launch(this,Aim,Spitter);
+            if(Spitter) AttackTime=2.5f;
+        } else if(Enemy&&Clear) Enemy->TakeDamage(Kind==TEXT("bulwark")?28:16,FDamageEvent(),nullptr,this);
+        else if(Cover||Target!=Player) World->HitBuild(Cover?Cover:Cast<AETConstruction>(Target),Kind==TEXT("bulwark")?25:14);
+        else Player->TakeDamage(Kind==TEXT("bulwark")?23:Kind==TEXT("boar")?19:Brood?10:14,FDamageEvent(),nullptr,this);
     }
 }
-float AETAgent::TakeDamage(float Amount,const FDamageEvent&,AController*,AActor*)
+float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,AActor* Causer)
 {
-    if(!World||Health<=0) return 0; Health=FMath::Max(0.f,Health-Amount); World->State->AgentHealth.Add(Id,Health);
+    if(!Awake()||Health<=0||Amount<=0) return 0;
+    const float Applied=FMath::Min(Health,Amount*(Kind==TEXT("bulwark")?.72f:1.f)); Health-=Applied;
+    ReceiveImpact(Applied,Event,Causer);
+    const auto* Bolt=Cast<AETEnemyBolt>(Causer);
+    const auto* Fighter=Cast<AETAgent>(Causer);
+    if((Fighter&&Opposes(Fighter))||Bolt) {
+        if(Bolt?Bolt->BugBolt:Fighter->IsBrood()) ++World->BugHits; else ++World->SupertechHits;
+    }
+    const bool Credited=Cast<AETCharacter>(Causer)||Cast<AETConstruction>(Causer);
+    if(Cast<AETCharacter>(Causer)) PlayerAggro=3.5f;
+    if(Managed) {if(auto* R=World->State->Threats.Find(Id)) R->Health=Health;}
+    else if(!FrontUnit) World->State->AgentHealth.Add(Id,Health);
     if(Health<=0)
     {
-        auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); World->State->Consumed.Add(Id);
-        bool Robot=Kind==TEXT("robot"); if(Robot) ++World->State->Kills;
-        if(P) P->AddXP(Robot?35:20);
-        const FString DropId=Id+TEXT("-drop"); const FVector DropPosition=GetActorLocation()+FVector(0,0,20);
-        const FString DropKind=Robot?TEXT("gold"):TEXT("harvest"); const int32 DropAmount=Robot?FMath::RoundToInt(16*(P?P->LootRate():1)):0;
+        auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0));
+        if(FrontUnit) {
+            World->FrontUnits.Remove(Id); World->State->FrontLosses.Add(Id,World->State->Elapsed+32.f+GetTypeHash(Id)%19);
+        } else if(Managed) {World->State->Threats.Remove(Id); World->LiveThreats.Remove(Id);}
+        else {World->State->Consumed.Add(Id); World->State->AgentHealth.Remove(Id);}
+        if(Kind==TEXT("hive")) {
+            if(!Credited) {World->State->Consumed.Add(Id); Destroy(); return Applied;}
+            World->State->Consumed.Add(Id); World->State->Inventory.FindOrAdd(TEXT("goldore"))+=6; World->State->Inventory.FindOrAdd(TEXT("ironore"))+=12;
+            World->State->RaidWait+=90; if(P) P->AddXP(95);
+            World->Say(TEXT("Bug nest cleared / +12 iron, +6 gold ore, next raid delayed")); World->Save(); Destroy(); return Applied;
+        }
+        bool Robot=Kind==TEXT("robot"); if(Robot&&Credited) ++World->State->Kills;
+        if(P&&Credited) P->AddXP(Robot?35:Kind==TEXT("drone")?8:20);
+        if(Robot) World->SplitRobot(this);
+        if(!Credited) {Destroy(); return Applied;}
+        if(Kind==TEXT("drone")) {World->Save(); Destroy(); return Applied;}
+        const FString DropId=Id+TEXT("-drop")+(FrontUnit?FGuid::NewGuid().ToString():FString()); const FVector DropPosition=GetActorLocation()+FVector(0,0,20);
+        const FString DropKind=Robot?TEXT("gold"):IsBrood()?TEXT("chitin"):TEXT("harvest"); const int32 DropAmount=Robot?FMath::RoundToInt(16*(P?P->LootRate():1)):0;
         World->State->DropPositions.Add(DropId,DropPosition); World->State->DropAmounts.Add(DropId,DropAmount); World->State->DropKinds.Add(DropId,DropKind);
-        auto Drop=World->Item(DropId,DropKind,Robot?TEXT("Collect candybar wrappers"):TEXT("Salvage animal remains"),DropPosition,DropAmount);
-        if(auto Region=Cast<AETRegion>(GetOwner())) if(Drop) Region->Residents.Add(Drop);
+        auto Drop=World->Item(DropId,DropKind,Robot?TEXT("Collect candybar wrappers"):IsBrood()?TEXT("Salvage Bug shell"):TEXT("Salvage animal remains"),DropPosition,DropAmount);
+        // Story guards have no region owner, and roaming encounters can leave their
+        // spawning region. Stream the pickup with the place where it actually fell.
+        const FIntPoint DropCell(FMath::FloorToInt(DropPosition.X/AETWorld::RegionSize),FMath::FloorToInt(DropPosition.Y/AETWorld::RegionSize));
+        if(auto Region=World->Regions.FindRef(DropCell)) if(Drop) {Drop->SetOwner(Region); Region->Residents.Add(Drop);}
         World->Save(); Destroy();
     }
-    return Amount;
+    return Applied;
 }

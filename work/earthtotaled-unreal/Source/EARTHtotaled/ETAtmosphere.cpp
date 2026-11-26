@@ -26,7 +26,7 @@ FString AETWorld::WeatherName() const
 
 int32 AETWorld::MusicFor(FVector Position) const
 {
-    return Hour()<6||Hour()>=19?2:InCity(Position)?1:0;
+    return IsNight()?2:InCity(Position)?1:0;
 }
 
 void AETWorld::InitAtmosphere()
@@ -92,8 +92,9 @@ float AETWorld::RainFloor(FVector Position) const
 void AETWorld::UpdateRain(float Delta,FVector Eye)
 {
     if(!RainMesh) return;
-    RainMesh->SetVisibility(Weather.Rainfall>.005f);
-    if(Weather.Rainfall<=.005f) return;
+    const bool Underground=Sheltered&&Eye.Z<SurfaceHeight(Eye.X,Eye.Y)-190;
+    RainMesh->SetVisibility(Weather.Rainfall>.005f&&!Underground);
+    if(Weather.Rainfall<=.005f||Underground) return;
     const int32 Active=FMath::RoundToInt(MaxRain*Weather.Rainfall);
     const FVector Velocity(125+Weather.Wind*210,65,-2200-Weather.Rainfall*350);
     const FQuat Rotation=FQuat::FindBetweenNormals(FVector::UpVector,Velocity.GetSafeNormal());

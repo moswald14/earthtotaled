@@ -1,11 +1,12 @@
 """Normalize the locally synthesized PCM, add a restrained robot radio treatment, and verify."""
 from pathlib import Path
-import array, json, math, wave
+import array, json, math, sys, wave
 
 root=Path(__file__).resolve().parents[1]
 dialogue=json.loads((root/'Content/Data/dialogue.json').read_text())
 total=0
-for line in dialogue['lines']:
+lines=[line for line in dialogue['lines'] if not sys.argv[1:] or line['id'] in sys.argv[1:]]
+for line in lines:
     path=root/'ArtSource'/('S_Voice_'+line['id']+'.wav')
     with wave.open(str(path),'rb') as sound:
         assert sound.getnchannels()==1 and sound.getsampwidth()==2 and sound.getframerate()==22050
@@ -34,4 +35,4 @@ for line in dialogue['lines']:
     assert 1<duration<30 and rms>.015, (path,duration,rms)
     total+=duration
     print(f'{path.name}: {duration:.2f}s, RMS {rms:.3f}, mono 22050Hz PCM16')
-print(f'{len(dialogue["lines"])} voice clips verified; {total:.1f} seconds total.')
+print(f'{len(lines)} voice clips verified; {total:.1f} seconds total.')

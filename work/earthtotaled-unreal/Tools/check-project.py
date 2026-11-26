@@ -12,12 +12,12 @@ expansion=json.loads((ROOT/'Content/Data/expansion.json').read_text())
 weapons=design['weapons']+expansion['weapons']
 check(len(design['weapons'])==6 and len(weapons)==10,'Original six indices retained, ten total weapons')
 supplies={s['id'] for s in expansion['items']}
-check(len(supplies)==9,'Nine distinct inventory supplies')
+check(len(supplies)==11 and {'goldore','ironore'}<=supplies,'Nine scavenged supplies and two mineable ores')
 for r in expansion['recipes']:
     check(all(k in supplies and n>0 for k,n in r['ingredients'].items()),'Recipe has obtainable ingredients: '+r['id'])
 for name,entries in expansion['lootTables'].items():
-    check(len(entries)>=2 and all(e['id'] in supplies|{'water','ammo','medkit'} and 0<e['min']<=e['max'] for e in entries),'Valid loot table: '+name)
-check(supplies<={e['id'] for entries in expansion['lootTables'].values() for e in entries},'All pack items can be scavenged')
+    check(len(entries)>=2 and all(e['id'] in supplies|{'water','buildkit','medkit'} and 0<e['min']<=e['max'] for e in entries),'Valid loot table: '+name)
+check(supplies-{'goldore','ironore'}<={e['id'] for entries in expansion['lootTables'].values() for e in entries},'Non-mineral supplies can be scavenged')
 check(len(design['skills'])==18,'18 node web')
 check(len(design['quests'])==5,'Five community quests')
 check(len(design['story'])==6,'Recordings preserved')
@@ -107,7 +107,10 @@ check(len(dialogue['lines'])==20,'Twenty spoken character and archive lines')
 check(len({line['id'] for line in dialogue['lines']})==20,'Unique voice identifiers')
 for line in dialogue['lines']:
     check(bool(line['speaker']) and bool(line['text']) and (art/('S_Voice_'+line['id']+'.wav')).is_file(),'Spoken line has matching subtitles and audio: '+line['id'])
-check(len(list(art.glob('*.wav')))==51,'Existing sound library plus three score loops and three weather sounds')
+for cue in ['BorerPulse','OreChime','JetThrust','ShardChirp','BroodCall','FieldLatch']:
+    check((art/('S_'+cue+'.wav')).is_file(),'Gameplay sound is present: '+cue)
+for model in ['ShardDrone','BroodRunner','BroodSpitter','FieldWall','FieldFloor','FieldRamp','FieldRoof']:
+    check((art/('SM_'+model+'.obj')).is_file(),'Fieldworks mesh is present: '+model)
 for p in art.glob('*.wav'):
     with wave.open(str(p),'rb') as w:
         samples=struct.unpack('<'+'h'*(w.getnframes()*w.getnchannels()),w.readframes(w.getnframes()))

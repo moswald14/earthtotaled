@@ -470,5 +470,137 @@
       "Signal",
       "Steel"
     ]
+  },
+  "SM_SurveyBorer": {
+    "triangles": 924,
+    "vertices": 1776,
+    "materials": [
+      "DarkMetal",
+      "Gold",
+      "Greenline",
+      "Rubber",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_ShardDrone": {
+    "triangles": 1996,
+    "vertices": 3924,
+    "materials": [
+      "DarkMetal",
+      "Rust",
+      "Signal",
+      "Steel"
+    ]
+  },
+  "SM_BroodRunner": {
+    "triangles": 3076,
+    "vertices": 5652,
+    "materials": [
+      "DarkMetal",
+      "Gold",
+      "Rust",
+      "Signal"
+    ]
+  },
+  "SM_BroodSpitter": {
+    "triangles": 3908,
+    "vertices": 7308,
+    "materials": [
+      "DarkMetal",
+      "Gold",
+      "Greenline",
+      "Rust",
+      "Signal"
+    ]
+  },
+  "SM_FieldFloor": {
+    "triangles": 484,
+    "vertices": 1056,
+    "materials": [
+      "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_FieldRamp": {
+    "triangles": 484,
+    "vertices": 1056,
+    "materials": [
+      "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_FieldWall": {
+    "triangles": 576,
+    "vertices": 1200,
+    "materials": [
+      "DarkMetal",
+      "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_FieldRoof": {
+    "triangles": 374,
+    "vertices": 592,
+    "materials": [
+      "DarkMetal",
+      "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_ParallaxSpire": {
+    "triangles": 8396,
+    "vertices": 15528,
+    "materials": [
+      "CircuitLight",
+      "DarkMetal",
+      "Glass",
+      "Gold",
+      "Steel"
+    ]
+  },
+  "SM_ComputeHall": {
+    "triangles": 1100,
+    "vertices": 2400,
+    "materials": [
+      "CircuitLight",
+      "DarkMetal",
+      "Steel"
+    ]
+  },
+  "SM_BellowsHive": {
+    "triangles": 5984,
+    "vertices": 10864,
+    "materials": [
+      "Bark",
+      "Gold",
+      "Hide",
+      "ResinLight",
+      "Rust"
+    ]
+  },
+  "SM_HiveNursery": {
+    "triangles": 3276,
+    "vertices": 6816,
+    "materials": [
+      "Gold",
+      "Hide",
+      "ResinLight",
+      "Rust"
+    ]
+  },
+  "SM_CrossingSignal": {
+    "triangles": 568,
+    "vertices": 1176,
+    "materials": [
+      "DarkMetal",
+      "Rubber",
+      "Signal",
+      "Steel"
+    ]
   }
 }

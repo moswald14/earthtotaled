@@ -2,6 +2,60 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Survivor progression / 1.11
+
+Version 1.11 adds protected ground, combat hit reactions and a survivor XP display. Press **K** to inspect the skill web and learn connected perks. Every level grants one point. A wilderness cut earns 2 XP, an ore strike earns 12 XP and felling a tree earns 6 XP. The borer protects every depth beneath settlements, roads, homesteads and player structures.
+
+## Highway War / 1.10
+
+H7 Blackpine Highway and H2 Relay Highway have four lanes, marked exits and roadside colonies. Follow the exit boards to the Bug hives or the Supertech tower cities. Both send fighters onto the approaches around the clock. At night the troops can also pursue a survivor. The amber refuge marker still leads to people and water. Click a colony on the field atlas to track it.
+
+Tap **Space** to jump, then press it again in the air for a free double jump. Hold the second press or press once more to thrust. Fuel recharges when your boots touch down.
+
+## Field Atlas / 1.9
+
+The compass and north-up minimap show the nearest city's refuge in amber and your tracked pin in blue. Press **M** for the field atlas. Scroll to zoom at the cursor, drag to pan, and right-click to place a pin. Click a marker to track it. **Delete** removes the selected pin, **C** frames the nearest city and **Home** centers on you. Map pins travel with your survivor through saves and portable files.
+
+Blackpine Road and Relay Road connect neighboring city grids through the forest. The map shows these routes, city streets, settlements, buildings and elevation contours. Hover over a street to read its name. Hold right mouse with a firearm for light aim assist on visible hostiles. The pause menu can switch it off.
+
+## Night Watch / 1.8
+
+Press **F2** for the field guide, or open it from the title or pause menu. Hostile patrols, predators, and the Glass Brood emerge at **19:00** and withdraw at **06:00**. Deer and settlement traders stay out during the day. An unfinished raid resumes the next night.
+
+Aim at a tree and press **E** for eight wood. New survivors can harvest birches beside Shelter 09. With **B** equipped, the wheel chooses the piece, **C** selects the material and **R** rotates. Left-click places the preview, right-click salvages, and **T** upgrades an existing frame one tier. A piece costs four wood, four stone, or two iron ore, with 160, 320 and 600 integrity respectively. Every successful borer cut yields two stone. Salvage kits can pay for wooden frames.
+
+Remaining foundations can carry a deck across a gap. Destroying or salvaging the last support collapses connected frames and their machinery. Solid cave roofs can span wilderness tunnels, and a piece of rock breaks away when its last connection to bedrock is cut. Ordinary loose scenery and loot can fall away. Settlers and story items move to the surviving floor of an excavation.
+
+## Outposts / 1.7
+
+Equip the borer with **G** and mine iron and gold. Press **B**, scroll to a machine and click to place it. A relay costs 2 iron and 1 gold ore, a turret costs 3 and 1, and a turtle miner costs 4 and 1. Turrets draw power within 75 m of a relay and track visible hostiles within 34 m. A turtle works a finite deposit every 30 seconds in a loaded region. Press **E** on its shell to empty its hopper.
+
+At 27 outpost value, the Brood can muster a carapace line near the relay. The warning gives you 16 seconds before the charge. Press **E** at the relay to buy stronger armor or trace a nest after a successful defense. Stronger survivors draw flying skimmers. Deep tunnels attract burrowing bulwarks and the ore grade rises every 16 m.
+
+Open **Survivor saves** from the title or pause menu to manage ten independent worlds. Slot 01 holds the original survivor. **Export file** writes a portable `.etsave` to a folder you choose. **Import file** restores it to the selected slot. Portable files support up to 32 MB. Replacing a survivor backs up its previous contents. In the field, press **F1** and enter `help` for local diagnostics and admin commands. Escape closes the console and returns to mouse look.
+
+The new terrain uses seeded drainage and ridge shapes. A returning survivor retains the original ground around saved excavations and structures. Soil, bark, concrete, shale, iron and gold use 2K color, roughness and normal maps. The pause menu includes the native-resolution display.
+
+Run `node Tools/make-relief.mjs` and `python Tools/make-outposts.py` to regenerate the original art. Unreal imports it with `Tools/import-outposts.py`. `Tools/verify-outposts.ps1 -GameRoot <Windows folder> -QaRoot <new test folder>` exercises the packaged console, file dialogs, slot switching and a cold restart.
+
+## Fieldworks / 1.6
+
+Use the double jump and hold **Space** to thrust. Land to recharge. **B** opens construction. Choose a wall, floor, ramp or roof and aim at a solid footing or a frame to snap pieces together. Search armory crates, craft fittings, trade with SALT-7, or bring scrap to human settlements to replenish wooden frame kits.
+
+With the borer equipped, **R** selects round or square excavation. Square cuts share level, grid-aligned faces. All ten guns have unlimited reserve ammunition and timed magazine reloads. Each gun advances independently at 150, 450, 1,000, 2,000 and 4,000 hostile damage, gaining 15% base damage per rank.
+
+Roaming HELIOS patrols break into flying shard drones. The Glass Brood has melee runners and ranged spitters. Escape returns to the main menu through **Save and return to main menu**. **New survivor** asks for confirmation and saves the previous slot under the same name with the suffix `-previous`.
+
+Run `Tools/verify-fieldworks.ps1` with a packaged Windows game folder and a fresh QA folder to exercise the fullscreen menu, jetpack, excavation, saved construction, continuing a game, and confirming a restart across two launches.
+
+## Faultline / 1.5
+
+Read the survey sign at the old shelter mine. From Shelter 09, follow bearing 067 for about 350 m to reach the first wilderness gold and iron outcrops. **G** equips or stows the borer, **left mouse** excavates, and **hold right mouse** surveys for ore. Each round pulse cuts a roughly 5.7 m cavity. Aim into a wall for a horizontal drift or angle down for a ramp. **V** winches an underground survivor to supported ground. Gold shows as yellow seams and iron as rust-red bands. SALT-7 buys one gold ore for 12 wrappers. A workbench refines two iron ore into an alloy sheet.
+
+In open wilderness, the borer reveals seeded underground galleries and leaves floors and ceilings over tunnels. Settlements, roads and buildings protect the rock below. Tunnels and depleted deposits travel with the survivor save. The PS1 display uses a 270-line dithered scene with a native-resolution HUD. Escape opens the display switch for the full-resolution view.
+
+`Tools/verify-mining.ps1 -GameRoot <Windows folder> -QaRoot <test folder>` exercises the packaged borer, collision, protected streets, trading, refining, streaming and deep mining. It then reopens a dedicated underground save in a second game process. To regenerate the new art, run `python Tools/make-geology.py` followed by `Tools/import-geology.py` in Unreal Editor.
+
 ## Build and run on Windows
 
 Requirements: Epic's Unreal Engine 5.8, Visual Studio 2022 17.14+ or Visual Studio 2026 C++ build tools, Windows SDK, and the .NET Framework 4.8 SDK/targeting pack. The installed engine location defaults to `C:\Program Files\Epic Games\UE_5.8`.
@@ -25,6 +79,10 @@ python Tools/check-project.py
 To check a separate candidate build, run `./Tools/verify-packaged.ps1 -GameRoot <candidate-Windows-folder> -QaRoot <temporary-QA-folder>`. It runs the packaged game with a transient survivor and an isolated user directory. `python Tools/package-release.py --game-root <candidate-Windows-folder>` can archive that candidate after verification.
 
 For an on-screen mouse check, launch the Shipping executable with `-ETReview=bench -ETInputAudit -UserDir="<temporary-QA-folder>"`. This opens a workbench in a temporary session that does not load or save the player's survivor. The opt-in `Saved/input-verification.txt` records capture state and mouse axes in Shipping builds, where ordinary diagnostic logging is stripped. Move the mouse without holding a button after returning from menus and compare the recorded camera yaw. The audit is off during normal play and bounded to 4,096 entries.
+
+For story and expedition checks, run `./Tools/verify-journey.ps1 -GameRoot <candidate-Windows-folder> -QaRoot <temporary-QA-folder> -Ending garden -Seconds 900`, then repeat with `-Ending signal` and a separate QA folder. The story scenario interacts with actual spawned cores, settlements and HELIOS through clear, in-range collision traces. It stages the player beside story sites, so it is not a manual playthrough between those sites. The expedition then uses normal character movement, collision, AI, ammunition and water while entering city houses, scavenging and returning through streamed regions. Its day/weather clock runs at 8x; movement and survival remain at 1x.
+
+`-StoryOnly` skips the expedition. `-Resume -StoryOnly` loads that branch's test save in a new process and checks the saved epilogue and consumed story objects. Test saves use `EARTHtotaled-QA-garden` or `EARTHtotaled-QA-signal` inside the selected QA directory; the normal survivor slot is never read or written by these scenarios. Reports and five-second travel/memory samples are written under `Saved`. The runner keeps its window hidden and sound muted: these are runtime checks, not a listening test or a foreground frame-rate guarantee.
 
 ## Controls
 

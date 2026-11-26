@@ -59,6 +59,8 @@ for name in ['ForestDay','ForestNight','CityWind']:
 # Keep a full rebuild equivalent to the selective weather/music import.
 import runpy
 runpy.run_path(str(root/'Tools/import-atmosphere.py'))
+runpy.run_path(str(root/'Tools/import-geology.py'))
+runpy.run_path(str(root/'Tools/import-frontier.py'))
 
 materials=['Ground','Concrete','Steel','Rust','Wood','Bark','Canvas','Hide','Grass','Gold','Signal','Greenline','Asphalt','Pine','DarkMetal','Rubber','Glass','Skin','Leaf','Moss','BirchBark','Brick','Plaster']
 for name in materials:
@@ -139,6 +141,8 @@ text=config.read_text(encoding='utf-8')
 for key in ['GameDefaultMap','EditorStartupMap']:
     text=re.sub(r'(?m)^'+key+r'=.*$',key+'='+map_path,text)
 config.write_text(text,encoding='utf-8')
+runpy.run_path(str(root/'Tools/import-outposts.py'))
+runpy.run_path(str(root/'Tools/import-warfront.py'))
 editor_assets.save_directory(base,only_if_is_dirty=False,recursive=True)
 (root/'Saved').mkdir(exist_ok=True)
 (root/'Saved/content-ready.txt').write_text('Original art imported and map saved by Unreal Editor.\n')

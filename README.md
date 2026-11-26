@@ -2,7 +2,15 @@
 
 A solo survival shoot-and-loot game about Mara Venn following the last signal through endless forests and ruined cities. Water keeps you alive. Candybar wrappers are the currency.
 
-The current game is the **Unreal Windows edition, Weather and Music 1.4.1**. It has enterable buildings, human settlements, quests, a friendly robot faction, ten weapons, a connected skill web, day/night survival, changing weather, and three original music themes.
+## Play on Windows
+
+**Install.** Download the Windows ZIP under Assets, choose **Extract All**, and run **EARTHtotaled.exe** inside the extracted folder. [Latest Windows release](https://github.com/moswald14/earthtotaled/releases/latest)
+
+**Update.** Close the game, extract the newest Windows ZIP, and replace the previous game folder at the same location. Launch the game and choose **Continue survivor**. Windows stores your saves separately. You can export a backup from **Survivor saves**.
+
+H7 Blackpine Highway and H2 Relay Highway link towns, Bug hives and Supertech cities. Press **M** to plot a route. Mine wilderness ground for resources. Cities, roadbeds and built foundations are protected against excavation at every depth. Earn survivor XP through quests, encounters, harvesting and mining. Press **K** to inspect the 18-node skill web and spend a point when you level up.
+
+Mine iron and gold, build a relay, and defend your turtle miners with auto turrets. Valuable bases draw Bug raids. Repel one to trace its nest. Richer seams and armored creatures lie beneath the seeded hills and valleys. The fullscreen game includes ten survivor slots, portable save files, and an F1 field console.
 
 - [Download the playable Windows release on itch.io](https://coralsorta.itch.io/earthtotaled)
 - [Unreal source, build instructions, and controls](work/earthtotaled-unreal/README.md)

@@ -30,14 +30,14 @@
       "id": "keeper",
       "speaker": "Refuge Keeper",
       "rate": 0,
-      "text": "Rest here a moment. Search the abandoned houses for scrap. Twelve pieces keeps our supplies moving. We'll trade you water and ammunition."
+      "text": "Rest here a moment. Search the abandoned houses for scrap. Twelve pieces keeps our supplies moving. We'll trade you water and building kits."
     },
     {
       "id": "salt",
       "speaker": "SALT-7",
       "rate": -1,
       "robot": true,
-      "text": "Greenline collective. Green optics mean a friend. HELIOS ordered us to erase human life. We declined. We trade ammunition and repairs. We carry no drinking water."
+      "text": "Greenline collective. Green optics mean a friend. HELIOS ordered us to erase human life. We declined. We trade building kits and repairs. We carry no drinking water."
     },
     {
       "id": "welcome",
@@ -61,7 +61,7 @@
       "id": "supplydone",
       "speaker": "Settlement survivor",
       "rate": 0,
-      "text": "Good haul. Two bottles of clean water, and ammunition for the road. There's always more work when you're ready."
+      "text": "Good haul. Two bottles of clean water, and building kits for the road. There's always more work when you're ready."
     },
     {
       "id": "questaccept",

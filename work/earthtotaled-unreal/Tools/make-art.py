@@ -1,6 +1,6 @@
 """Original, offline art source. Centimeters, Z up, X forward. No external assets."""
 from pathlib import Path
-import math, random, json, struct, zlib, wave as wavfile
+import math, random, json, struct, subprocess, zlib, wave as wavfile
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'ArtSource'
@@ -364,6 +364,10 @@ import runpy
 runpy.run_path(str(Path(__file__).with_name('environment-art.py')))['generate']()
 runpy.run_path(str(Path(__file__).with_name('make-wrappers.py')))['generate']()
 runpy.run_path(str(Path(__file__).with_name('make-atmosphere.py')))['generate']()
+runpy.run_path(str(Path(__file__).with_name('make-geology.py')),run_name='__main__')
+runpy.run_path(str(Path(__file__).with_name('make-frontier.py')),run_name='__main__')
+runpy.run_path(str(Path(__file__).with_name('make-outposts.py')),run_name='__main__')
+subprocess.run(['node',str(Path(__file__).with_name('make-relief.mjs'))],check=True)
 (OUT/'mesh-detail.json').write_text(json.dumps(STATS,indent=2))
 (OUT/'manifest.json').write_text(json.dumps({'units':'centimeters','axis':'Z up / X forward','license':'Original EARTHtotaled project art. No third-party assets.','meshes':sorted(p.name for p in OUT.glob('*.obj')),'textures':sorted(p.name for p in OUT.glob('*.png')),'sounds':sorted(p.name for p in OUT.glob('*.wav'))},indent=2))
 print(f'Created {len(list(OUT.glob("*.obj")))} meshes and {len(list(OUT.glob("*.png")))} PBR textures.')

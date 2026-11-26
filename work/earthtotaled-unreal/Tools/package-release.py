@@ -5,58 +5,117 @@ root=Path(__file__).resolve().parents[1]
 outputs=root.parents[1]/'outputs'
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--game-root',type=Path,default=outputs/'EARTHtotaled-Unreal-Windows/Windows')
-game=parser.parse_args().game_root.resolve()
+parser.add_argument('--output-dir',type=Path,default=outputs)
+options=parser.parse_args()
+game=options.game_root.resolve()
+outputs=options.output_dir.resolve()
+outputs.mkdir(parents=True,exist_ok=True)
 assert (game/'EARTHtotaled.exe').is_file(), 'Package the native game first'
-instructions='''EARTHtotaled / Weather and Music 1.4.1 / Unreal Windows edition
+instructions='''EARTHtotaled 1.11.0 / Unreal Windows edition
 
 Double-click EARTHtotaled.exe. Keep this entire folder together.
+Install or update from https://github.com/moswald14/earthtotaled/releases/latest
+Choose the Windows ZIP under Assets and extract it in full. For an update, close
+the game, replace the old game folder with the extracted folder at the same path,
+then launch EARTHtotaled.exe and choose Continue. Windows stores saves separately.
+You can back up any slot under Survivor saves > Export.
 The game opens fullscreen. F11 switches between fullscreen and a window.
 To pin it: start the game, right-click its taskbar icon, and choose Pin to taskbar.
 
-1.4.1 is the rebuilt fullscreen Windows release. F11 toggles windowed mode.
-Mouse look needs no held button; closing menus returns control to the game.
+M opens your north-up field atlas and pauses survival. Drag with the left mouse
+to pan, and scroll to zoom around the cursor. Right-click to drop a blue pin.
+Click a pin to track it or press Delete to remove it. C tracks and frames the
+nearest city, Home centers on you, and M or Escape returns to mouse look.
+The amber house on the compass and minimap guides you to a settlement.
+H7 Blackpine Highway and H2 Relay Highway connect human refuges. Take a signed
+exit for a Bug hive or Supertech city. Click a faction landmark on M to track it.
+Both factions fight over the exits throughout the day and night.
+Light aim assist applies only while aiming a firearm at a visible hostile.
+Change Aim assist in the pause menu if you prefer.
 
-New in 1.4: clear skies, overcast, mist, rain and thunderstorms.
-Weather changes gradually as the saved world clock advances. Take cover under roofs
-to escape the rain and muffle wind. Storms bring occasional lightning and thunder.
-Three original stereo music themes crossfade between daytime forest, city and night.
-Dialogue lowers the music. Escape > Music and Weather sound adjust or mute each.
-These volume choices are saved. Existing survivors and wrapper balances continue.
+Continue survivor loads your existing game. Escape > Save and return to main menu
+lets you switch to New survivor. Confirming a restart backs up the last survivor
+and begins again at Shelter 09. The same menu is available after death.
 
-WASD move / mouse look / Shift sprint / Space jump
-Left mouse fire / right mouse aim / R reload / 1-0 or mouse wheel: weapons
+Continuing a living checkpoint gives you eight seconds to get to cover or use Q
+for a medkit. Supertech patrol shots travel through the world and can be dodged.
+After death, Recover at Shelter 09 brings back your last saved survivor and
+their gear and tunnels, with medical treatment at the shelter.
+
+Tap Space to jump and press it again in the air for a free double jump.
+Hold the second press or press again to thrust. Landing recharges jet fuel.
+F2 opens the field guide. Its three tabs cover controls, construction and survival.
+Press E at a tree to fell it for 8 wood. Start with the birches beside Shelter 09.
+B equips the builder. Scroll for a piece, press C for material, and R to rotate.
+Left mouse places a green preview. Right mouse salvages the aimed piece. Press T
+to upgrade an existing frame from wood to stone, then metal. Each wooden frame
+costs 4 wood or one kit and has 160 integrity. Stone costs 4 stone and has 320.
+Metal costs 2 iron ore and has 600. Each successful borer cut gives 2 stone.
+Frames and machinery collapse when their last connection to solid ground goes.
+Excavated rock breaks away when its last connection to bedrock is cut.
+Salvage pieces from the top down if you want to reclaim their materials.
+SALT-7 sells six wood frame kits for twenty wrappers. Human supply runs also award kits.
+With the survey borer equipped, R switches between round and square tunnel cuts.
+
+From 19:00 until 06:00, Supertech patrols, Bug raiders and predators emerge.
+Use daylight to harvest and build. Deer, settlers and Greenline stay in the world.
+At dawn roaming hostiles withdraw and raids pause. Highway factions keep fighting.
+Each destroyed Supertech hull releases two flying shard drones. Take cover from
+their fire. Bug runners close in while spitters attack from a distance.
+All ten guns have unlimited reserve ammunition. Magazines still need time to
+reload. Dealing damage to hostiles upgrades that particular gun automatically.
+
+G equips or stows your survey borer. Left mouse blasts wilderness earth and cave
+walls. Hold right mouse and sweep to locate a workable vein. Your borer recharges after
+each pulse. Press V underground with the borer equipped to winch to the surface.
+City districts, both faction settlements, roads and built foundations are protected
+all the way down. Shallow iron and gold lie about 350 m northeast of Shelter 09.
+Tunnels and depleted veins are saved. Existing tunnels are still accessible.
+The K skill web shows the next XP threshold. Select a perk to inspect it and
+choose Learn perk to spend points. Each survivor level grants one point.
+Two iron ore make one alloy sheet at a workbench. SALT-7 pays 12 candybar
+wrappers for one gold ore. Escape > Display switches between PS1 and native.
+
+WASD move / mouse look / Shift sprint / tap Space to jump / hold Space to jet
+Left mouse fire / right mouse aim / R reload / 1-0 or wheel to select a gun
 E interact / H drink / Q medkit / F flashlight
 Tab pack and arsenal / K skill web / J journal / Escape pause
 
-New: ten guns, nine pack items, six kinds of supplies and five workbench recipes.
 Find the Drifter .44 at Ranger Supply beside the starting shelter.
 Search clinics, grocery shops, salvage depots, civil defense offices and forest camps.
-Reloads, footsteps, scavenging, tools, wildlife and day/night environments have sounds.
-The starting district is built into the map and fully loaded before play.
-Exploration loads nearby terrain and buildings in stages and unloads distant areas.
-Escape > View distance switches between 350m, 500m and 700m.
-Escape > Render detail switches between native resolution (100%), sharper (125%)
-and supersampled (150%). Higher percentages trade frame rate for a sharper image.
-New: detailed curved weapons, smoother people and wildlife, beveled architecture,
-denser trees and rocks, 2K main surface textures, and much finer nearby terrain.
+Find drinking water in houses and relief supplies, or finish quests for people.
+Supertech hulls drop candybar wrappers. A human supply run trades 12 scrap for two
+water bottles and two building kits. Search armories and complete quests for guns.
 
-Wilds and Ruins: branching pines and birches, ferns, shrubs, fallen timber and stumps.
-Weathered masonry, broken glazing, partial pitched roofs and exposed trusses.
-Rubble, broken walls, rebar and overgrown city yards; 435 starting-area placements.
-Twenty spoken lines for settlements, Greenline trade, quests and story archives.
-Voices are synthetic, with speaker subtitles and a radio treatment for SALT-7.
+The journal follows your survivor through both possible endings. You can keep
+exploring afterward and return to HELIOS to reread your chosen epilogue.
+A full day and night takes 48 minutes. Roofs provide cover in thunderstorms.
 
-Water is essential. Loot houses and sealed relief supplies, or help human settlements.
-Robots drop candybar wrappers, never drinking water. Human supply runs trade 12 scrap for 2 water.
-Forest, homes, wildlife, traps and more city districts continue in every direction.
-A full day and night takes 48 minutes. Menus pause time and restore mouse look on return.
+Escape opens the display and audio settings. View distance ranges from 350 to
+700 m. Render detail ranges from 100% to 150%. The music and weather sounds
+have separate volume controls. Moving the mouse turns the view when a menu closes.
+Progress saves automatically and when you return to the main menu.
 
-Progress saves automatically. Use Escape > Save and exit before quitting.
-Your existing Unreal save continues. Browser-version saves are kept separately.
-Original procedural art. Human and animal models are simple rigid models.
+OUTPOSTS
+Mine iron and gold with G. Build a relay (2 iron, 1 gold), an auto turret
+(3 iron, 1 gold) or a turtle miner (4 iron, 1 gold). Turrets need a relay
+within 75 metres and a clear line of fire. Miners drill one local deposit
+per 30 seconds while the surrounding region is active. Press E to collect.
+Ore grades rise every 16 metres underground. Look out for armored Bugs.
+At the relay press E to repair, upgrade suit plating, or trace a Bug nest
+after a successful defense. Outposts of value 27 and up draw a warning and
+an approaching line of raiders. Stronger survivors encounter flying skimmers.
+
+Survivor saves is available from the main menu and pause. Choose one of ten
+slots to play, start a new survivor, export an .etsave file, or import one
+from another PC. Pause also offers Copy this run here. Occupied slots require
+confirmation before replacement. Slot 01 retains the original survivor.
+Press F1 in the world to open the field console. Type help for commands.
+Enter runs a command, Up recalls it, and Escape returns to mouse look.
+Escape > Display / native shows the new 2K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.4.1.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.11.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -64,6 +123,6 @@ with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=
 with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
     assert 'EARTHtotaled-Unreal/EARTHtotaled.exe' in z.namelist()
-record={'version':'1.4.1-unreal','engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()}
+record={'version':'1.11.0-unreal','engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

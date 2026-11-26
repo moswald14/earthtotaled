@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETGeology.h"
 #include "Engine/World.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -64,10 +65,19 @@ void AETCharacter::BeginPlay()
     ApplyGraphics();
     SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
     InputAudit=FParse::Param(FCommandLine::Get(),TEXT("ETInputAudit")); SetMouseMode(false); CaptureRetry=.3f;
-    if(World->State->Elapsed<1 && World->Recordings.Num()) {OpenPanel(TEXT("story"),TEXT("EARTHtotaled / THE LAST SIGNAL"),World->Recordings[0]); World->Speak(TEXT("archive0"));}
+    if(!World->Review&&!GetWorld()->URL.HasOption(TEXT("ETContinue"))) {Title(); return;}
+    if(World->HadSave&&World->State->Elapsed>0&&GetWorld()->URL.HasOption(TEXT("ETContinue")))
+        EnemyReacquireTime=8.f;
+    if(!World->State->IntroRead&&World->State->Elapsed<1&&World->Recordings.Num()) {OpenPanel(TEXT("story"),TEXT("EARTHtotaled / THE LAST SIGNAL"),World->Recordings[0]); World->Speak(TEXT("archive0"));}
     FString ReviewScene; FParse::Value(FCommandLine::Get(),TEXT("ETReview="),ReviewScene);
     if(ReviewScene==TEXT("bench")) OpenPanel(TEXT("bench"),TEXT("SHELTER WORKBENCH"),TEXT("Patch your suit or improve your kit. Candybar wrappers are currency. Machines carry wrappers; water comes from people and relief supplies."));
     if(ReviewScene==TEXT("voice")) ContactPanel(TEXT("SALT-7"));
+    if(ReviewScene==TEXT("mine")) ToggleBorer();
+}
+void AETCharacter::PawnClientRestart()
+{
+    Super::PawnClientRestart();
+    if(World) SetMouseMode(!Panel.IsEmpty());
 }
 void AETCharacter::SetupPlayerInputComponent(UInputComponent* I)
 {
@@ -77,14 +87,22 @@ void AETCharacter::SetupPlayerInputComponent(UInputComponent* I)
     I->BindAction("Fire",IE_Pressed,this,&AETCharacter::FireStart); I->BindAction("Fire",IE_Released,this,&AETCharacter::FireStop);
     I->BindAction("Aim",IE_Pressed,this,&AETCharacter::AimStart); I->BindAction("Aim",IE_Released,this,&AETCharacter::AimStop);
     I->BindAction("Sprint",IE_Pressed,this,&AETCharacter::SprintStart); I->BindAction("Sprint",IE_Released,this,&AETCharacter::SprintStop);
-    I->BindAction("Jump",IE_Pressed,this,&ACharacter::Jump); I->BindAction("Jump",IE_Released,this,&ACharacter::StopJumping);
-    I->BindAction("Interact",IE_Pressed,this,&AETCharacter::Interact); I->BindAction("Reload",IE_Pressed,this,&AETCharacter::Reload);
+    I->BindAction("Jump",IE_Pressed,this,&AETCharacter::JumpPress); I->BindAction("Jump",IE_Released,this,&AETCharacter::JumpRelease);
+    I->BindAction("Interact",IE_Pressed,this,&AETCharacter::Interact); I->BindAction("Reload",IE_Pressed,this,&AETCharacter::TurnTool);
+    I->BindAction("Build",IE_Pressed,this,&AETCharacter::ToggleBuild);
+    I->BindKey(EKeys::C,IE_Pressed,this,&AETCharacter::CycleMaterial);
+    I->BindKey(EKeys::T,IE_Pressed,this,&AETCharacter::UpgradeFrame);
+    I->BindKey(EKeys::F2,IE_Pressed,this,&AETCharacter::Controls).bExecuteWhenPaused=true;
+    I->BindAction("Map",IE_Pressed,this,&AETCharacter::ToggleMap).bExecuteWhenPaused=true;
+    I->BindKey(EKeys::F1,IE_Pressed,this,&AETCharacter::OpenConsole).bExecuteWhenPaused=true;
     I->BindAction("Drink",IE_Pressed,this,&AETCharacter::Drink); I->BindAction("Heal",IE_Pressed,this,&AETCharacter::Heal);
     I->BindAction("Skills",IE_Pressed,this,&AETCharacter::Skills).bExecuteWhenPaused=true;
     I->BindAction("Journal",IE_Pressed,this,&AETCharacter::Journal).bExecuteWhenPaused=true;
     I->BindAction("Pause",IE_Pressed,this,&AETCharacter::Pause).bExecuteWhenPaused=true;
     I->BindAction("Fullscreen",IE_Pressed,this,&AETCharacter::Fullscreen).bExecuteWhenPaused=true;
     I->BindAction("Flashlight",IE_Pressed,this,&AETCharacter::ToggleLight);
+    I->BindAction("Borer",IE_Pressed,this,&AETCharacter::ToggleBorer);
+    I->BindAction("Winch",IE_Pressed,this,&AETCharacter::Winch);
     I->BindAction("Weapon1",IE_Pressed,this,&AETCharacter::Weapon1); I->BindAction("Weapon2",IE_Pressed,this,&AETCharacter::Weapon2);
     I->BindAction("Weapon3",IE_Pressed,this,&AETCharacter::Weapon3); I->BindAction("Weapon4",IE_Pressed,this,&AETCharacter::Weapon4);
     I->BindAction("Weapon5",IE_Pressed,this,&AETCharacter::Weapon5); I->BindAction("Weapon6",IE_Pressed,this,&AETCharacter::Weapon6);
@@ -106,21 +124,32 @@ void AETCharacter::Turn(float V) {
     }
 }
 void AETCharacter::Look(float V) {if(Panel.IsEmpty()) AddControllerPitchInput(V*.7f);}
-void AETCharacter::FireStart() {if(Panel.IsEmpty()&&FireGuard<=0) Firing=true;} void AETCharacter::FireStop() {Firing=false;}
-void AETCharacter::AimStart() {Aiming=true;} void AETCharacter::AimStop() {Aiming=false;}
+void AETCharacter::FireStart() {if(!Panel.IsEmpty()||FireGuard>0) return; if(Building) PlaceBuild(); else Firing=true;} void AETCharacter::FireStop() {Firing=false;}
+void AETCharacter::AimStart() {if(!Panel.IsEmpty()) return; if(Building) SalvageBuild(); else Aiming=true;} void AETCharacter::AimStop() {Aiming=false;}
 void AETCharacter::SprintStart() {Sprinting=true;} void AETCharacter::SprintStop() {Sprinting=false;}
 bool AETCharacter::Has(const FString& Id) const {return World && World->State->Skills.Contains(Id);}
 float AETCharacter::MaxHealth() const {return 100+(Has(TEXT("vitality"))?25:0)+(Has(TEXT("hardy"))?25:0);}
 float AETCharacter::LootRate() const {return 1+(Has(TEXT("scavenger"))?.2f:0)+(Has(TEXT("prospector"))?.2f:0)+(Has(TEXT("salvager"))?.15f:0)+(Has(TEXT("quartermaster"))?.1f:0);}
 void AETCharacter::AddXP(int32 Amount)
 {
-    auto S=World->State; S->XP+=Amount;
-    while(S->XP>=S->Level*100) {S->XP-=S->Level*100; ++S->Level; ++S->Points; World->Say(TEXT("LEVEL UP / one skill point"));}
+    if(Amount<=0||!World) return;
+    auto* S=World->State;
+    LastXPGain=XPNoticeTime>0?FMath::Min<int64>(MAX_int32,int64(LastXPGain)+Amount):Amount; XPNoticeTime=2.f;
+    int64 Total=int64(S->XP)+Amount;
+    const int32 Before=S->Level;
+    while(Total>=S->NextLevelXP()&&S->Level<1000000) {Total-=S->NextLevelXP(); ++S->Level; S->Points=FMath::Min<int64>(MAX_int32,int64(S->Points)+1);}
+    S->XP=FMath::Min<int64>(Total,MAX_int32);
+    if(S->Level>Before) {LevelNoticeTime=4.2f; World->Sound(TEXT("OreChime"),.65f,1.22f);}
 }
 void AETCharacter::Tick(float D)
 {
     Super::Tick(D); if(!World||World->Weapons.IsEmpty()) return; auto S=World->State;
     if(!Panel.IsEmpty()||S->Health<=0) return;
+    TickImpact(D);
+    XPNoticeTime=FMath::Max(0.f,XPNoticeTime-D); LevelNoticeTime=FMath::Max(0.f,LevelNoticeTime-D);
+    EnemyReacquireTime=FMath::Max(0.f,EnemyReacquireTime-D);
+    TickJet(D);
+    if(Building) {BuildRefresh-=D; if(BuildRefresh<=0) {RefreshBuild(); BuildRefresh=.075f;}}
     S->StimTime=FMath::Max(0.f,S->StimTime-D); HitTime=FMath::Max(0.f,HitTime-D); MuzzleTime=FMath::Max(0.f,MuzzleTime-D); Muzzle->SetVisibility(MuzzleTime>0);
     S->Elapsed+=D; ShotTime=FMath::Max(0.f,ShotTime-D); FireGuard=FMath::Max(0.f,FireGuard-D);
     if(CaptureRetry>0) {CaptureRetry-=D; if(CaptureRetry<=0) SetMouseMode(false);}
@@ -130,16 +159,20 @@ void AETCharacter::Tick(float D)
     if(GetVelocity().Size2D()>80&&GetCharacterMovement()->IsMovingOnGround()&&StepTime<=0&&!Climbing) {
         StepTime=Sprinting?.30f:.46f; World->Sound(World->InCity(GetActorLocation())?TEXT("StepCity"):TEXT("StepForest"),Sprinting?.32f:.23f,FMath::FRandRange(.88f,1.12f));
     }
-    Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView,Aiming?65.f:90.f,D,12));
+    Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView,Aiming&&!Borer?65.f:90.f,D,12));
+    if(Borer&&Aiming) {
+        SurveyTime-=D;
+        if(SurveyTime<=0) {SurveyReading=World->Geology->Survey(Camera->GetComponentLocation(),Camera->GetForwardVector()); SurveyTime=.15f;}
+    } else SurveyTime=0;
     float Drain=.055f*(Sprinting&&GetVelocity().Size2D()>20?1.7f:1)*(Has(TEXT("hydration"))?.8f:1)*(Has(TEXT("endurance"))?.9f:1);
     S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
     // Dehydration bypasses armor; menus pause all survival time.
-    if(S->Hydration<=0) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(); return;}}
+    if(S->Hydration<=0) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
     if(ReloadTime>0)
     {
         ReloadTime-=D; if(ReloadTime<=0)
         {
-            int32 W=S->Weapon, N=FMath::Min(World->Weapons[W].Mag-S->Ammo[W],S->Reserve[W]); S->Ammo[W]+=N; S->Reserve[W]-=N;
+            const int32 W=S->Weapon; S->Ammo[W]=World->Weapons[W].Mag;
         }
     }
     if(Climbing)
@@ -154,37 +187,61 @@ void AETCharacter::Tick(float D)
     }
     FallSpeed=FMath::Min(FallSpeed,GetVelocity().Z);
     if(Firing&&!Climbing&&ShotTime<=0&&ReloadTime<=0) Shoot();
-    Focus=nullptr; FHitResult Hit; FVector Start=Camera->GetComponentLocation();
+    Focus=nullptr; FocusBuild.Reset(); TreeInReach=false; FHitResult Hit; FVector Start=Camera->GetComponentLocation();
     FCollisionQueryParams Params; Params.AddIgnoredActor(this);
-    if(GetWorld()->LineTraceSingleByChannel(Hit,Start,Start+Camera->GetForwardVector()*400,ECC_Visibility,Params)) Focus=Cast<AETItem>(Hit.GetActor());
+    Sighted.Reset();
+    if(GetWorld()->LineTraceSingleByChannel(Hit,Start,Start+Camera->GetForwardVector()*9500,ECC_Visibility,Params)) {
+        if(Hit.Distance<=400) {Focus=Cast<AETItem>(Hit.GetActor()); FocusBuild=Cast<AETConstruction>(Hit.GetActor()); FVector Root; TreeInReach=World->TreeRoot(Hit,Root);}
+        Sighted=Cast<AETAgent>(Hit.GetActor());
+    }
     for(TActorIterator<AETItem> It(GetWorld());It;++It) if(It->Kind==TEXT("trap") && FVector::Dist2D(It->GetActorLocation(),GetActorLocation())<65 && FMath::Abs(It->GetActorLocation().Z-(GetActorLocation().Z-92))<70)
     {
-        S->Consumed.Add(It->Id); It->Destroy(); TakeDamage(30,FDamageEvent(),nullptr,nullptr); World->Say(TEXT("TRAP / Q to use a medkit")); break;
+        S->Consumed.Add(It->Id); It->Destroy(); Hurt(30,TEXT("A scavenger trap")); if(S->Health>0) World->Say(TEXT("TRAP / Q to use a medkit")); break;
     }
-    if(GetActorLocation().Z<World->Height(GetActorLocation().X,GetActorLocation().Y)-3000)
-        SetActorLocation(FVector(GetActorLocation().X,GetActorLocation().Y,World->Height(GetActorLocation().X,GetActorLocation().Y)+250));
+    const auto Position=GetActorLocation();
+    const double Ground=World->SurfaceHeight(Position.X,Position.Y);
+    if(GetCharacterMovement()->IsMovingOnGround()&&Position.Z>=Ground+70&&Position.Z<Ground+215)
+        S->WinchAnchor=Position;
+    if(Position.Z<Ground-3000&&!World->Geology->IsOpen(Position))
+        SetActorLocation(FVector(Position.X,Position.Y,Ground+250));
 }
 void AETCharacter::Landed(const FHitResult& Hit)
 {
-    Super::Landed(Hit); if(World&&FallSpeed<-850) TakeDamage((-FallSpeed-850)*.05f*(Has(TEXT("parkour"))?.75f:1)*(Has(TEXT("hardy"))?.8f:1),FDamageEvent(),nullptr,nullptr); FallSpeed=0;
+    Super::Landed(Hit); if(World&&FallSpeed<-850) Hurt((-FallSpeed-850)*.05f*(Has(TEXT("parkour"))?.75f:1)*(Has(TEXT("hardy"))?.8f:1),TEXT("Fall impact")); FallSpeed=0; JetUsed=AirJumpSpent=ThrustArmed=Jetting=false;
 }
-float AETCharacter::TakeDamage(float Damage,const FDamageEvent&,AController*,AActor*)
+float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AController*,AActor* Causer)
+{
+    const auto* Source=Cast<AETAgent>(Causer);
+    if(!Source&&Causer) Source=Cast<AETAgent>(Causer->GetOwner());
+    FString Cause=Source ? (Source->Kind==TEXT("robot")?FString(TEXT("Supertech patrol fire")):
+        Source->IsBrood()?FString(TEXT("Bug "))+Source->Kind:Source->IsMachine()?FString(TEXT("Supertech shard drone")):Source->Kind) : TEXT("Hostile impact");
+    const float Applied=Hurt(Damage,Cause);
+    if(Applied>0) ReceiveImpact(Applied,Event,Causer);
+    return Applied;
+}
+float AETCharacter::Hurt(float Damage,const FString& Cause)
 {
     if(!World||World->State->Health<=0||!Panel.IsEmpty()) return 0; auto S=World->State;
-    float Absorbed=FMath::Min(S->Armor,Damage*.6f); S->Armor-=Absorbed; S->Health=FMath::Max(0.f,S->Health-Damage+Absorbed);
-    if(S->Health<=0) Die(); return Damage;
+    if(Damage<=0) return 0; float Absorbed=FMath::Min(S->Armor,Damage*(.6f+.08f*S->ArmorTier)); S->Armor-=Absorbed; S->Health=FMath::Max(0.f,S->Health-Damage+Absorbed);
+    if(S->Health<=0) Die(Cause); return Damage;
 }
-void AETCharacter::Die()
+void AETCharacter::Die(const FString& Cause)
 {
-    Firing=false; OpenPanel(TEXT("death"),TEXT("THE SIGNAL WENT QUIET"),TEXT("Your last saved position is still available.\n\nWater is essential. Seek human settlements and sealed relief supplies. Machines carry candybar wrappers, never water."));
+    Firing=false;
+    const FString Detail=FString::Printf(TEXT("Cause of death: %s\nHydration at death: %d%%  /  sealed bottles: %d\n\nYour last living save is available."),*Cause,FMath::RoundToInt(World->State->Hydration),World->State->Water);
+    ConsoleLines.Add(Detail); OpenPanel(TEXT("death"),TEXT("SURVIVOR DOWN"),Detail);
 }
 void AETCharacter::Shoot()
 {
+    if(Borer) {FireBorer(); return;}
     auto S=World->State; int32 I=S->Weapon; const auto& W=World->Weapons[I];
-    if(S->Ammo[I]<=0) {if(S->Reserve[I]<=0) World->Sound(TEXT("Empty"),.35f); Reload(); ShotTime=.35f; return;} --S->Ammo[I]; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
+    if(S->Ammo[I]<=0) {Reload(); ShotTime=.15f; return;} --S->Ammo[I]; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
     const FString SoundPath=FString::Printf(TEXT("/Game/EARTHtotaled/Art/S_Fire%d.S_Fire%d"),I,I);
     if(auto Sound=LoadObject<USoundBase>(nullptr,*SoundPath)) UGameplayStatics::PlaySound2D(this,Sound,.65f,FMath::FRandRange(.96f,1.04f));
     FVector Start=Camera->GetComponentLocation(), Direction=Camera->GetForwardVector(); FCollisionQueryParams Params; Params.AddIgnoredActor(this);
+    Direction=AssistedDirection(Start,Direction,W.Range);
+    const int32 Rank=GunRank(I);
+    float Earned=0; bool Killed=false;
     for(int32 P=0;P<W.Pellets;++P)
     {
         FVector Ray=FMath::VRandCone(Direction,W.Spread*(Aiming?.5f:1)); FHitResult Hit;
@@ -192,23 +249,36 @@ void AETCharacter::Shoot()
         if(GetWorld()->LineTraceSingleByChannel(Hit,Start,End,ECC_Visibility,Params))
         {
             End=Hit.ImpactPoint;
-            if(auto Agent=Cast<AETAgent>(Hit.GetActor())) {UGameplayStatics::ApplyPointDamage(Agent,W.Damage*(1+(Has(TEXT("marksman"))?.15f:0)+(Has(TEXT("steady"))?.15f:0)),Ray,Hit,GetController(),this,nullptr); HitTime=.16f; if(P==0) World->Sound(TEXT("Hit"),.3f);}
+            if(auto Agent=Cast<AETAgent>(Hit.GetActor())) {
+                const bool Hostile=Agent->Kind!=TEXT("deer");
+                const float Power=W.Damage*(1+.15f*(Rank-1))*(1+(Has(TEXT("marksman"))?.15f:0)+(Has(TEXT("steady"))?.15f:0));
+                const float Dealt=UGameplayStatics::ApplyPointDamage(Agent,Power,Ray,Hit,GetController(),this,nullptr);
+                if(Hostile) Earned+=Dealt;
+                Killed|=Agent->Health<=0;
+                if(Dealt>0) HitTime=.16f;
+            }
         }
         DrawDebugLine(GetWorld(),Start+Direction*70,End,FColor(245,185,90),false,.045f,0,.8f);
     }
+    S->WeaponDamage[I]+=Earned;
+    if(GunRank(I)>Rank) {
+        World->Sound(TEXT("OreChime"),.4f,1.25f);
+        World->Say(FString::Printf(TEXT("%s upgraded to Mk %d / damage increased"),*W.Name,GunRank(I)));
+    }
+    if(Killed||GunRank(I)>Rank) World->Save();
     AddControllerPitchInput(-.1f*(I==1?3:1));
 }
 void AETCharacter::Reload()
 {
-    if(!World||ReloadTime>0||!Panel.IsEmpty()) return; auto S=World->State; auto W=World->Weapons[S->Weapon];
-    if(S->Ammo[S->Weapon]>=W.Mag||S->Reserve[S->Weapon]<=0) return;
+    if(!World||Borer||ReloadTime>0||!Panel.IsEmpty()) return; auto S=World->State; auto W=World->Weapons[S->Weapon];
+    if(S->Ammo[S->Weapon]>=W.Mag) return;
     ReloadTime=W.Reload*(Has(TEXT("reload"))?.8f:1)*(Has(TEXT("pressure"))?.9f:1)*(Has(TEXT("quartermaster"))?.9f:1); Firing=false;
     World->Sound(TEXT("Reload"),.5f,1.8f/W.Reload);
 }
 void AETCharacter::Drink()
 {
     if(!World||!Panel.IsEmpty()) return; auto S=World->State;
-    if(S->Water<=0) {World->Say(TEXT("No water. Visit a human settlement or search a relief cache.")); return;}
+    if(S->Water<=0) {World->Say(FString::Printf(TEXT("Pack: 0 sealed bottles  /  hydration %d%%. Settlements and relief caches stock water."),FMath::RoundToInt(S->Hydration))); return;}
     if(S->Hydration>=99) return; --S->Water; S->Hydration=FMath::Min(100.f,S->Hydration+45); World->Sound(TEXT("Drink")); World->Say(TEXT("Drank sealed water / hydration restored")); World->Save();
 }
 void AETCharacter::Heal()
@@ -219,6 +289,8 @@ void AETCharacter::Heal()
 void AETCharacter::SelectWeapon(int32 I)
 {
     if(!World||!World->Weapons.IsValidIndex(I)||!World->State->Unlocked.Contains(I)) return;
+    StopBuilding();
+    if(Borer) {Borer=false; Firing=Aiming=false; Flashlight->SetVisibility(LampBeforeBorer);}
     World->State->Weapon=I; ReloadTime=0;
     World->Sound(TEXT("Switch"),.25f);
     const FString Asset=FString::Printf(TEXT("/Game/EARTHtotaled/Art/SM_Weapon%d.SM_Weapon%d"),I,I);
@@ -246,21 +318,42 @@ void AETCharacter::SetMouseMode(bool Menu)
 }
 void AETCharacter::OpenPanel(const FString& Kind,const FString& Title,const FString& Body)
 {
-    Panel=Kind; PanelTitle=Title; PanelBody=Body; Firing=Aiming=Sprinting=false; StopJumping(); GetCharacterMovement()->StopMovementImmediately();
+    Panel=Kind; PanelTitle=Title; PanelBody=Body; Firing=Aiming=Sprinting=false; JumpRelease(); GetCharacterMovement()->StopMovementImmediately();
+    if(IsValid(Preview)) Preview->SetActorHiddenInGame(true);
     UGameplayStatics::SetGamePaused(this,true); SetMouseMode(true);
 }
 void AETCharacter::ClosePanel()
 {
-    if(Panel==TEXT("death")) return;
+    if(Panel==TEXT("map")) CloseMapInput();
+    if(Panel==TEXT("controls")) {
+        const FString Origin=GuideOrigin; GuideOrigin.Empty(); Panel.Empty();
+        if(Origin==TEXT("title")) {Title(); return;}
+        if(Origin==TEXT("pause")) {Pause(); return;}
+    }
+    if(Panel==TEXT("slots")) {SlotAction(TEXT("slot-back")); return;}
+    if(Panel==TEXT("death")||Panel==TEXT("title")||Panel==TEXT("confirm-new")) return;
+    if(Panel==TEXT("story")) World->State->IntroRead=true;
     Panel.Empty(); Firing=Aiming=Sprinting=false; FireGuard=.25f; CaptureRetry=.1f;
     UGameplayStatics::SetGamePaused(this,false); SetMouseMode(false); World->Save();
 }
-void AETCharacter::Pause() {if(Panel.IsEmpty()) OpenPanel(TEXT("pause"),TEXT("EARTHtotaled / WEATHER & MUSIC"),TEXT("WASD move / mouse look / Shift sprint / Space jump\nLeft mouse fire / right mouse aim / R reload / 1–0 or wheel: weapons\nE interact / H drink / Q medkit / Tab pack / K skill web / J journal\nF flashlight / F11 fullscreen / Escape resume\n\nA full day lasts 48 minutes. Forests and city districts continue in every direction.\nNearby terrain and places load as you travel. Take cover when storms roll in.\nMenus pause time and survival. Set either sound level to 0% to mute it.")); else ClosePanel();}
+void AETCharacter::Pause() {
+    if(Panel==TEXT("console")) {CloseConsole(); return;}
+    if(Panel.IsEmpty()) OpenPanel(TEXT("pause"),TEXT("EARTHtotaled / PAUSED"),TEXT(""));
+    else if(Panel==TEXT("confirm-new")) Title();
+    else ClosePanel();
+}
 void AETCharacter::ToggleLight() {if(Panel.IsEmpty()) Flashlight->ToggleVisibility();}
-void AETCharacter::Skills() {if(Panel.IsEmpty()) OpenPanel(TEXT("skills"),TEXT("SURVIVOR / SKILL WEB"),TEXT("Select a connected node to learn its perk.")); else ClosePanel();}
+void AETCharacter::Skills()
+{
+    if(Panel==TEXT("skills")) {ClosePanel();return;}
+    if(!Panel.IsEmpty()&&Panel!=TEXT("pause")) return;
+    if(SelectedPerk.IsEmpty()) SelectedPerk=TEXT("survivor");
+    OpenPanel(TEXT("skills"),TEXT("Survivor skill web"),TEXT(""));
+}
 void AETCharacter::Journal()
 {
     if(!Panel.IsEmpty()) {ClosePanel(); return;} FString Body;
+    if(!World->State->Ending.IsEmpty()) Body=World->StoryTitle()+TEXT("\n")+World->StoryObjective()+TEXT("\n\n");
     for(auto Q:World->Quests) Body+=Q.Title+FString::Printf(TEXT(" / %s\n"),World->State->Quests.FindRef(Q.Id)==2?TEXT("complete"):World->State->Quests.FindRef(Q.Id)==1?TEXT("active"):TEXT("available"))+Q.Description+TEXT("\n\n");
     OpenPanel(TEXT("journal"),TEXT("THE LAST SIGNAL / JOURNAL"),Body);
 }
@@ -282,11 +375,21 @@ void AETCharacter::ApplyGraphics()
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.DynamicRes.OperationMode"))) C->Set(0,ECVF_SetByCode);
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"))) C->Set(float(Scale),ECVF_SetByCode);
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.MaxAnisotropy"))) C->Set(16,ECVF_SetByCode);
+    ApplyFieldDisplay();
 }
 void AETCharacter::Interact()
 {
-    if(!World||!Focus||!Panel.IsEmpty()||Climbing) return; auto I=Focus; auto S=World->State;
+    if(!World||!Panel.IsEmpty()||Climbing) return;
+    if(auto* Device=FocusBuild.Get();Device&&Device->Design.Piece>=AETConstruction::Core) {OpenDevice(Device); return;}
+    if(!IsValid(Focus)) {
+        const FVector Eye=Camera->GetComponentLocation();
+        FHitResult Hit; FCollisionQueryParams Q(SCENE_QUERY_STAT(ETFellTree),false,this);
+        if(GetWorld()->LineTraceSingleByChannel(Hit,Eye,Eye+Camera->GetForwardVector()*400,ECC_Visibility,Q)&&World->FellTree(Hit)) TreeInReach=false;
+        return;
+    }
+    auto I=Focus; auto S=World->State;
     const FString K=I->Kind;
+    if(K==TEXT("survey")) {OpenPanel(TEXT("survey"),TEXT("FAULTLINE / SHELTER SURVEY"),TEXT("The old shelter mine is open for passage. Its roof holds up the district. For a working claim, follow compass bearing 067 for 350 m from Shelter 09. Shallow gold and iron lie ten metres apart there.\n\nG equips the borer. Hold right mouse and sweep for ore. Left mouse cuts wilderness rock. R switches between round and square tunnels. Gold runs yellow through the shale and iron runs rust-red.\n\nV winches you back to the surface. Refine iron at a workbench or sell gold to SALT-7.")); return;}
     if(K==TEXT("human")||K==TEXT("friend")) {ContactPanel(I->Value); return;}
     if(K==TEXT("bench")) {OpenPanel(TEXT("bench"),TEXT("SHELTER WORKBENCH"),TEXT("Patch your suit or improve your kit. Candybar wrappers are currency. Machines carry wrappers; water comes from people and relief supplies.")); return;}
     if(K==TEXT("climb"))
@@ -297,7 +400,8 @@ void AETCharacter::Interact()
     }
     if(K==TEXT("uplink"))
     {
-        if(S->Cores<3) World->Say(TEXT("The uplink needs all three archive cores."));
+        if(!S->Ending.IsEmpty()) ShowEnding();
+        else if(S->Cores<3) World->Say(TEXT("The uplink needs all three archive cores."));
         else OpenPanel(TEXT("ending"),TEXT("ONE FINAL COMMAND"),TEXT("Eli's beacon carried a recording, not a rescue.\n\nWake the buried irrigation network, or send the truth into orbit.\n\nWhatever you decide, the world remains open to explore.")); return;
     }
     if(K==TEXT("core"))
@@ -311,11 +415,12 @@ void AETCharacter::Interact()
     else if(K==TEXT("water")) {S->Water+=I->Amount; World->Say(TEXT("Relief supplies / sealed water recovered"));}
     else if(K==TEXT("gold")) {S->Gold+=I->Amount; World->Say(FString::Printf(TEXT("Collected %d candybar wrappers / machines carry no water"),I->Amount));}
     else if(K==TEXT("trap")) {S->Scrap+=3; AddXP(15); World->Say(TEXT("Trap disarmed / scrap recovered"));}
+    else if(K==TEXT("chitin")) {++S->BuildStock; AddXP(10); World->Say(TEXT("Bug shell recycled / +1 building kit"));}
     else if(K==TEXT("harvest")) {S->Scrap+=4; S->Inventory.FindOrAdd(TEXT("cloth"))+=2; AddXP(15); World->Say(TEXT("Salvaged hide, cloth and scrap / no drinking water"));}
     else if(K==TEXT("container")) World->Loot(this,I->Id,I->Value);
     else if(K==TEXT("weapon")) {
         if(!World->Weapons.IsValidIndex(I->Amount)) return;
-        if(S->Unlocked.Contains(I->Amount)) {S->Reserve[I->Amount]+=World->Weapons[I->Amount].Mag*3; World->Say(TEXT("Recovered ammunition for ")+World->Weapons[I->Amount].Name);}
+        if(S->Unlocked.Contains(I->Amount)) {S->Inventory.FindOrAdd(TEXT("gunparts"))+=2; World->Say(TEXT("Duplicate weapon salvaged / +2 weapon parts"));}
         else {S->Unlocked.Add(I->Amount); SelectWeapon(I->Amount); World->Say(TEXT("NEW WEAPON / ")+World->Weapons[I->Amount].Name+TEXT(" / wheel to switch"));} AddXP(45);
     }
     else if(K==TEXT("loot"))
@@ -323,12 +428,12 @@ void AETCharacter::Interact()
         World->Loot(this,I->Id,I->Amount==0?TEXT("pantry"):I->Amount==1?TEXT("medical"):I->Amount==2?TEXT("armory"):TEXT("tools"));
     }
     else return;
-    World->Sound(TEXT("Pickup"),.4f); S->Consumed.Add(I->Id); S->DropPositions.Remove(I->Id); S->DropAmounts.Remove(I->Id); S->DropKinds.Remove(I->Id); I->Destroy(); Focus=nullptr; World->Save();
+    World->Sound(TEXT("Pickup"),.4f); if(!I->Id.StartsWith(TEXT("patrol-"))) S->Consumed.Add(I->Id); S->DropPositions.Remove(I->Id); S->DropAmounts.Remove(I->Id); S->DropKinds.Remove(I->Id); I->Destroy(); Focus=nullptr; World->Save();
 }
 void AETCharacter::ContactPanel(const FString& Name)
 {
     const bool NewConversation=Panel!=TEXT("contact")||Contact!=Name;
-    Contact=Name; FString Body=Name==TEXT("SALT-7")?TEXT("Greenline collective. HELIOS ordered us to erase human life. We declined. Green optics mean a friend.\n\nCandybar wrappers buy ammunition and repairs. We carry no drinking water.\n\n"):TEXT("Water first. Ammunition second. Help the settlement and we can keep each other alive.\n\n");
+    Contact=Name; FString Body=Name==TEXT("SALT-7")?TEXT("Greenline collective. HELIOS ordered us to erase human life. We declined. Green optics mean a friend.\n\nCandybar wrappers buy building kits and repairs. We carry no drinking water.\n\n"):TEXT("Bring twelve scrap and we'll trade two bottles of water and two building kits.\n\n");
     if(Name!=TEXT("SALT-7")) Body+=TEXT("SUPPLY RUN / repeatable\nBring 12 scrap from scavenging. Reward: 2 sealed water bottles and 18 rounds for your current weapon.\n\n");
     for(auto Q:World->Quests) if(Q.Giver==Name)
     {
@@ -340,32 +445,69 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Id==TEXT("controls")) {Controls(); return;}
+    if(Id==TEXT("skills")&&Panel==TEXT("pause")) {Skills();return;}
+    if(Panel==TEXT("controls")) {
+        if(Id==TEXT("guide-back")) ClosePanel();
+        else if(Id==TEXT("guide-field")) GuidePage=0;
+        else if(Id==TEXT("guide-build")) GuidePage=1;
+        else if(Id==TEXT("guide-survive")) GuidePage=2;
+        return;
+    }
+    if(Panel==TEXT("slots")) {SlotAction(Id); return;}
+    if((Panel==TEXT("title")||Panel==TEXT("pause"))&&Id==TEXT("slots")) {Slots(); return;}
+    if(Panel==TEXT("device")&&Id!=TEXT("resume")) {ServiceDevice(Id); return;}
+    if(Id==TEXT("main-menu")&&(Panel==TEXT("pause")||Panel==TEXT("death"))) {
+        if(Panel!=TEXT("death")&&!World->Save()&&!World->Review) {PanelBody=TEXT("Could not save this survivor. Check free disk space and try again."); return;}
+        StopBuilding(); Title(); return;
+    }
+    if(Panel==TEXT("title")||Panel==TEXT("confirm-new")) {
+        if(Panel==TEXT("title")&&Id==TEXT("continue")&&World->HadSave) ContinueSurvivor();
+        else if(Panel==TEXT("title")&&Id==TEXT("new")) {
+            if(World->HadSave) OpenPanel(TEXT("confirm-new"),TEXT("Start a new survivor?"),TEXT("Your current survivor will be backed up. Your next run begins at Shelter 09 with fresh gear and an unexplored world."));
+            else StartFresh();
+        } else if(Panel==TEXT("confirm-new")&&Id==TEXT("confirm")) StartFresh();
+        else if(Panel==TEXT("confirm-new")&&Id==TEXT("cancel")) Title();
+        else if(Panel==TEXT("title")&&Id==TEXT("quit")) if(auto PC=Cast<APlayerController>(Controller)) PC->ConsoleCommand(TEXT("quit"));
+        return;
+    }
     if(Id.StartsWith(TEXT("use:"))&&Panel==TEXT("inventory")) {UseSupply(Id.Mid(4)); return;}
     if(Id.StartsWith(TEXT("equip:"))&&Panel==TEXT("inventory")) {SelectWeapon(FCString::Atoi(*Id.Mid(6))); World->Save(); return;}
     if(Id.StartsWith(TEXT("craft:"))) {Craft(Id.Mid(6)); return;}
     if(Id==TEXT("view")&&Panel==TEXT("pause")) {S->ViewDistance=S->ViewDistance<500?500:S->ViewDistance<700?700:350; World->UpdateVisibility(GetActorLocation()); World->Save(); return;}
     if(Id==TEXT("render")&&Panel==TEXT("pause")) {S->RenderScale=S->RenderScale==100?125:S->RenderScale==125?150:100; ApplyGraphics(); World->Save(); return;}
+    if(Id==TEXT("field-display")&&Panel==TEXT("pause")) {S->RetroDisplay=!S->RetroDisplay; ApplyFieldDisplay(); World->Save(); return;}
+    if(Id==TEXT("aim-assist")&&Panel==TEXT("pause")) {S->LightAimAssist=!S->LightAimAssist; World->Save(); return;}
+    if(Id==TEXT("sell-ore")&&Panel==TEXT("contact")&&Contact==TEXT("SALT-7")) {
+        int32& Ore=S->Inventory.FindOrAdd(TEXT("goldore"));
+        if(Ore>0) {--Ore; S->Gold+=12; PanelBody=FString::Printf(TEXT("One gold ore sold for 12 candybar wrappers. You have %d gold ore left."),Ore); World->Sound(TEXT("OreChime")); World->Save();}
+        else PanelBody=TEXT("Bring gold ore from a seam. Greenline pays 12 candybar wrappers per ore.");
+        return;
+    }
     if((Id==TEXT("music-volume")||Id==TEXT("weather-volume"))&&Panel==TEXT("pause")) {
         int32& Volume=Id==TEXT("music-volume")?S->MusicVolume:S->WeatherVolume;
         Volume=(Volume+25)%125; World->UpdateAtmosphereAudio(0,true); World->Save(); return;
     }
     if(Id==TEXT("resume")) {ClosePanel(); return;}
-    if(Id==TEXT("reload-save")) {UGameplayStatics::SetGamePaused(this,false); UGameplayStatics::OpenLevel(this,FName(*GetWorld()->GetName())); return;}
+    if(Id==TEXT("reload-save")&&Panel==TEXT("death")) {ContinueSurvivor(); return;}
+    if(Id==TEXT("shelter-rescue")&&Panel==TEXT("death")&&World->HadSave) {TravelSlot(World->ActiveSlot,true,true); return;}
     if(Id==TEXT("quit")) {World->Save(); if(auto PC=Cast<APlayerController>(Controller)) PC->ConsoleCommand(TEXT("quit")); return;}
-    if(Id.StartsWith(TEXT("perk:")))
+    if(Panel==TEXT("skills")&&(Id.StartsWith(TEXT("perk:"))||Id==TEXT("learn-perk")))
     {
-        FString Key=Id.Mid(5);
-        for(auto P:World->Perks) if(P.Id==Key)
+        const bool Learn=Id==TEXT("learn-perk");
+        const FString Key=Learn?SelectedPerk:Id.Mid(5);
+        for(const auto& P:World->Perks) if(P.Id==Key)
         {
-            bool Connected=false; for(auto N:P.Neighbors) Connected|=Has(N);
-            if(Has(Key)||!Connected||S->Points<P.Cost) {PanelBody=P.Description+TEXT("\n\nLearn an adjacent node and earn enough points to unlock this perk."); return;}
-            float Before=MaxHealth(); S->Skills.Add(Key); S->Points-=P.Cost; S->Health+=MaxHealth()-Before; PanelBody=TEXT("Learned: ")+P.Name+TEXT(" / ")+P.Description; World->Save(); return;
+            SelectedPerk=Key;
+            if(!Learn||Has(Key)||S->Points<P.Cost||!P.Neighbors.ContainsByPredicate([&](const FString& N){return Has(N);})) return;
+            const float Before=MaxHealth(); S->Skills.Add(Key); S->Points-=P.Cost; S->Health+=MaxHealth()-Before;
+            World->Sound(TEXT("OreChime"),.52f,1.1f); World->Save(); return;
         }
     }
     if(Id==TEXT("garden")||Id==TEXT("signal"))
     {
-        if(S->Cores<3) return; S->Ending=Id;
-        OpenPanel(TEXT("story"),Id==TEXT("garden")?TEXT("THE FIRST RAIN"):TEXT("A LIGHT IN THE DARK"),Id==TEXT("garden")?TEXT("Somewhere beneath the concrete, a valve opens. Water finds roots.\n\nEleven days later, the first green shoot breaks the soil. It's basil. Of course it's basil.\n\nYour story continues in the open world."):TEXT("Every record, every name, every mistake rises out of the atmosphere in one unbroken signal.\n\nYou will never know who hears it. But the truth is no longer buried here.\n\nThere is a whole world left to remember.")); World->Save(); return;
+        if(Panel!=TEXT("ending")||S->Cores<3||!S->Ending.IsEmpty()) return;
+        S->Ending=Id; ShowEnding(); World->Save(); return;
     }
     if(Id==TEXT("welcome")&&!S->Welcome) {S->Welcome=true; S->Water+=2; ContactPanel(Contact); World->Speak(TEXT("welcome"),Contact);}
     else if(Id==TEXT("ration"))
@@ -375,13 +517,13 @@ void AETCharacter::Action(const FString& Id)
         else PanelBody+=TEXT("\n\nEmergency rations require no bottles, hydration at or below 40%, and two minutes since the last refill.");
     }
     else if(Id==TEXT("supply-run")&&Contact!=TEXT("SALT-7")) {
-        if(S->Scrap>=12) {S->Scrap-=12; S->Water+=2; S->Reserve[S->Weapon]+=18; AddXP(20); PanelBody+=TEXT("\n\nSupply run complete / 2 water and 18 rounds received."); World->Speak(TEXT("supplydone"),Contact);}
+        if(S->Scrap>=12) {S->Scrap-=12; S->Water+=2; S->BuildStock+=2; AddXP(20); PanelBody+=TEXT("\n\nSupply run complete / 2 water and 2 building kits received."); World->Speak(TEXT("supplydone"),Contact);}
         else {PanelBody+=TEXT("\n\nBring 12 scrap from abandoned houses or disarmed traps."); World->Speak(TEXT("supplyneed"),Contact);}
     }
-    else if(Id==TEXT("ammo")&&S->Gold>=20) {S->Gold-=20; S->Reserve[S->Weapon]+=World->Weapons[S->Weapon].Mag*3; World->Speak(TEXT("salttrade"));}
-    else if(Id==TEXT("repair")&&S->Gold>=25) {S->Gold-=25; S->Armor=FMath::Min(100.f,S->Armor+50); World->Speak(TEXT("salttrade"));}
+    else if(Id==TEXT("kits")&&Contact==TEXT("SALT-7")&&S->Gold>=20) {S->Gold-=20; S->BuildStock+=6; PanelBody=TEXT("Six building kits received."); World->Speak(TEXT("salttrade"));}
+    else if(Id==TEXT("repair")&&S->Gold>=25) {S->Gold-=25; S->Armor=FMath::Min(S->ArmorLimit(),S->Armor+50); World->Speak(TEXT("salttrade"));}
     else if(Id==TEXT("lmg")&&S->Gold>=90&&!S->Unlocked.Contains(5)) {S->Gold-=90; S->Unlocked.Add(5); World->Speak(TEXT("salttrade"));}
-    else if(Id==TEXT("scrap-repair")&&S->Scrap>=10) {S->Scrap-=10; S->Armor=FMath::Min(100.f,S->Armor+40);}
+    else if(Id==TEXT("scrap-repair")&&S->Scrap>=10) {S->Scrap-=10; S->Armor=FMath::Min(S->ArmorLimit(),S->Armor+40);}
     else if(Id==TEXT("quest"))
     {
         FString Reply;
@@ -400,4 +542,10 @@ void AETCharacter::Action(const FString& Id)
         if(!Reply.IsEmpty()) World->Speak(Reply,Contact);
     }
     World->Save();
+}
+void AETCharacter::ShowEnding()
+{
+    const FString& Ending=World->State->Ending;
+    if(Ending!=TEXT("garden")&&Ending!=TEXT("signal")) return;
+    OpenPanel(TEXT("story"),World->StoryTitle(),Ending==TEXT("garden")?TEXT("Somewhere beneath the concrete, a valve opens. Water finds roots.\n\nEleven days later, the first green shoot breaks the soil. It's basil. Of course it's basil.\n\nYour story continues in the open world."):TEXT("Every record, every name, every mistake rises out of the atmosphere in one unbroken signal.\n\nYou will never know who hears it. But the truth is no longer buried here.\n\nThere is a whole world left to remember."));
 }

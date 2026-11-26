@@ -11,25 +11,28 @@
     {"id":"chemicals","name":"Antiseptic chemicals","description":"Medicine and endurance injectors.","usable":false},
     {"id":"circuit","name":"Circuit boards","description":"Scavenge electronics for crafting.","usable":false},
     {"id":"alloy","name":"Alloy sheets","description":"Build replacement suit plates.","usable":false},
-    {"id":"gunparts","name":"Weapon parts","description":"Craft ammunition at a workbench.","usable":false},
+    {"id":"gunparts","name":"Weapon parts","description":"Machine fittings for building kits at a workbench.","usable":false},
     {"id":"food","name":"Sealed trail ration","description":"Restores 15 health. Does not replace water.","usable":true},
     {"id":"bandage","name":"Field bandage","description":"Restores 25 health.","usable":true},
     {"id":"armorplate","name":"Suit plate","description":"Restores 35 armor.","usable":true},
-    {"id":"stim","name":"Endurance injector","description":"Three minutes of faster travel and slower thirst.","usable":true}
+    {"id":"stim","name":"Endurance injector","description":"Three minutes of faster travel and slower thirst.","usable":true},
+    {"id":"ironore","name":"Iron ore","description":"Refine two at a workbench for an alloy sheet.","usable":false},
+    {"id":"goldore","name":"Gold ore","description":"SALT-7 pays 12 candybar wrappers per ore.","usable":false}
   ],
   "recipes": [
     {"id":"bandage","name":"Field bandage","output":"bandage","count":1,"scrap":0,"ingredients":{"cloth":2,"chemicals":1}},
     {"id":"armorplate","name":"Suit plate","output":"armorplate","count":1,"scrap":6,"ingredients":{"alloy":2}},
-    {"id":"ammo","name":"Two magazines of ammo","output":"ammo","count":2,"scrap":8,"ingredients":{"gunparts":1}},
+    {"id":"buildkit","name":"Six building kits","output":"buildkit","count":6,"scrap":4,"ingredients":{"gunparts":1}},
     {"id":"medkit","name":"Medkit","output":"medkit","count":1,"scrap":0,"ingredients":{"cloth":3,"chemicals":2}},
-    {"id":"stim","name":"Endurance injector","output":"stim","count":1,"scrap":0,"ingredients":{"chemicals":2,"circuit":1,"cloth":1}}
+    {"id":"stim","name":"Endurance injector","output":"stim","count":1,"scrap":0,"ingredients":{"chemicals":2,"circuit":1,"cloth":1}},
+    {"id":"refine-iron","name":"Refine iron into alloy","output":"alloy","count":1,"scrap":0,"ingredients":{"ironore":2}}
   ],
   "lootTables": {
     "pantry":[{"id":"food","min":1,"max":3},{"id":"water","min":1,"max":2},{"id":"cloth","min":1,"max":3}],
     "medical":[{"id":"bandage","min":1,"max":2},{"id":"chemicals","min":1,"max":3},{"id":"medkit","min":1,"max":1},{"id":"stim","min":1,"max":1}],
     "tools":[{"id":"alloy","min":1,"max":3},{"id":"gunparts","min":1,"max":2},{"id":"cloth","min":1,"max":2}],
     "electronics":[{"id":"circuit","min":1,"max":3},{"id":"alloy","min":1,"max":2},{"id":"gunparts","min":1,"max":2}],
-    "armory":[{"id":"ammo","min":1,"max":3},{"id":"armorplate","min":1,"max":2},{"id":"gunparts","min":1,"max":3}],
+    "armory":[{"id":"buildkit","min":1,"max":3},{"id":"armorplate","min":1,"max":2},{"id":"gunparts","min":1,"max":3}],
     "relief":[{"id":"water","min":2,"max":3},{"id":"food","min":1,"max":2},{"id":"bandage","min":1,"max":2}]
   }
 }

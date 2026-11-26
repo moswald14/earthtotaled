@@ -4,6 +4,8 @@
 #include "Components/PointLightComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshActor.h"
+#include "EngineUtils.h"
 #include "ProceduralMeshComponent.h"
 
 void AETRegion::AddDetails()
@@ -16,20 +18,31 @@ void AETRegion::AddDetails()
         if(auto A=W->Item(Id,TEXT("container"),Label,P,0,Table)) {A->SetOwner(this); Residents.Add(A);}
     };
     auto Sign=[&](FString Label,FVector P,bool Existing=false) {
-        if(!Existing) Put(TEXT("SM_Sign"),TEXT("Greenline"),P);
+        AStaticMeshActor* Stand=nullptr;
+        if(Existing) for(TActorIterator<AStaticMeshActor> It(GetWorld());It;++It) {
+            if(!It->GetActorLocation().Equals(P,1)) continue;
+            const auto* Mesh=It->GetStaticMeshComponent()->GetStaticMesh().Get();
+            if(Mesh&&Mesh->GetFName()==TEXT("SM_Sign")) {Stand=*It;break;}
+        }
+        if(!Stand) Stand=Cast<AStaticMeshActor>(Put(TEXT("SM_Sign"),TEXT("Greenline"),P));
         auto A=GetWorld()->SpawnActor<AActor>(); A->SetOwner(this);
         auto T=NewObject<UTextRenderComponent>(A); A->SetRootComponent(T); T->RegisterComponent();
         T->SetText(FText::FromString(Label)); T->SetHorizontalAlignment(EHTA_Center); T->SetVerticalAlignment(EVRTA_TextCenter);
         T->SetWorldSize(46); T->SetTextRenderColor(FColor(230,240,210));
-        T->SetWorldLocation(P+FVector(0,-15,330)); T->SetWorldRotation(FRotator(0,-90,0)); T->SetCullDistance(12000); Residents.Add(A);
+        T->SetWorldLocation(P+FVector(0,-15,330)); T->SetWorldRotation(FRotator(0,-90,0)); T->SetCullDistance(12000);
+        if(Stand) {A->AttachToActor(Stand,FAttachmentTransformRules::KeepWorldTransform); T->SetVisibility(Stand->GetStaticMeshComponent()->IsVisible());}
+        Residents.Add(A);
     };
     auto Belongs=[&](FVector P) {return FMath::FloorToInt(P.X/AETWorld::RegionSize)==C.X&&FMath::FloorToInt(P.Y/AETWorld::RegionSize)==C.Y;};
     const FVector Origin(C.X*AETWorld::RegionSize,C.Y*AETWorld::RegionSize,0);
     // Decorative clusters share components and never add invisible collision to travel routes.
     // Separate randomness leaves existing caches, animals and story placements unchanged.
     FRandomStream Decor(W->SeedFor(C,1300));
+    UHierarchicalInstancedStaticMeshComponent* TreeTrunks=nullptr;
+    for(auto* H:Instances) if(H->GetStaticMesh()&&H->GetStaticMesh()->GetFName()==TEXT("SM_Trunk")) {TreeTrunks=H; break;}
     TMap<FString,UHierarchicalInstancedStaticMeshComponent*> DetailMeshes;
     auto Detail=[&](const TCHAR* Asset,const TCHAR* Material,FVector P,FVector Scale,float Yaw,const TCHAR* Range) {
+        if(OnHighway(FVector2D(P),120)||InHighwayGrounds(FVector2D(P))) return;
         UHierarchicalInstancedStaticMeshComponent* H=DetailMeshes.FindRef(Asset);
         if(!H) {
             H=NewObject<UHierarchicalInstancedStaticMeshComponent>(this); H->SetupAttachment(Terrain);
@@ -42,7 +55,12 @@ void AETRegion::AddDetails()
             H->SetCastShadow(Name!=TEXT("SM_Fern")&&Name!=TEXT("SM_Shrub"));
             H->RegisterComponent(); Instances.Add(H); DetailMeshes.Add(Name,H);
         }
-        H->AddInstance(FTransform(FRotator(0,Yaw,0),P-Origin,Scale));
+        const FTransform Transform(FRotator(0,Yaw,0),P-Origin,Scale);
+        if(W->IsTree(FName(Asset))) {
+            if(W->State->Consumed.Contains(W->TreeId(P))) return;
+            if(TreeTrunks) TreeTrunks->AddInstance(Transform);
+        }
+        H->AddInstance(Transform);
     };
     auto ForestClear=[&](FVector P) {
         if(!Belongs(P)||W->InCity(P)) return false;
@@ -85,8 +103,6 @@ void AETRegion::AddDetails()
             const FString Id=FString::Printf(TEXT("v11-city%d,%d-%d,%d"),int32(City.X/160000),int32(City.Y/160000),X,Y);
             Put(TEXT("SM_Lamp"),TEXT("Steel"),P+FVector(2600,-1000,0));
             Put(TEXT("SM_Barrel"),TEXT("Rust"),P+FVector(2300,900,0));
-            Put(TEXT("SM_Block"),TEXT("Concrete"),P+FVector(0,-1180,7),FVector(64,1.2,.16));
-            for(int32 D=-2;D<=2;++D) Put(TEXT("SM_Block"),TEXT("Canvas"),P+FVector(D*1200,-1700,12),FVector(3,.12,.02));
             // Rear courts and the edges of sidewalks reclaim the city, leaving entrances and fire escapes open.
             for(int32 I=0;I<6;++I) {
                 FVector D=P+FVector(Decor.FRandRange(-2400,2400),Decor.FRandRange(1600,2450),0);
@@ -147,7 +163,7 @@ void AETRegion::AddDetails()
     }
     // A reproducible campsite belongs to each wilderness house. Never place it in roads.
     for(int32 I=0;I<2;++I) {
-        FVector Home=W->HouseAnchor(C,I); if(W->InCity(Home)) continue;
+        FVector Home=W->HouseAnchor(C,I); if(W->InCity(Home)||InHighwayGrounds(FVector2D(Home),700)||OnHighway(FVector2D(Home),750)) continue;
         FVector P=Home+FVector(1600,0,0); P.Z=W->Height(P.X,P.Y);
         const FString Id=FString::Printf(TEXT("v11-camp%d,%d-%d"),C.X,C.Y,I);
         Put(TEXT("SM_CampShelter"),TEXT("Canvas"),P); Put(TEXT("SM_Barrel"),TEXT("Rust"),P+FVector(400,120,0));

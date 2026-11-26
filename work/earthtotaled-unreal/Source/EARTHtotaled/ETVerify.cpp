@@ -34,7 +34,7 @@ void AETWorld::RunSelfTest()
     Check(Weapons.Num()==10&&Perks.Num()==18&&Quests.Num()==5,TEXT("Ten weapons, original perk web and quests loaded in game"));
     int32 Baked=0; for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("ET_BakedStart"))) ++Baked;
     Check(Baked>=250,TEXT("Pregenerated starting architecture is present in the cooked map"));
-    Check(Supplies.Num()==9&&Recipes.Num()==5&&LootTables.Num()==6,TEXT("Supply items, recipes and distinct loot tables loaded"));
+    Check(Supplies.Num()==11&&Recipes.Num()==6&&LootTables.Num()==6,TEXT("Supplies, mined ores, workbench recipes and container tables loaded"));
     Check(VoiceLines.Num()==20,TEXT("Twenty spoken character lines have subtitle data"));
     Check(Speak(TEXT("nora"))&&HasSubtitle()&&SubtitleSpeaker==TEXT("Nora"),TEXT("Human dialogue starts its matching speaker subtitle"));
     auto VoiceComponent=DialogueAudio;
@@ -103,13 +103,29 @@ void AETWorld::RunSelfTest()
     AETItem* WrapperDrop=nullptr;
     for(TActorIterator<AETItem> It(GetWorld());It;++It) if(It->Id==TEXT("verify-robot-drop")) {WrapperDrop=*It; break;}
     Check(WrapperDrop&&WrapperDrop->Mesh->GetStaticMesh()&&WrapperDrop->Mesh->GetStaticMesh()->GetName()==TEXT("SM_Wrappers"),TEXT("Legacy currency drop kind displays the folded wrapper pickup"));
+    auto DropRegion=Regions.FindRef(FIntPoint(0,0));
+    Check(WrapperDrop&&DropRegion&&WrapperDrop->GetOwner()==DropRegion&&DropRegion->Residents.Contains(WrapperDrop),TEXT("Unowned story guard assigns its wrappers to the current terrain region"));
+    if(DropRegion) {DropRegion->Destroy(); Regions.Remove(FIntPoint(0,0)); EnsureRegion(FIntPoint(0,0));}
+    if(auto RestoredRegion=Regions.FindRef(FIntPoint(0,0))) RestoreDrops(RestoredRegion);
+    int32 DropCopies=0; WrapperDrop=nullptr;
+    for(TActorIterator<AETItem> It(GetWorld());It;++It) if(It->Id==TEXT("verify-robot-drop")) {++DropCopies; WrapperDrop=*It;}
+    Check(DropCopies==1&&WrapperDrop&&WrapperDrop->GetOwner()==Regions.FindRef(FIntPoint(0,0)),TEXT("Uncollected story-guard wrappers return exactly once after unload, regeneration and repeated restore"));
     State->Gold=32;
     if(WrapperDrop) {P->Focus=WrapperDrop; P->Interact();}
     Check(State->Gold==48&&State->Consumed.Contains(TEXT("verify-robot-drop"))&&State->Water==WaterBefore,TEXT("Robot wrappers add to an existing balance without adding water"));
-    P->Contact=TEXT("SALT-7"); const int32 AmmoBeforeTrade=State->Reserve[State->Weapon]; P->Action(TEXT("ammo"));
-    Check(State->Gold==28&&State->Reserve[State->Weapon]>AmmoBeforeTrade,TEXT("Greenline spends twenty wrappers from the same saved balance"));
-    State->Gold=19; const int32 AmmoAfterTrade=State->Reserve[State->Weapon]; P->Action(TEXT("ammo"));
-    Check(State->Gold==19&&State->Reserve[State->Weapon]==AmmoAfterTrade,TEXT("Insufficient wrappers cannot buy ammunition or overdraw the balance"));
+    // A roaming encounter can cross the boundary of the region that spawned it.
+    auto OldHome=Regions.FindRef(FIntPoint(0,0)); auto CurrentHome=Regions.FindRef(FIntPoint(1,0));
+    auto Roaming=GetWorld()->SpawnActor<AETAgent>(FVector(33000,500,Height(33000,500)+30),FRotator::ZeroRotator);
+    Roaming->SetOwner(OldHome); if(OldHome) OldHome->Residents.Add(Roaming);
+    Roaming->Configure(this,TEXT("verify-roaming-robot"),TEXT("robot")); Roaming->TakeDamage(1000,FDamageEvent(),PC,P);
+    AETItem* RoamingDrop=nullptr; for(TActorIterator<AETItem> It(GetWorld());It;++It) if(It->Id==TEXT("verify-roaming-robot-drop")) {RoamingDrop=*It; break;}
+    Check(RoamingDrop&&CurrentHome&&RoamingDrop->GetOwner()==CurrentHome&&CurrentHome->Residents.Contains(RoamingDrop),TEXT("Roaming robot drop belongs to the death location rather than its old home region"));
+    if(OldHome) {OldHome->Destroy(); Regions.Remove(FIntPoint(0,0)); EnsureRegion(FIntPoint(0,0));}
+    Check(IsValid(RoamingDrop),TEXT("Unloading a robot's old home does not remove loot from the still-loaded destination"));
+    P->Contact=TEXT("SALT-7"); const int32 StockBefore=State->BuildStock; P->Action(TEXT("kits"));
+    Check(State->Gold==28&&State->BuildStock==StockBefore+6,TEXT("Greenline exchanges twenty saved wrappers for six usable building kits"));
+    State->Gold=19; P->Action(TEXT("kits"));
+    Check(State->Gold==19&&State->BuildStock==StockBefore+6,TEXT("Insufficient wrappers cannot buy building kits or overdraw the balance"));
     P->Contact=TEXT("Refuge Keeper"); State->Scrap=24; State->Water=0;
     P->Action(TEXT("supply-run")); P->Action(TEXT("supply-run"));
     Check(State->Water==4&&State->Scrap==0,TEXT("Repeatable human supply runs exchange scavenged scrap for water"));
@@ -174,6 +190,13 @@ void AETWorld::RunSelfTest()
     Check(Loaded&&Loaded->MusicVolume==25&&Loaded->WeatherVolume==50,TEXT("Save roundtrip preserves separate music and weather volume choices"));
     Check(Loaded&&ETClimate::Sample(Loaded->Elapsed,Loaded->Seed).Kind==ETClimate::Sample(State->Elapsed,State->Seed).Kind,TEXT("Restoring saved time restores the same weather front"));
     Check(Loaded&&Loaded->Inventory.FindRef(TEXT("cloth"))==State->Inventory.FindRef(TEXT("cloth"))&&Loaded->Ammo.Num()==10&&Loaded->ViewDistance==350&&Loaded->Unlocked.Contains(9),TEXT("Save roundtrip preserves expanded inventory, guns and view distance"));
+    RunGeologyChecks(P,Check);
+    RunFrontierChecks(P,Check);
+    RunOutpostChecks(P,Check);
+    RunHomesteadChecks(P,Check);
+    RunNavigationChecks(P,Check);
+    RunHighwayChecks(P,Check);
+    RunSurvivorChecks(P,Check);
     FString Result=FString::Printf(TEXT("ET_VERIFY %d checks / %d failures\n"),Count,Failed);
     FFileHelper::SaveStringToFile(Result+Report,*(FPaths::ProjectSavedDir()/TEXT("native-verification.txt")));
     UE_LOG(LogTemp,Display,TEXT("%s%s"),*Result,*Report);

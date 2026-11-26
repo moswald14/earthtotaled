@@ -35,6 +35,9 @@ void AETWorld::LoadExpansion()
     for(const TCHAR* Name:{TEXT("Reload"),TEXT("Empty"),TEXT("Pickup"),TEXT("Drink"),TEXT("Craft"),TEXT("Heal"),TEXT("StepForest"),TEXT("StepCity"),TEXT("Hit"),TEXT("Robot"),TEXT("Animal"),TEXT("Switch"),TEXT("ForestDay"),TEXT("ForestNight"),TEXT("CityWind")}) {
         FString Id=Name; Sounds.Add(Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id)));
     }
+    for(const FString& Id:TArray<FString>{TEXT("BorerPulse"),TEXT("OreChime"),TEXT("JetThrust"),TEXT("ShardChirp"),TEXT("BroodCall"),TEXT("FieldLatch")}) {
+        Sounds.Add(Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id)));
+    }
     LoadDialogue();
 }
 void AETWorld::Sound(const FString& Name,float Volume,float Pitch)
@@ -52,7 +55,7 @@ void AETWorld::Loot(AETCharacter* P,const FString& Id,const FString& Table)
         const auto& E=(*Entries)[Index]; int32 N=R.RandRange(E.Min,E.Max); FString Name=E.Id;
         if(E.Id==TEXT("water")) {State->Water+=N; Name=TEXT("sealed water");}
         else if(E.Id==TEXT("medkit")) {State->Meds+=N; Name=TEXT("medkit");}
-        else if(E.Id==TEXT("ammo")) {N*=Weapons[State->Weapon].Mag; State->Reserve[State->Weapon]+=N; Name=TEXT("rounds");}
+        else if(E.Id==TEXT("buildkit")) {State->BuildStock+=N; Name=TEXT("building kits");}
         else {State->Inventory.FindOrAdd(E.Id)+=N; for(auto S:Supplies) if(S.Id==E.Id) Name=S.Name;}
         if(!Summary.IsEmpty()) Summary+=TEXT(" / "); Summary+=FString::Printf(TEXT("%d %s"),N,*Name);
     }
@@ -75,7 +78,7 @@ void AETCharacter::UseSupply(const FString& Id)
         if(S->Health>=MaxHealth()) {PanelBody=TEXT("Health is already full."); return;}
         S->Health=FMath::Min(MaxHealth(),S->Health+(Id==TEXT("food")?15:25));
     } else if(Id==TEXT("armorplate")) {
-        if(S->Armor>=100) {PanelBody=TEXT("Your suit is already fully repaired."); return;} S->Armor=FMath::Min(100.f,S->Armor+35);
+        if(S->Armor>=S->ArmorLimit()) {PanelBody=TEXT("Your suit is already fully repaired."); return;} S->Armor=FMath::Min(S->ArmorLimit(),S->Armor+35);
     } else if(Id==TEXT("stim")) S->StimTime=180;
     else return;
     --S->Inventory[Id]; World->Sound(TEXT("Heal")); PanelBody=TEXT("Supply used. Your pack is saved."); World->Save();
@@ -87,7 +90,7 @@ void AETCharacter::Craft(const FString& Id)
         bool Enough=S->Scrap>=R.Scrap; for(auto It:R.Ingredients) Enough&=S->Inventory.FindRef(It.Key)>=It.Value;
         if(!Enough) {PanelBody=TEXT("Missing materials. Search toolboxes, clinics, kitchens and electronics stores."); return;}
         for(auto It:R.Ingredients) S->Inventory[It.Key]-=It.Value; S->Scrap-=R.Scrap;
-        if(R.Output==TEXT("ammo")) S->Reserve[S->Weapon]+=World->Weapons[S->Weapon].Mag*R.Count;
+        if(R.Output==TEXT("buildkit")) S->BuildStock+=R.Count;
         else if(R.Output==TEXT("medkit")) S->Meds+=R.Count;
         else S->Inventory.FindOrAdd(R.Output)+=R.Count;
         PanelBody=TEXT("Crafted: ")+R.Name; World->Sound(TEXT("Craft")); World->Save(); return;
@@ -99,6 +102,7 @@ void AETCharacter::NextWeapon(){CycleWeapon(1);} void AETCharacter::PreviousWeap
 void AETCharacter::CycleWeapon(int32 Direction)
 {
     if(!World||!Panel.IsEmpty()) return;
+    if(Building) {BuildPiece=(BuildPiece+Direction+AETConstruction::Count)%AETConstruction::Count; RefreshBuild(); return;}
     for(int32 N=1;N<=World->Weapons.Num();++N) {
         int32 I=(World->State->Weapon+N*Direction+World->Weapons.Num())%World->Weapons.Num();
         if(World->State->Unlocked.Contains(I)) {SelectWeapon(I); return;}
