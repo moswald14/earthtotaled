@@ -798,5 +798,91 @@
       "Rust",
       "Steel"
     ]
+  },
+  "SM_WoodlandBear": {
+    "triangles": 4928,
+    "vertices": 10272,
+    "materials": [
+      "BearFur",
+      "Hide",
+      "Rubber"
+    ]
+  },
+  "SM_BearForeleg": {
+    "triangles": 2760,
+    "vertices": 5640,
+    "materials": [
+      "BearFur",
+      "Hide",
+      "Pallor"
+    ]
+  },
+  "SM_BearHindleg": {
+    "triangles": 2760,
+    "vertices": 5640,
+    "materials": [
+      "BearFur",
+      "Hide",
+      "Pallor"
+    ]
+  },
+  "SM_CedarFall": {
+    "triangles": 1188,
+    "vertices": 2400,
+    "materials": [
+      "Bark",
+      "Moss",
+      "Wood"
+    ]
+  },
+  "SM_AmberCaps": {
+    "triangles": 3980,
+    "vertices": 8280,
+    "materials": [
+      "AmberCap",
+      "Pallor",
+      "Wood"
+    ]
+  },
+  "SM_BentBracken": {
+    "triangles": 2544,
+    "vertices": 4272,
+    "materials": [
+      "DryBlade",
+      "GreenBlade"
+    ]
+  },
+  "SM_ConeBed": {
+    "triangles": 744,
+    "vertices": 1572,
+    "materials": [
+      "Bark",
+      "Wood"
+    ]
+  },
+  "SM_KitFold": {
+    "triangles": 177,
+    "vertices": 387,
+    "materials": [
+      "Gold",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_HoofReplay": {
+    "triangles": 960,
+    "vertices": 2112,
+    "materials": [
+      "Greenline"
+    ]
+  },
+  "SM_BearSign": {
+    "triangles": 3421,
+    "vertices": 7059,
+    "materials": [
+      "Ground",
+      "Leaf",
+      "Rust"
+    ]
   }
 }

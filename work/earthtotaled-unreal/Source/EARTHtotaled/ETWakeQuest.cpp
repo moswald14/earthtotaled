@@ -37,6 +37,10 @@ void AETCharacter::WakeJournal() {
     else if(S.Chapter<Home)Body+=TEXT("fraudCORP funded the original Supertech program, supplied its machines and kept a backdoor. The company forged attack orders on both sides. Kit was taken alive as leverage. Thrum and SALT-7 are still with you.");
     else Body+=Outcome(S);
     if(S.TaskSide)Body+=FString::Printf(TEXT("\n\nActive herd: %s / %s method."),Herd(S.TaskHerd).Name,SideName(S.TaskSide));
+    if(S.Chapter==FirstHerd)Body+=TEXT("\n\nField signs: inspect the paired prints at the crossing and the folded foil beside the bent ferns. E examines a clue.");
+    if(S.Chapter==Runway||S.Chapter==Hangar)Body+=TEXT("\n\nAt Hollow Field, look for paw marks beside the south rock shelf. The hangar is beyond it.");
+    if(S.Chapter==Cell)Body+=TEXT("\n\nCheck the lift grille beside Kit's cell for a folded square.");
+    if(S.Chapter==Home&&S.TrailFound<(1<<ClueCount)-1)Body+=TEXT("\n\nMissing recordings can still be found at the shelter crossing, the quiet glade, Hollow Field and the custody lift.");
     if(S.Chapter>=Surveys&&S.Chapter<Home&&!S.TaskSide&&NextHerd(S))Body+=FString::Printf(TEXT("\n\nNext herd: %s. Optional restorations protect more ground and change the homecoming."),Herd(NextHerd(S)).Name);
     WakeMessage(S.Chapter==Home?TEXT("FIELD JOURNAL  /  KIT IS HOME"):TEXT("FIELD JOURNAL  /  FIND KIT"),Body);
 }
@@ -44,6 +48,10 @@ void AETCharacter::WakeUse(FName Key) {
     auto& S=World->State->Wake;const auto* Object=World->WakeObjects.FindRef(Key);
     if(!IsValid(Object)||Object->IsHidden()||!Near(GetActorLocation(),Object->GetActorLocation(),600)||S.Seat!=Foot)return;
     WakePanelNode=Key;WakeOffer=0;
+    const int ClueIndex=Key=="tracks"?Hooves:Key=="fernfold"?FernFold:Key=="paws"?PawSign:Key=="liftfold"?LiftFold:INDEX_NONE;
+    if(ClueIndex!=INDEX_NONE){
+        World->FindTrailClue(ClueIndex);ReadTrail(ClueIndex);return;
+    }
     auto Advance=[&](int Chapter,const TCHAR* Title,const TCHAR* Text,const TCHAR* Cue=TEXT("")){
         S.Chapter=Chapter;World->RefreshWake();WakeMessage(Title,Text,Cue);
     };
@@ -51,6 +59,7 @@ void AETCharacter::WakeUse(FName Key) {
         Advance(Triage,TEXT("THRUM  /  THE THREE STEPS"),TEXT("Kit was in the evacuation lane when the pulse hit. The shelter marked him lost.\n\nThrum: I heard every deer take the same three steps. Something told them there was a predator. There wasn't. Walk with me, Mara.\n\nSALT-7: I'll trace the relay. Look for Kit's wristband near the red medical case on the road."),TEXT("wakethrum"));return;
     }
     if(Key=="band"&&S.Chapter==Triage) {
+        World->FindTrailClue(CaseFold);
         Advance(FirstHerd,TEXT("A WRISTBAND UNDER THE TARP"),TEXT("KIT VENN. The medical ink is dry. A second scanner stamp reads TRANSFER. Somebody moved him after the crash.\n\nA doe shies from an empty lane. Behind her, two more repeat the same turn. Meet Thrum at the roadblock."),TEXT("wakeband"));return;
     }
     if(Key=="herd"&&S.Chapter==FirstHerd) {
@@ -128,6 +137,7 @@ void AETCharacter::FinishWakeHerd() {
     auto& S=World->State->Wake;const int Side=S.TaskSide,I=S.TaskHerd;if(!I||!Side||!S.ReadSource)return;
     const int Bit=1<<(I-1);if((S.Silenced|S.Retuned)&Bit)return;
     (Side==Bug?S.Silenced:S.Retuned)|=Bit;const int N=S.Count(Side);S.TaskSide=S.TaskHerd=0;S.ReadSource=false;
+    if(S.Chapter==Surveys)World->FindTrailClue(Carrier);
     World->State->Gold+=24;World->State->Water+=2;AddXP(90);
     FString Text=FString::Printf(TEXT("The %s herd breaks its loop and grazes. Its glade is a safe building site, marked on your map. The relief crew pays 24 wrappers and two bottles.\n\n"),Herd(I).Name);
     if(S.Count(Bug)+S.Count(Frame)==2)Text+=TEXT("You recover the founding charter. fraudCORP created and funded the original Supertech program and supplied the machines. Its service backdoor can forge orders with either side's signature. SALT-7's community grew real lives around stolen machinery.\n\n");
@@ -146,6 +156,12 @@ void AETCharacter::WakeAction(const FString& Id) {
         if(Controller)Controller->SetControlRotation(FRotator::ZeroRotator);WakePanelNode="ending";
         WakeMessage(TEXT("THE MORNING AFTER  /  KIT IS HOME"),Outcome(S),TEXT("wakehome"));return;}
     if(Panel!="wake")return;
+    if(Id=="trail-log"&&S.TrailFound){ReadTrail(FMath::FloorLog2(uint32(S.TrailFound)));return;}
+    if(WakePanelNode=="trail"&&(Id=="trail-prev"||Id=="trail-next"||Id=="trail-replay")){
+        int Page=TrailPage;
+        if(Id!="trail-replay")do{Page=(Page+(Id=="trail-next"?1:ClueCount-1))%ClueCount;}while(!(S.TrailFound&(1<<Page)));
+        ReadTrail(Page);return;
+    }
     if(Id=="resume"){ClosePanel();return;}
     if(Id=="archives"){Panel.Empty();ArchiveJournal();return;}
     if(Id=="wake-next"&&WakePanelNode=="vault"&&S.Chapter==Vault&&S.VaultLine<4){++S.VaultLine;WakeUse("vault");return;}
@@ -184,7 +200,11 @@ TArray<TPair<FString,FString>> AETCharacter::WakeChoices() const {
     if((WakePanelNode=="journal"||WakePanelNode=="dispatch"||WakePanelNode=="report")&&S.Chapter>=Surveys&&S.Chapter<Home&&!S.TaskSide&&NextHerd(S)){
         if(S.Winner()!=Frame)Add(TEXT("job-bug"),TEXT("Bug / silence a relay"));
         if(S.Winner()!=Bug)Add(TEXT("job-frame"),TEXT("Supertech / retune a relay"));}
-    if(WakePanelNode=="journal"){if(S.TaskSide)Add(TEXT("leave-job"),TEXT("Return unfinished job"));Add(TEXT("archives"),TEXT("HELIOS and settlement jobs"));}
+    if(WakePanelNode=="journal"){if(S.TrailFound)Add(TEXT("trail-log"),TEXT("Kit's trail / field recordings"));if(S.TaskSide)Add(TEXT("leave-job"),TEXT("Return unfinished job"));Add(TEXT("archives"),TEXT("HELIOS and settlement jobs"));}
+    if(WakePanelNode=="trail"){
+        if(FMath::CountBits(uint32(S.TrailFound))>1){Add(TEXT("trail-prev"),TEXT("Earlier recording"));Add(TEXT("trail-next"),TEXT("Later recording"));}
+        Add(TEXT("trail-replay"),TEXT("Play this recording"));Add(TEXT("wake-journal"),TEXT("Current objective"));
+    }
     if(WakePanelNode=="job")Add(TEXT("accept"),S.Count(WakeOffer)==3?TEXT("Accept fourth-mark job"):TEXT("Accept field job"));
     if(WakePanelNode=="vault"&&S.Chapter==Vault&&S.VaultLine<4)Add(TEXT("wake-next"),S.VaultLine==3?TEXT("Examine the two offers"):TEXT("Listen"));
     if((WakePanelNode=="juice"||WakePanelNode=="frame")&&WakeOffer&&S.Chapter==Vault)Add(TEXT("transform"),WakeOffer==Bug?TEXT("Drink / become a Bug"):TEXT("Enter the Supertech frame"));

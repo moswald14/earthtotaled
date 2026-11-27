@@ -10,6 +10,10 @@ surfaces = ['Ground','Bark','Concrete','FaultShale','FaultIron','FaultGold']
 reclamation = globals().get('reclamation', False)
 ringline = globals().get('ringline', False)
 quarters = globals().get('quarters', False)
+woodland = globals().get('woodland', False)
+if woodland:
+    models=['WoodlandBear','BearForeleg','BearHindleg','CedarFall','AmberCaps','BentBracken','ConeBed','KitFold','BearSign','HoofReplay']
+    surfaces=['BearFur','AmberCap']
 if reclamation:
     models = ['BladePatch','RoadWeed','HollowWalker','HillCistern','MoltRunner','MoltSpitter','MoltBulwark','MoltSkimmer','SupertechWarden','SupertechScout']
     surfaces = ['Ground','FaultShale','FaultIron','FaultGold','Carapace','AlloyHull','Pallor','RotCloth']
@@ -25,6 +29,8 @@ if quarters:
 maps = [('BaseColor',unreal.MaterialProperty.MP_BASE_COLOR),('Normal',unreal.MaterialProperty.MP_NORMAL),('Roughness',unreal.MaterialProperty.MP_ROUGHNESS)]
 files = ['SM_'+m+'.obj' for m in models]+['T_Relief'+m+'_'+s+'.png' for m in surfaces for s,_ in maps]
 tasks = []
+if woodland:
+    files.append('S_BearHuff.wav')
 for name in files:
     task=unreal.AssetImportTask()
     task.filename=str(root/'ArtSource'/name)
@@ -110,7 +116,7 @@ if reclamation:
         lib.connect_material_property(node,'',unreal.MaterialProperty.MP_BASE_COLOR)
         lib.recompile_material(m)
         editor.save_loaded_asset(m)
-if reclamation or ringline:
+if reclamation or ringline or woodland:
     for name in models:
         mesh=editor.load_asset(art+'/SM_'+name)
         for index,slot in enumerate(mesh.get_editor_property('static_materials')):
@@ -118,5 +124,5 @@ if reclamation or ringline:
             if material is None: raise RuntimeError(str(slot.material_slot_name))
             mesh.set_material(index,material)
         editor.save_loaded_asset(mesh)
-(root/'Saved'/('interchange-ready.txt' if quarters else 'ringline-ready.txt' if ringline else 'reclamation-ready.txt' if reclamation else 'outposts-ready.txt')).write_text(f'{len(models)} meshes and {len(surfaces)} PBR surfaces imported.\n')
+(root/'Saved'/('woodland-ready.txt' if woodland else 'interchange-ready.txt' if quarters else 'ringline-ready.txt' if ringline else 'reclamation-ready.txt' if reclamation else 'outposts-ready.txt')).write_text(f'{len(models)} meshes and {len(surfaces)} PBR surfaces imported.\n')
 

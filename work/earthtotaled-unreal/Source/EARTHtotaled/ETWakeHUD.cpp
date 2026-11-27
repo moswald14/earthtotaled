@@ -56,7 +56,7 @@ void AETHUD::DrawWakeTrail(AETCharacter* P) {
     if(S.Chapter==Missing&&W.State->ArrivalStage==1){Text(TEXT("J   Kit's field journal"),32,136,Mute,.92f);return;}
     auto XY=Waypoint(W);auto Delta=XY-FVector2D(P->GetActorLocation());double Range=Delta.Size();
     const auto Angle=FMath::FindDeltaAngleDegrees(double(P->GetControlRotation().Yaw),FMath::RadiansToDegrees(FMath::Atan2(Delta.Y,Delta.X)));
-    FString Guide=FString::Printf(TEXT("KIT   %.0f m   %s     /     J  field journal"),Range/100,FMath::Abs(Angle)<10?TEXT("ahead"):Angle>0?TEXT("turn right"):TEXT("turn left"));
+    FString Guide=FString::Printf(TEXT("%s   %.0f m   %s     /     J  journal   M  atlas"),*Destination(S),Range/100,FMath::Abs(Angle)<10?TEXT("ahead"):Angle>0?TEXT("turn right"):TEXT("turn left"));
     Text(Guide,32,133,Signal,.91f);
     if(S.Chapter==Vault&&Range<1500){
         const double T=W.State->Elapsed;DrawRect(Signal.CopyWithNewOpacity(.10f+.08f*FMath::Sin(T*9)),0,0,Canvas->SizeX,4*U);}

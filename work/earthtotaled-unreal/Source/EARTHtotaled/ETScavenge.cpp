@@ -36,7 +36,7 @@ void AETWorld::LoadExpansion()
     for(const TCHAR* Name:{TEXT("Reload"),TEXT("Empty"),TEXT("Pickup"),TEXT("Drink"),TEXT("Craft"),TEXT("Heal"),TEXT("StepForest"),TEXT("StepCity"),TEXT("Hit"),TEXT("Robot"),TEXT("Animal"),TEXT("Switch"),TEXT("ForestDay"),TEXT("ForestNight"),TEXT("CityWind")}) {
         FString Id=Name; Sounds.Add(Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id)));
     }
-    for(const FString& Id:TArray<FString>{TEXT("BorerPulse"),TEXT("OreChime"),TEXT("JetThrust"),TEXT("ShardChirp"),TEXT("BroodCall"),TEXT("FieldLatch")}) {
+    for(const FString& Id:TArray<FString>{TEXT("BorerPulse"),TEXT("OreChime"),TEXT("JetThrust"),TEXT("ShardChirp"),TEXT("BroodCall"),TEXT("FieldLatch"),TEXT("BearHuff")}) {
         Sounds.Add(Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id)));
     }
     LoadDialogue();

@@ -35,7 +35,11 @@ void AETWorld::RunSelfTest()
     int32 Baked=0; for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("ET_BakedStart"))) ++Baked;
     Check(Baked>=250,TEXT("Pregenerated starting architecture is present in the cooked map"));
     Check(Supplies.Num()==11&&Recipes.Num()==6&&LootTables.Num()==6,TEXT("Supplies, mined ores, workbench recipes and container tables loaded"));
-    Check(VoiceLines.Num()==40,TEXT("Forty spoken survivor and MegaWAKE lines have subtitle data"));
+    Check(VoiceLines.Num()==47,TEXT("All 47 spoken survivor, MegaWAKE and field-trail lines have subtitle data"));
+    for(const TCHAR* Surface:{TEXT("AmberCap"),TEXT("GreenBlade"),TEXT("DryBlade")}){
+        auto* M=Material(Surface);
+        Check(M&&M->CheckMaterialUsage_Concurrent(MATUSAGE_InstancedStaticMeshes),FString(Surface)+TEXT(" supplies its cooked grass-streaming shader"));
+    }
     Check(Speak(TEXT("nora"))&&HasSubtitle()&&SubtitleSpeaker==TEXT("Nora"),TEXT("Human dialogue starts its matching speaker subtitle"));
     auto VoiceComponent=DialogueAudio;
     Check(!Speak(TEXT("nora")),TEXT("Repeated dialogue click does not immediately restart the same clip"));

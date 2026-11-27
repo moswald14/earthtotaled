@@ -21,6 +21,10 @@ namespace ETWake
     const TCHAR* Frequency(int HerdIndex);
     FString Objective(const FETWakeSave& S);
     FName Target(const FETWakeSave& S);
+    FString Destination(const FETWakeSave& S);
+    enum EClue { CaseFold, Hooves, FernFold, DashFold, Carrier, PawSign, LiftFold, ClueCount };
+    struct FClue {const TCHAR* Title; const TCHAR* Cue;};
+    const FClue& Clue(int Index);
     FVector2D Waypoint(const AETWorld& World);
     bool BugPack(const AETCharacter& P);
     bool CanBuild(const FETWakeSave& S,int Piece);

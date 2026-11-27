@@ -289,6 +289,10 @@ public:
     int32 TownIndex=INDEX_NONE;
     int32 WakeHerd=INDEX_NONE, HerdMember=0;
     bool TickWakeDeer(float Delta,AETCharacter& Player);
+    void AttachBearLegs();
+    void PoseBear(float Stride,float Windup);
+    bool BearSwipe(AETCharacter& Player,float Delta,bool Clear);
+    float BearWindup=0,BearStride=0;
     bool WakeEnemy() const;
     bool WakeTruce() const;
     FIntPoint TownCell=FIntPoint::ZeroValue;
@@ -322,6 +326,8 @@ public:
     void AddDetails();
     void AddTownLandmarks();
     void AddRailQuarter();
+    bool BearDen(FVector& Site) const;
+    void AddBearDen();
     bool BuildTerrainSlice();
     void RefreshSurfaceCollision();
     void BuildRoadSurface();
@@ -361,6 +367,8 @@ public:
     void BuildStory();
     void RefreshWake();
     void TickWake(AETCharacter& Player,float Delta);
+    void FindTrailClue(int Index);
+    void PlayTrailClue();
     void SetWakePerks();
     UPROPERTY() TMap<FName,AETItem*> WakeObjects;
     UPROPERTY() TArray<AActor*> WakeScenery;
@@ -606,6 +614,8 @@ public:
     void ApplyWakeBody();
     void WakeUse(FName Node);
     void WakeAction(const FString& Id);
+    void ReadTrail(int Index);
+    int TrailPage=0;
     void WakeJournal();
     void WakeMessage(FString Title,FString Body,const FString& Cue=TEXT(""));
     void WakeClaw();

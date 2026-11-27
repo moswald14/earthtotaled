@@ -33,6 +33,8 @@ struct FETWakeSave
     UPROPERTY() int32 TaskHerd=0;
     UPROPERTY() bool ReadSource=false;
     UPROPERTY() bool SharedLead=false;
+    UPROPERTY() int32 TrailFound=0;
+    UPROPERTY() int32 TrailHeard=0;
     UPROPERTY() int32 WarningSeen=0;
     UPROPERTY() bool DriveGate=false;
     UPROPERTY() bool TookOff=false;

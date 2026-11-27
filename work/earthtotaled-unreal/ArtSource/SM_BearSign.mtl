@@ -1,0 +1,6 @@
+newmtl Ground
+Kd 0.5 0.5 0.5
+newmtl Leaf
+Kd 0.5 0.5 0.5
+newmtl Rust
+Kd 0.5 0.5 0.5

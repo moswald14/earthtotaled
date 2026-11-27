@@ -40,7 +40,12 @@ void AETWorld::RefreshWake() {
         auto*& A=WakeObjects.FindOrAdd(Key);
         if(!IsValid(A)&&Active) {
             A=Item(TEXT("wake/")+Key.ToString(),TEXT("wake"),Label,WakeSpot(At,Index)+Offset,Index,Key.ToString());
-            if(!A)return;A->Mesh->SetStaticMesh(Art(Asset));DressMesh(A->Mesh,TEXT("Steel"));A->SetActorScale3D(FVector(Scale));A->Mesh->SetCullDistance(48000);
+            if(!A)return;A->Mesh->SetStaticMesh(Art(Asset));DressMesh(A->Mesh,Key=="paws"?TEXT("Ground"):TEXT("Steel"));A->SetActorScale3D(FVector(Scale));A->Mesh->SetCullDistance(48000);
+            if(Key=="band"&&A->Mesh->GetStaticMesh()){
+                auto* Foil=NewObject<UStaticMeshComponent>(A);Foil->SetupAttachment(A->Mesh);Foil->SetStaticMesh(Art(TEXT("SM_KitFold")));
+                Foil->SetRelativeLocation(FVector(4,-3,A->Mesh->GetStaticMesh()->GetBoundingBox().Max.Z));Foil->SetRelativeScale3D(FVector(2.3));
+                Foil->SetCollisionEnabled(ECollisionEnabled::NoCollision);Foil->RegisterComponent();
+            }
             if(Key=="juice")for(int I=0;I<A->Mesh->GetNumMaterials();++I)A->Mesh->SetMaterial(I,Material(TEXT("Greenline")));
         }
         if(IsValid(A)&&Key=="juice"&&A->Mesh->GetNumChildrenComponents()==0){
@@ -56,11 +61,21 @@ void AETWorld::RefreshWake() {
         if(IsValid(A)){A->SetActorHiddenInGame(!Active);A->SetActorEnableCollision(Active);}
     };
     const bool First=WakeLayout==INDEX_NONE;
+    if(First){
+        // Older slots already passed these three unavoidable discoveries. Leave any queued live radio intact.
+        int Visited=(S.Chapter>=FirstHerd?1<<CaseFold:0)|(S.Chapter>=Dispatch||S.Seat==Car?1<<DashFold:0)|((S.Silenced|S.Retuned)?1<<Carrier:0);
+        S.TrailHeard|=Visited&~S.TrailFound;S.TrailFound|=Visited;
+    }
     Node("thrum","thrum",0,TEXT("Thrum / listen for Kit"),TEXT("SM_MoltSpitter"),.92,S.Chapter<=Triage);
     Node("band","band",0,TEXT("Examine the evacuation wristband"),TEXT("SM_MedCase"),.55,S.Chapter==Triage,FVector(0,0,15));
     Node("herd","herd",0,TEXT("Thrum / guide the crossing herd"),TEXT("SM_MoltSpitter"),.98,S.Chapter==FirstHerd);
     Node("glade0","glade",0,TEXT("Quiet glade / settle the first herd"),TEXT("SM_Sign"),1,S.Chapter>=FirstHerd&&S.Chapter<Home);
     Node("garage","garage",0,TEXT("SALT-7 / roadside motor pool"),TEXT("SM_Robot"),1,S.Chapter>=FirstHerd);
+    Node("tracks","tracks",0,TEXT("Examine the crossing's hoofprint pattern"),TEXT("SM_HoofReplay"),1.55,S.Chapter>=FirstHerd);
+    if(S.Chapter==Home)if(auto* Tracks=WakeObjects.FindRef("tracks"))Tracks->Mesh->SetMaterial(0,Material(TEXT("Ground")));
+    Node("fernfold","fernfold",0,TEXT("Inspect the folded candy wrapper"),TEXT("SM_KitFold"),1.65,S.Chapter>=FirstHerd,FVector(0,0,23));
+    Node("paws","paws",0,TEXT("Inspect the five-toed tracks"),TEXT("SM_BearSign"),1.6,S.Chapter>=Runway);
+    Node("liftfold","liftfold",0,TEXT("Inspect the foil in the lift grille"),TEXT("SM_KitFold"),1.6,S.Chapter>=Cell,FVector(0,0,67));
     Node("dispatch","dispatch",0,TEXT("East Dispatch / search records and take herd jobs"),TEXT("SM_Relay"),1.2,true);
     for(int I=1;I<=Herds;++I){
         const bool Done=((S.Silenced|S.Retuned)&(1<<(I-1)))!=0;
@@ -87,6 +102,17 @@ void AETWorld::RefreshWake() {
         auto* A=Static(Asset,Mat,At,Scale,R);WakeScenery.Add(A);return A;
     };
     if(First) {
+        auto Dressing=[&](FName Node,FVector2D Offset,const TCHAR* Mesh,FVector Scale,double Yaw,double Rise=0.){
+            const auto XY=Location(S,Node)+Offset;
+            auto* A=Decor(Mesh,TEXT("Bark"),FVector(XY,SurfaceHeight(XY.X,XY.Y)+Rise),Scale,FRotator(0,Yaw,0));A->SetActorEnableCollision(false);
+        };
+        Dressing("fernfold",{-5,3},TEXT("SM_CedarFall"),{2.1,1.85,1.65},29);
+        for(int K=0;K<6;++K)Dressing("fernfold",{-55.-K*82,41.-K*43},TEXT("SM_BentBracken"),FVector(.72+(K%3)*.19),K*83.);
+        Dressing("paws",{132,-32},TEXT("SM_Rock"),{1.45,.83,.48},42);
+        Dressing("paws",{-49,24},TEXT("SM_AmberCaps"),FVector(.75),29);
+        const FVector Grille=WakeSpot("liftfold")+FVector(18,0,31);
+        Decor(TEXT("/Engine/BasicShapes/Cube.Cube"),TEXT("DarkMetal"),Grille,{.17,.79,.66})->SetActorEnableCollision(false);
+        for(int Slat=0;Slat<5;++Slat)Decor(TEXT("/Engine/BasicShapes/Cube.Cube"),TEXT("Steel"),Grille+FVector(-11,0,Slat*11.-20.),{.06,.78,.022})->SetActorEnableCollision(false);
         auto Sign=[&](const TCHAR* Words,FVector At,double Angle,float Size){
             auto* Post=Decor(TEXT("SM_Sign"),TEXT("DarkMetal"),At,FVector(.72),FRotator(0,Angle,0));
             auto* Letter=NewObject<UTextRenderComponent>(Post);Letter->SetupAttachment(Post->GetRootComponent());Letter->RegisterComponent();
@@ -194,6 +220,7 @@ void AETWorld::TickWake(AETCharacter& P,float D) {
     if(State->Wake.Chapter==Vault&&FVector2D::Distance(FVector2D(P.GetActorLocation()),Location(State->Wake,"vault"))<1000&&P.Panel.IsEmpty()){
         const double T=State->Elapsed;P.Camera->SetRelativeLocation({0,0,72.+2.4*FMath::Sin(T*23.)});}
     if(WakePulse<.45f)return;WakePulse=0;
+    if(P.Panel.IsEmpty()&&!HasSubtitle())PlayTrailClue();
     for(auto* Deer:WakeDeer)if(IsValid(Deer))Deer->UpdatePresence(P.GetActorLocation());
 }
 bool AETAgent::TickWakeDeer(float D,AETCharacter& P) {

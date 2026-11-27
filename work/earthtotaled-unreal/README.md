@@ -2,6 +2,12 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Kit's Trail / 1.17
+
+Ask Thrum about Kit at Shelter 09 and inspect the red medical case. Watch for a square of folded foil, a patch of bent ferns and hoofprints that leave the leaves untouched. Aim at a sign and press **E**. Open **J → Kit's trail / field recordings** to hear a discovery again or check your next landmark. Following the signs is optional on both faction routes.
+
+Bracken, cedar deadfall, pinecones and amber mushrooms grow denser in patches as you walk through the tall grass. Five-toed prints can mark a woodland bear's range. Bears hunt after dusk. A huff and a raised forepaw give you time to sidestep or retreat.
+
 ## Interchange / 1.15
 
 The two circular lines serve sixteen station districts. North and South shuttles run straight between terminal pairs in both directions. Each station district has an original landmark and two enterable businesses with persistent, themed stock. Press M then R for the railway, or L in the atlas for local shops and transfers. Walk to the back of a platform and press E to reach the street. Use E at the boarding edge to wait.

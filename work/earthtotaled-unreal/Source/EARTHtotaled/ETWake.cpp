@@ -1,5 +1,5 @@
-#include "ETGeology.h"
 #include "ETWake.h"
+#include "ETGeology.h"
 #include "ETGame.h"
 #include "ETWakeVehicle.h"
 
@@ -47,6 +47,10 @@ FVector2D ETWake::Location(const FETWakeSave& S,FName N,int I)
     if(N=="band") return {3570,2550};
     if(N=="source"||N=="herd") return Herd(I).Center+FVector2D(-200,-170);
     if(N=="glade") return Glade(I);
+    if(N=="tracks")return Herd(0).Center+FVector2D(105,190);
+    if(N=="fernfold")return Glade(0)+FVector2D(-260,-100);
+    if(N=="paws")return Field(0,S)+FVector2D(-3930,-1150);
+    if(N=="liftfold")return Location(S,"cell")+FVector2D(105,-190);
     if(N=="garage") return {5650,2210};
     if(N=="roadgate") return {9200,2600};
     if(N=="dispatch") return {13700,2410};
@@ -152,6 +156,7 @@ bool ETWake::CanBuild(const FETWakeSave& S,int P) {
 }
 bool FETWakeSave::Valid() const
 {
+    if(TrailFound<0||TrailFound>=(1<<ClueCount)||TrailHeard<0||(TrailHeard&~TrailFound))return false;
     if(Chapter<Missing||Chapter>Home||Body<Human||Body>Frame||Seat<Foot||Seat>Plane||Airfields<0||Airfields>3||
        Silenced<0||Retuned<0||Silenced>255||Retuned>255||(Silenced&Retuned)||TaskSide<0||TaskSide>Frame||TaskHerd<0||TaskHerd>Herds||
        (TaskSide==0)!=(TaskHerd==0)||WarningSeen<0||WarningSeen>3||VaultLine<0||VaultLine>4||EndingHerds<0||EndingHerds>9)return false;

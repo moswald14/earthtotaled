@@ -259,7 +259,7 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         for(int I=0;I<=ETWake::Herds;++I){
             const bool Clear=I?((S.Wake.Silenced|S.Wake.Retuned)&(1<<(I-1)))!=0:S.Wake.Chapter>=ETWake::Garage;
             if(Clear||P->Has(TEXT("molt-sense")))Marker(ETWake::Glade(I),false,false,FString(Clear?TEXT("Safe glade / "):TEXT("Pulse / "))+ETWake::Herd(I).Name);}
-        Marker(ETWake::Waypoint(W),false,true,TEXT("MegaWAKE / ")+ETWake::Target(S.Wake).ToString());
+        Marker(ETWake::Waypoint(W),false,true,TEXT("MegaWAKE / ")+ETWake::Destination(S.Wake));
         if(S.Wake.HasCar()&&W.WakeCar)Marker(FVector2D(W.WakeCar->GetActorLocation()),false,false,TEXT("Roadster"));
         if(S.Wake.HasPlane()&&W.WakePlane)Marker(FVector2D(W.WakePlane->GetActorLocation()),false,false,TEXT("Survey plane"));}
     for(int I=0;I<S.MapPins.Num();++I) Marker(S.MapPins[I],false,I==S.TrackedPin,ETRailDistrict::PinLabel(S.MapPins[I],I));

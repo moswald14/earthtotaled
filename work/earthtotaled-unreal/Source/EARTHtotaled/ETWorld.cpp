@@ -290,6 +290,8 @@ void AETWorld::DressMesh(UStaticMeshComponent* Component,const FString& BaseMate
         FString Slot=Slots[I].MaterialSlotName.ToString(); FString Name=BaseMaterial;
         for(const TCHAR* Known:{TEXT("Steel"),TEXT("DarkMetal"),TEXT("Rubber"),TEXT("Wood"),TEXT("Bark"),TEXT("Glass"),TEXT("Greenline"),TEXT("Skin"),TEXT("Signal"),TEXT("Gold"),TEXT("Leaf"),TEXT("Pine"),TEXT("Moss"),TEXT("BirchBark"),TEXT("Brick"),TEXT("Plaster"),TEXT("Concrete"),TEXT("Rust"),TEXT("Canvas"),TEXT("CircuitLight"),TEXT("ResinLight"),TEXT("AlloyHull"),TEXT("Carapace"),TEXT("Pallor"),TEXT("RotCloth"),TEXT("GreenBlade"),TEXT("DryBlade"),TEXT("Hide")})
             if(Slot==Known||Slot.EndsWith(FString(TEXT("_"))+Known)) {Name=Known; break;}
+        if(Slot==TEXT("BearFur")||Slot.EndsWith(TEXT("_BearFur")))Name=TEXT("BearFur");
+        if(Slot==TEXT("AmberCap")||Slot.EndsWith(TEXT("_AmberCap")))Name=TEXT("AmberCap");
         Component->SetMaterial(I,Material(Name));
     }
 }
@@ -637,6 +639,7 @@ bool AETRegion::AdvanceGenerate()
         }
     }
     } else if(Stage==4) {
+    AddBearDen();
     for(int32 I=0;I<5;++I)
     {
         FVector P=Origin+FVector(R.FRandRange(3000,29000),R.FRandRange(3000,29000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+30;

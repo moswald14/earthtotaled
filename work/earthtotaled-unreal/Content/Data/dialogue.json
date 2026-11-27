@@ -253,6 +253,51 @@
       "speaker": "Kit",
       "rate": 0,
       "text": "That deer only jumped once. Can we stay and watch?"
+    },
+    {
+      "id": "waketrailcase",
+      "speaker": "Mara",
+      "rate": 0,
+      "text": "Kit folds candy wrappers into little squares when he's scared. This one's fresh. That deer crossing was the last place I saw him."
+    },
+    {
+      "id": "waketrailhooves",
+      "speaker": "SALT-7",
+      "robot": true,
+      "rate": 0,
+      "text": "Same hoofprint four times. Leaves underneath haven't moved. Only the print is a replay. Take the real deer past the bent ferns to the glade."
+    },
+    {
+      "id": "waketrailfern",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "Four corners. Your boy's fold. Road oil on this one. See the fallen cedar? The roadster is just beyond it."
+    },
+    {
+      "id": "waketraildash",
+      "speaker": "Mara",
+      "rate": 0,
+      "text": "Another square, tucked in the dash. East Dispatch is stamped on the glove box. Hold on, Kit."
+    },
+    {
+      "id": "waketrailrelay",
+      "speaker": "SALT-7",
+      "robot": true,
+      "rate": 0,
+      "text": "A carrier from Hollow Field. Faint, but it's there on either frequency. Keep working the relays. I want to know what they were sending."
+    },
+    {
+      "id": "waketrailbear",
+      "speaker": "SALT-7",
+      "robot": true,
+      "rate": 0,
+      "text": "Five toes. Claw cuts. Crushed berries. A real bear came through here. Take the south side of the rock shelf to the hangar. Give it room."
+    },
+    {
+      "id": "waketraillift",
+      "speaker": "Mara",
+      "rate": 0,
+      "text": "Kit's square fold, jammed in the lift grille. Three knocks, love. Just like home. I'm opening your cell."
     }
   ]
 }

@@ -370,6 +370,7 @@ runpy.run_path(str(Path(__file__).with_name('make-outposts.py')),run_name='__mai
 runpy.run_path(str(Path(__file__).with_name('make-reclamation.py')),run_name='__main__')
 runpy.run_path(str(Path(__file__).with_name('make-ringline.py')))['generate_railway']()
 runpy.run_path(str(Path(__file__).with_name('make-interchange.py')))['generate_landmarks']()
+runpy.run_path(str(Path(__file__).with_name('make-woodland.py')),run_name='__main__')
 subprocess.run(['node',str(Path(__file__).with_name('make-relief.mjs'))],check=True)
 (OUT/'mesh-detail.json').write_text(json.dumps(STATS,indent=2))
 (OUT/'manifest.json').write_text(json.dumps({'units':'centimeters','axis':'Z up / X forward','license':'Original EARTHtotaled project art. No third-party assets.','meshes':sorted(p.name for p in OUT.glob('*.obj')),'textures':sorted(p.name for p in OUT.glob('*.png')),'sounds':sorted(p.name for p in OUT.glob('*.wav'))},indent=2))

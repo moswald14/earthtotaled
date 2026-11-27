@@ -66,6 +66,7 @@ void AETWorld::SpillLoot(AETAgent* Victim,bool Credited)
     else if(Victim->Kind==TEXT("robot")) {Spill(TEXT("gold"),Credited?FMath::RoundToInt(16*P->LootRate()):5);Spill(TEXT("gunparts"),1);}
     else if(Victim->IsMachine()) {Spill(TEXT("gunparts"),1);Spill(TEXT("scrap"),1);}
     else if(Walker) {Spill(TEXT("gold"),R.RandRange(3,7));Spill(R.RandRange(0,4)?TEXT("cloth"):TEXT("medkit"),1);}
+    else if(Victim->Kind==TEXT("bear")) {Spill(TEXT("harvest"),4);Spill(TEXT("cloth"),2);}
     else {Spill(Victim->IsBrood()?TEXT("chitin"):TEXT("harvest"),1);Spill(TEXT("scrap"),2);}
     FRandomStream WeaponRoll(FMath::Rand());
     if(const int Seed=ETLandfall::RollDrop(WeaponRoll,Victim->Kind!=TEXT("deer")))

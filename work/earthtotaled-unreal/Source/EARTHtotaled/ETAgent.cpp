@@ -16,6 +16,7 @@ void AETAgent::UpdatePresence(FVector Viewer)
 {
     const double Distance=FVector::DistSquared2D(GetActorLocation(),Viewer);
     const bool Present=Awake()&&Distance<FMath::Square(World->State->ViewDistance*100.+5000.);
+    if(!Present)BearWindup=0;
     SetActorHiddenInGame(!Present);
     SetActorEnableCollision(Present);
     SetActorTickEnabled(Present&&Distance<FMath::Square(14000.));
@@ -38,10 +39,12 @@ void AETAgent::Configure(AETWorld* InWorld,const FString& InId,const FString& In
     else if(Kind==TEXT("skimmer")) Health=62;
     else if(Kind==TEXT("spitter")) Health=78;
     else if(Kind==TEXT("runner")) Health=52;
+    else if(Kind==TEXT("bear")) Health=360;
     else Health=Kind==TEXT("boar")?85:60;
     if(const float* Saved=World->State->AgentHealth.Find(Id)) Health=*Saved;
     FString Asset=Kind==TEXT("robot")?TEXT("SM_SupertechWarden"):Kind==TEXT("deer")?TEXT("SM_Deer"):Kind==TEXT("boar")?TEXT("SM_Boar"):TEXT("SM_Wolf");
     if(Kind==TEXT("walker")) Asset=TEXT("SM_HollowWalker");
+    if(Kind==TEXT("bear")) Asset=TEXT("SM_WoodlandBear");
     if(Kind==TEXT("drone")) Asset=TEXT("SM_SupertechScout");
     if(Kind==TEXT("hive")) {Asset=TEXT("SM_MoltBulwark"); SetActorScale3D(FVector(2.5,2.7,2.4));}
     if(Kind==TEXT("bulwark")) Asset=TEXT("SM_MoltBulwark");
@@ -51,6 +54,7 @@ void AETAgent::Configure(AETWorld* InWorld,const FString& InId,const FString& In
     auto M=NewObject<UStaticMeshComponent>(this); M->SetupAttachment(Pivot); M->RegisterComponent();
     M->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     World->DressMesh(M,Kind==TEXT("robot")?TEXT("Rust"):TEXT("Hide")); M->SetCollisionProfileName(TEXT("BlockAll")); Parts.Add(M);
+    if(Kind==TEXT("bear"))AttachBearLegs();
     SetActorTickInterval(.04f);
     UpdatePresence(UGameplayStatics::GetPlayerPawn(this,0)?UGameplayStatics::GetPlayerPawn(this,0)->GetActorLocation():World->State->Position);
 }
@@ -110,7 +114,7 @@ void AETAgent::Tick(float D)
     if((World->IsNight()||WakeEnemy())&&!WakeTruce()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
        (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
     if(!Enemy&&WakeTruce())return;
-    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) return;
+    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) {BearWindup=0;return;}
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
     AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
     if(Siege) {
@@ -128,12 +132,14 @@ void AETAgent::Tick(float D)
     const FVector Aim=Enemy?Enemy->AimPoint():Target->GetActorLocation();
     bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,Eye,Aim,ECC_Visibility,Params)||Sight.GetActor()==Target;
     auto* Cover=Cast<AETConstruction>(Sight.GetActor());
-    const float Engage=Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
+    const bool Bear=Kind==TEXT("bear");
+    if(Bear&&BearSwipe(*Player,D,Clear))return;
+    const float Engage=Bear?(PlayerAggro>0?6500:2900):Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
     FVector Direction;
     if(Distance<Engage&&(Clear||Managed||TownIndex!=INDEX_NONE||Cover||Enemy)) Direction=To.GetSafeNormal()*(Flee?-1:1);
     else Direction=(Home+FVector(FMath::Cos(Phase*.15f)*800,FMath::Sin(Phase*.15f)*800,0)-P).GetSafeNormal2D();
     if(Brood&&!Spitter&&Distance>460) Direction=(Direction+FVector(-Direction.Y,Direction.X,0)*.29*FMath::Sin(Phase+double(GetTypeHash(Id)%9))).GetSafeNormal2D();
-    const float Speed=Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
+    const float Speed=Bear?(Clear&&Distance<Engage?510:132):Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
     if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
         FVector Next=P+Direction*Speed*D; Next.Z=World->Height(Next.X,Next.Y)+8;
@@ -166,6 +172,10 @@ void AETAgent::Tick(float D)
             Home=P+Side*600;
         }
         SetActorRotation(Direction.Rotation());
+    }
+    if(Bear){
+        BearStride+=FVector::Dist2D(P,GetActorLocation())*.028f;
+        PoseBear(BearStride,0);return;
     }
     if(Staging||(Target==Player&&Player->EnemyReacquireTime>0)) return;
     const double AttackDistance=Cover?FVector::Dist(Eye,Sight.ImpactPoint):FVector::Dist(Eye,Aim);
@@ -209,7 +219,7 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
         const bool Robot=Kind==TEXT("robot"),Hive=Kind==TEXT("hive");
         if(Credited&&P) {
             if(Robot) ++World->State->Kills;
-            P->AddXP(Hive?95:Robot?35:Kind==TEXT("drone")?8:20);
+            P->AddXP(Hive?95:Kind==TEXT("bear")?65:Robot?35:Kind==TEXT("drone")?8:20);
         }
         if(Robot) World->SplitRobot(this);
         World->SpillLoot(this,Credited);

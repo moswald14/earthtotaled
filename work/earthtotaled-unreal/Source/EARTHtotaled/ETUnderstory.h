@@ -1,3 +1,8 @@
 #pragma once
+#include "CoreMinimal.h"
 class AETWorld;
-namespace ETFlora { void Start(AETWorld* World); }
+class AETCharacter;
+namespace ETFlora {
+    void Start(AETWorld* World);
+    void Trial(AETWorld& World,AETCharacter& Player,TFunctionRef<void(bool,FString)> Check);
+}

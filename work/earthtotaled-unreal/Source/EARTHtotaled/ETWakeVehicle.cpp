@@ -42,6 +42,10 @@ void AETWakeVehicle::Prepare(AETWorld& W,int T) {
             Part(TEXT("Cube"),TEXT("Canvas"),{-60,Side*32.,24},{17,42,51},FRotator(-12,0,0));
         }
         Part(TEXT("Cube"),TEXT("Steel"),{13,0,78},{8,132,7});
+        Part(TEXT("Cube"),TEXT("DarkMetal"),{32,0,32},{23,115,8});
+        auto* Fold=NewObject<UStaticMeshComponent>(this);Fold->SetupAttachment(Hull);
+        Fold->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Game/EARTHtotaled/Art/SM_KitFold.SM_KitFold")));
+        Fold->SetRelativeLocation({31,16,36});Fold->SetRelativeRotation(FRotator(0,-21,0));Fold->SetCollisionEnabled(ECollisionEnabled::NoCollision);Fold->RegisterComponent();
         Part(TEXT("Cube"),TEXT("Steel"),{171,0,-6},{12,154,12});
     } else {
         Hull->SetBoxExtent({187,84,31});
@@ -122,7 +126,9 @@ void AETCharacter::EnterRide(AETWakeVehicle* V,bool Restore) {
     StopBuilding();Firing=Aiming=Climbing=false;ReloadTime=0;JumpRelease();ReleaseLoot();DriveAxis=SteerAxis=0;DescentHeld=LiftHeld=false;
     GetCharacterMovement()->StopMovementImmediately();GetCharacterMovement()->DisableMovement();GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     S.Seat=V->Type;SetActorLocation(V->SeatPosition());if(Controller&&!Restore)Controller->SetControlRotation(FRotator(0,V->State().Heading,0));
-    ApplyWakeBody();if(!Restore){World->Sound(TEXT("FieldLatch"));World->Save();}
+    ApplyWakeBody();if(!Restore){
+        if(V->Type==Car&&S.Chapter==Driving)World->FindTrailClue(DashFold);
+        World->Sound(TEXT("FieldLatch"));World->Save();}
 }
 void AETCharacter::LeaveRide() {
     auto* V=Ride();if(!V)return;auto& State=V->State();
