@@ -1,3 +1,5 @@
+#include "ETWakeVehicle.h"
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETRingLine.h"
 #include "Components/BoxComponent.h"
@@ -71,6 +73,7 @@ void AETCharacter::BeginPlay()
         World->AddTickPrerequisiteComponent(GetCharacterMovement());
     ApplyGraphics();
     if(World->State->Relics.IsValidIndex(World->State->EquippedRelic)) EquipRelic(World->State->EquippedRelic); else SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
+    World->RefreshWake(); ApplyWakeBody(); if(auto* Vehicle=Ride())EnterRide(Vehicle,true);
     InputAudit=FParse::Param(FCommandLine::Get(),TEXT("ETInputAudit")); SetMouseMode(false); CaptureRetry=.3f;
     if(!World->Review&&!GetWorld()->URL.HasOption(TEXT("ETContinue"))) {Title(); return;}
     if(World->HadSave&&World->State->Elapsed>0&&GetWorld()->URL.HasOption(TEXT("ETContinue")))
@@ -124,8 +127,8 @@ void AETCharacter::SetupPlayerInputComponent(UInputComponent* I)
     I->BindAction("NextWeapon",IE_Pressed,this,&AETCharacter::NextWeapon); I->BindAction("PreviousWeapon",IE_Pressed,this,&AETCharacter::PreviousWeapon);
     I->BindAction("Inventory",IE_Pressed,this,&AETCharacter::Inventory).bExecuteWhenPaused=true;
 }
-void AETCharacter::Forward(float V) {if(Panel.IsEmpty()&&!Climbing) AddMovementInput(GetActorForwardVector(),V);}
-void AETCharacter::Right(float V) {if(Panel.IsEmpty()&&!Climbing) AddMovementInput(GetActorRightVector(),V);}
+void AETCharacter::Forward(float V) {DriveAxis=V; if(Ride())return; if(Panel.IsEmpty()&&!Climbing) AddMovementInput(GetActorForwardVector(),V);}
+void AETCharacter::Right(float V) {SteerAxis=V; if(Ride())return; if(Panel.IsEmpty()&&!Climbing) AddMovementInput(GetActorRightVector(),V);}
 void AETCharacter::Turn(float V) {
     if(Panel.IsEmpty()) {
         AddControllerYawInput(V*.7f);
@@ -137,8 +140,8 @@ void AETCharacter::Turn(float V) {
     }
 }
 void AETCharacter::Look(float V) {if(Panel.IsEmpty()) AddControllerPitchInput(V*.7f);}
-void AETCharacter::FireStart() {if(!Panel.IsEmpty()||FireGuard>0) return; if(Building) PlaceBuild(); else Firing=true;} void AETCharacter::FireStop() {Firing=false;}
-void AETCharacter::AimStart() {if(!Panel.IsEmpty()) return; if(Building) SalvageBuild(); else Aiming=true;} void AETCharacter::AimStop() {Aiming=false;}
+void AETCharacter::FireStart() {if(Ride())return; if(!Panel.IsEmpty()||FireGuard>0) return; if(Building) PlaceBuild(); else Firing=true;} void AETCharacter::FireStop() {Firing=false;}
+void AETCharacter::AimStart() {if(Ride()||(ETWake::BugPack(*this)&&!Building))return; if(!Panel.IsEmpty()) return; if(Building) SalvageBuild(); else Aiming=true;} void AETCharacter::AimStop() {Aiming=false;}
 void AETCharacter::SprintStart() {Sprinting=true;} void AETCharacter::SprintStop() {Sprinting=false;}
 bool AETCharacter::Has(const FString& Id) const {return World && World->State->Skills.Contains(Id);}
 float AETCharacter::MaxHealth() const {return 100+(Has(TEXT("vitality"))?25:0)+(Has(TEXT("hardy"))?25:0);}
@@ -158,10 +161,12 @@ void AETCharacter::Tick(float D)
 {
     Super::Tick(D); if(!World||World->Weapons.IsEmpty()) return; auto S=World->State;
     if(!Panel.IsEmpty()||S->Health<=0) return;
+    auto* Vehicle=Ride();
     TickImpact(D); TickShield(D); TickSweep(D);
+    if(S->Wake.Body==ETWake::Bug&&WakeCuff)WakeCuff->SetRelativeLocation({49+FMath::Sin(FMath::Clamp(ShotTime/.33f,0.f,1.f)*PI)*22.,30,-27});
     XPNoticeTime=FMath::Max(0.f,XPNoticeTime-D); LevelNoticeTime=FMath::Max(0.f,LevelNoticeTime-D);
     EnemyReacquireTime=FMath::Max(0.f,EnemyReacquireTime-D);
-    TickJet(D);
+    if(!Vehicle)TickJet(D);
     if(Building) {BuildRefresh-=D; if(BuildRefresh<=0) {RefreshBuild(); BuildRefresh=.075f;}}
     S->StimTime=FMath::Max(0.f,S->StimTime-D); HitTime=FMath::Max(0.f,HitTime-D); MuzzleTime=FMath::Max(0.f,MuzzleTime-D); Muzzle->SetVisibility(MuzzleTime>0);
     S->Elapsed+=D; ShotTime=FMath::Max(0.f,ShotTime-D); FireGuard=FMath::Max(0.f,FireGuard-D);
@@ -178,9 +183,10 @@ void AETCharacter::Tick(float D)
         if(SurveyTime<=0) {SurveyReading=World->Geology->Survey(Camera->GetComponentLocation(),Camera->GetForwardVector()); SurveyTime=.15f;}
     } else SurveyTime=0;
     float Drain=.055f*(Sprinting&&GetVelocity().Size2D()>20?1.7f:1)*(Has(TEXT("hydration"))?.8f:1)*(Has(TEXT("endurance"))?.9f:1);
-    S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
+    if(!S->Wake.Body)S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
     // Dehydration bypasses armor; menus pause all survival time.
-    if(S->Hydration<=0&&!TestInvincible) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
+    if(!S->Wake.Body&&S->Hydration<=0&&!TestInvincible) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
+    if(Vehicle){Focus=nullptr;FocusBuild.Reset();TreeInReach=false;Sighted.Reset();Vehicle->Drive(*this,D);return;}
     if(ReloadTime>0)
     {
         ReloadTime-=D; if(ReloadTime<=0)
@@ -241,6 +247,7 @@ float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AControlle
 {
     const auto* Source=Cast<AETAgent>(Causer);
     if(!Source&&Causer) Source=Cast<AETAgent>(Causer->GetOwner());
+    if(Source&&Source->WakeTruce())return 0;
     FString Cause=Source ? (Source->Kind==TEXT("robot")?FString(TEXT("Supertech patrol fire")):
         Source->IsBrood()?FString(TEXT("Bug "))+Source->Kind:Source->IsMachine()?FString(TEXT("Supertech shard drone")):Source->Kind) : TEXT("Hostile impact");
     const float Applied=Hurt(Damage,Cause);
@@ -249,6 +256,7 @@ float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AControlle
 }
 float AETCharacter::Hurt(float Damage,const FString& Cause)
 {
+    if(ETWake::BugPack(*this)&&Has(TEXT("molt-shell")))Damage*=.75f;
     if(!World||World->State->Health<=0||!Panel.IsEmpty()) return 0; auto S=World->State;
     if(Damage<=0||TestInvincible) return 0;
     S->ShieldDelay=10.f;
@@ -259,11 +267,12 @@ float AETCharacter::Hurt(float Damage,const FString& Cause)
 void AETCharacter::Die(const FString& Cause)
 {
     Firing=false;
-    const FString Detail=FString::Printf(TEXT("Cause of death: %s\nHydration at death: %d%%  /  sealed bottles: %d\n\nYour last living save is available."),*Cause,FMath::RoundToInt(World->State->Hydration),World->State->Water);
+    const FString Detail=World->State->Wake.Body?FString::Printf(TEXT("Cause of death: %s\n\nYour last living save is available."),*Cause):FString::Printf(TEXT("Cause of death: %s\nHydration at death: %d%%  /  sealed bottles: %d\n\nYour last living save is available."),*Cause,FMath::RoundToInt(World->State->Hydration),World->State->Water);
     ConsoleLines.Add(Detail); OpenPanel(TEXT("death"),TEXT("SURVIVOR DOWN"),Detail);
 }
 void AETCharacter::Shoot()
 {
+    if(ETWake::BugPack(*this)){WakeClaw();return;}
     if(Borer) {FireBorer(); return;}
     auto S=World->State; int32 I=S->Weapon; const auto W=CurrentGun();
     if(CurrentMagazine()<=0) {Reload(); ShotTime=.15f; return;} --CurrentMagazine(); S->ShieldDelay=10; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
@@ -301,6 +310,7 @@ void AETCharacter::Shoot()
 }
 void AETCharacter::Reload()
 {
+    if(ETWake::BugPack(*this)||Ride())return;
     if(!World||Borer||ReloadTime>0||!Panel.IsEmpty()) return; const auto W=CurrentGun();
     if(CurrentMagazine()>=W.Mag) return;
     ReloadTime=W.Reload*(Has(TEXT("reload"))?.8f:1)*(Has(TEXT("pressure"))?.9f:1)*(Has(TEXT("quartermaster"))?.9f:1); Firing=false;
@@ -308,17 +318,20 @@ void AETCharacter::Reload()
 }
 void AETCharacter::Drink()
 {
+    if(!World||World->State->Wake.Body||Ride())return;
     if(!World||!Panel.IsEmpty()) return; auto S=World->State;
     if(S->Water<=0) {World->Say(FString::Printf(TEXT("Pack: 0 sealed bottles  /  hydration %d%%. Settlements and relief caches stock water."),FMath::RoundToInt(S->Hydration))); return;}
     if(S->Hydration>=99) return; --S->Water; S->Hydration=FMath::Min(100.f,S->Hydration+45); World->Sound(TEXT("Drink")); World->Say(TEXT("Drank sealed water / hydration restored")); World->Save();
 }
 void AETCharacter::Heal()
 {
+    if(ETWake::BugPack(*this)||Ride())return;
     if(!World||!Panel.IsEmpty()) return; auto S=World->State; if(S->Meds<=0||S->Health>=MaxHealth()) return;
     --S->Meds; S->Health=FMath::Min(MaxHealth(),S->Health+45+(Has(TEXT("medic"))?25:0)+(Has(TEXT("salvager"))?10:0)); World->Sound(TEXT("Heal")); World->Save();
 }
 void AETCharacter::SelectWeapon(int32 I)
 {
+    if(ETWake::BugPack(*this)||Ride())return;
     if(!World||!World->Weapons.IsValidIndex(I)||!World->State->Unlocked.Contains(I)) return;
     World->State->EquippedRelic=INDEX_NONE; EquipFrame(I);
 }
@@ -392,6 +405,11 @@ void AETCharacter::Skills()
 }
 void AETCharacter::Journal()
 {
+    if(Panel=="wake"||Panel=="journal"){ClosePanel();return;}
+    if(Panel.IsEmpty()){if(!World->State->Ending.IsEmpty()&&World->State->Wake.Chapter==ETWake::Missing)ArchiveJournal();else WakeJournal();}
+}
+void AETCharacter::ArchiveJournal()
+{
     if(!Panel.IsEmpty()) {ClosePanel(); return;} FString Body;
     if(World->State->ArrivalStage>=1) Body=World->State->ArrivalStage==1?World->StoryObjective()+TEXT("\nBlast each of the four marked banks around Shelter 09. Ground Bugs cannot enter the trench.\n\n"):TEXT("FIRST WATCH  /  complete\nWith the banks cut, Nora tunes your flight radio. Eli came through the same warp thirty years before you. His recording names three cores: transit, botanical, observatory.\n\n");
     if(!World->State->Ending.IsEmpty()) Body+=World->StoryTitle()+TEXT("\n")+World->StoryObjective()+TEXT("\n\n");
@@ -422,6 +440,10 @@ void AETCharacter::ApplyGraphics()
 void AETCharacter::Interact()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
+    if(Ride()){LeaveRide();return;}
+    if(IsValid(Focus)&&Focus->Kind=="wake"&&!Focus->IsHidden()){WakeUse(FName(*Focus->Value));return;}
+    for(auto* V:{World->WakeCar,World->WakePlane})if(IsValid(V)&&V->Boardable(*this)&&(!IsValid(Focus)||Focus->Kind=="wake")){EnterRide(V);return;}
+    if(!IsValid(Focus))if(auto* Object=NearbyWake()){WakeUse(FName(*Object->Value));return;}
     // The edge of a lift yard can meet a shop. Aimed stock and workbenches own the use key there.
     if(!IsValid(Focus)&&!FocusBuild.IsValid()&&!TreeInReach&&!AETRingLine::PassengerLine(*this))
         for(auto* Line:World->RailLines) if(Line->UseStation(*this)) return;
@@ -434,6 +456,7 @@ void AETCharacter::Interact()
     }
     auto I=Focus; auto S=World->State;
     const FString K=I->Kind;
+    if(ETWake::BugPack(*this)&&(K=="bench"||K=="weapon"||K=="water")){World->Say(TEXT("Ordinary equipment is sealed in your survivor pack"));return;}
     if(K==TEXT("stake")) {World->Say(TEXT("Equip your survey borer with G and fire at this marked bank."));return;}
     if(K==TEXT("townboard")) {TownPanel(ETNav::District(FVector2D(I->GetActorLocation())));return;}
     if(K==TEXT("tower")) {ReclamationAction(TEXT("draw-water"));return;}
@@ -495,6 +518,8 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Panel=="wake"||Id=="wake-journal"){WakeAction(Id);return;}
+    if(ETWake::BugPack(*this)&&Panel=="contact"&&Id!="resume"&&Id!="quest"){World->Say(TEXT("Your ordinary pack is safely sealed"));return;}
     if(Panel==TEXT("arrival")) {if(Id==TEXT("skip")) FinishArrival();return;}
     if(Panel==TEXT("updates")) {UpdateAction(Id);return;}
     if(Id==TEXT("updates")&&(Panel==TEXT("title")||Panel==TEXT("pause"))) {UpdateOrigin=Panel;ShowVersions();CheckVersions(false);return;}
@@ -513,6 +538,7 @@ void AETCharacter::Action(const FString& Id)
         else if(Id==TEXT("guide-field")) GuidePage=0;
         else if(Id==TEXT("guide-build")) GuidePage=1;
         else if(Id==TEXT("guide-survive")) GuidePage=2;
+        else if(Id==TEXT("guide-wake")) GuidePage=3;
         return;
     }
     if(Panel==TEXT("slots")) {SlotAction(Id); return;}

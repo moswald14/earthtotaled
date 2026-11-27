@@ -82,7 +82,7 @@ void AETWorld::StepDevices(float D)
     }
     if(Turrets.IsEmpty()) return;
     TArray<AETAgent*> Targets;
-    for(TActorIterator<AETAgent> It(GetWorld());It;++It) if(It->Kind==TEXT("walker")||(IsNight()&&(It->IsMachine()||It->IsBrood()))) Targets.Add(*It);
+    for(TActorIterator<AETAgent> It(GetWorld());It;++It) if(!It->WakeTruce()&&(It->Kind==TEXT("walker")||It->WakeEnemy()||(IsNight()&&(It->IsMachine()||It->IsBrood())))) Targets.Add(*It);
     for(auto* Turret:Turrets) {
         FCollisionQueryParams Trace(SCENE_QUERY_STAT(ETSentry),false,Turret);
         auto Origin=Turret->Mechanism->GetComponentLocation()+FVector(0,0,10);
@@ -107,7 +107,7 @@ void AETWorld::StepDevices(float D)
 bool AETWorld::Muster(FGuid Core)
 {
     const auto* B=State->Builds.Find(Core);
-    if(!IsNight()||State->RaidStage||!B||B->Piece!=Site::Core) return false;
+    if(State->Wake.Winner()==ETWake::Bug||!IsNight()||State->RaidStage||!B||B->Piece!=Site::Core) return false;
     const FVector At=B->Anchor;
     const int32 Tier=ThreatTier(),Count=FMath::Clamp(4+Tier+BaseValue(Core)/55,4,13);
     FRandomStream R(State->Seed^((State->RaidSerial+1)*3517));

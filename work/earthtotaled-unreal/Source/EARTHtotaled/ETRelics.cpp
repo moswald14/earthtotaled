@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETLandfall.h"
 
@@ -47,6 +48,7 @@ float& AETCharacter::CurrentGunDamage() {auto& S=*World->State;return S.Relics.I
 int32 AETCharacter::CurrentRank() const {const auto& S=*World->State;if(S.Relics.IsValidIndex(S.EquippedRelic)){const auto& G=S.Relics[S.EquippedRelic];return ETLandfall::FRoll(G.Seed).Rank(G.DamageDealt);}return GunRank(S.Weapon);}
 float AETCharacter::CurrentThreshold(int R) const {const auto& S=*World->State;return S.Relics.IsValidIndex(S.EquippedRelic)?ETLandfall::FRoll(S.Relics[S.EquippedRelic].Seed).Next(R):NextGunRank(R);}
 void AETCharacter::EquipRelic(int I) {
+    if(ETWake::BugPack(*this)||Ride())return;
     auto& S=*World->State;if(!S.Relics.IsValidIndex(I)) return; S.EquippedRelic=I; EquipFrame(ETLandfall::FRoll(S.Relics[I].Seed).Frame);
 }
 void AETCharacter::RelicRack() {

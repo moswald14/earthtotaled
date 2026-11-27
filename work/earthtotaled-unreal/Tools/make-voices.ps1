@@ -14,7 +14,14 @@ try {
     foreach($line in $dialogue.lines) {
         if ($LineIds.Count -and $line.id -notin $LineIds) {continue}
         if ($line.id -notmatch '^[a-z0-9]+$') {throw 'Unsafe dialogue asset identifier.'}
-        $file=Join-Path $outputRoot ('S_Voice_'+$line.id+'.wav')
+        $folder=$outputRoot
+        if($line.id.StartsWith('wake')) {
+            $folder=Join-Path $projectRoot 'Content/Data/Voices'
+            [IO.Directory]::CreateDirectory($folder) | Out-Null
+            $choice=if($line.speaker -eq 'Mara' -or $line.speaker -eq 'Kit') {@($available | Where-Object { $_.VoiceInfo.Gender -eq 'Female' })[0]} else {@($available | Where-Object { $_.VoiceInfo.Gender -eq 'Male' })[0]}
+            $speech.SelectVoice($(if($choice){$choice.VoiceInfo.Name}else{$VoiceName}))
+        }
+        $file=Join-Path $folder ('S_Voice_'+$line.id+'.wav')
         $speech.Rate=[int]$line.rate
         $speech.Volume=100
         $speech.SetOutputToWaveFile($file,$format)

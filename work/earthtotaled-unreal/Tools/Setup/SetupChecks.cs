@@ -48,28 +48,46 @@ namespace Earthtotaled.Setup {
             if(network){var list=await Catalog.Read();Check(list.Any(x=>x.Tag=="v1.12.0")&&list.All(x=>x.Hash.Length==64),"Live public GitHub version list has verified Windows downloads");}
             Console.WriteLine(count+" installer checks passed.");
         }
-        static async Task RealPackages(string root,string previous,string candidate,string donor) {
+        static Release PackageRecord(string file) {
+            const string prefix="EARTHtotaled-Unreal-Windows-";
+            var name=Path.GetFileNameWithoutExtension(file);
+            if(!name.StartsWith(prefix,StringComparison.Ordinal)||!Catalog.TagPattern.IsMatch(name.Substring(prefix.Length)))
+                throw new ArgumentException("Pass a versioned EARTHtotaled Windows release ZIP.");
+            using(var input=File.OpenRead(file))using(var sha=SHA256.Create())
+                return new Release{Tag=name.Substring(prefix.Length),Size=input.Length,Hash=BitConverter.ToString(sha.ComputeHash(input)).Replace("-","").ToLowerInvariant()};
+        }
+        static async Task RealPackages(string root,string previous,string candidate,string donor,bool download) {
             var m=new Manager(Path.Combine(root,"Installed"),Path.Combine(root,"Actual","Saved"));
-            string dir=Path.Combine(m.Saved,"SaveGames");Directory.CreateDirectory(dir);string slot=Path.Combine(dir,"EARTHtotaled-Unreal-01.sav");
-            File.Copy(donor,slot);
-            var list=await Catalog.Read();var old=list.First(r=>r.Tag=="v1.12.0");var current=list.FirstOrDefault(r=>r.Tag=="v1.13.0");
-            if(current==null)using(var s=File.OpenRead(candidate))using(var sha=SHA256.Create())current=new Release{Tag="v1.13.0",Size=s.Length,Hash=BitConverter.ToString(sha.ComputeHash(s)).Replace("-","").ToLowerInvariant()};
+            string dir=Path.Combine(m.Saved,"SaveGames");Directory.CreateDirectory(dir);
+            for(int i=1;i<=10;i++)foreach(string suffix in new[]{"","-previous"})
+                File.Copy(donor,Path.Combine(dir,"EARTHtotaled-Unreal-"+i.ToString("00")+suffix+".sav"));
+            var bytes=File.ReadAllBytes(donor);
+            var originals=Directory.GetFiles(dir).Select(Path.GetFileName).ToArray();
+            Func<string,bool> intact=folder=>originals.All(n=>File.Exists(Path.Combine(folder,n))&&bytes.SequenceEqual(File.ReadAllBytes(Path.Combine(folder,n))));
+            var oldFile=PackageRecord(previous);var newFile=PackageRecord(candidate);
+            var list=await Catalog.Read();var old=list.First(r=>r.Tag==oldFile.Tag);var current=list.FirstOrDefault(r=>r.Tag==newFile.Tag);
+            if(download)Check(current!=null&&list[0].Tag==current.Tag,"The public updater offers "+newFile.Tag+" first");
+            if(current==null)current=newFile;
+            Check(old.Hash==oldFile.Hash&&current.Hash==newFile.Hash&&current.Size==newFile.Size&&old.Number<current.Number,"Release files match the intended upgrade versions and digests");
             await m.Install(old,null,old.Number,previous,Console.WriteLine,Runtime.Ensure,false);
             Check(File.Exists(m.Game(old.Tag)),"The real previous GitHub ZIP installs");
-            await m.Install(current,old.Tag,current.Number,candidate,Console.WriteLine,Runtime.Ensure,false);
+            await m.Install(current,old.Tag,current.Number,download?null:candidate,Console.WriteLine,Runtime.Ensure,false);
             Check(File.Exists(m.Game(current.Tag))&&File.Exists(Path.Combine(m.Versions,current.Tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe")),"The new Windows package installs with its in-game updater");
+            Check(m.Active()[0]==current.Tag&&m.Active()[1]=="primary"&&intact(dir),"All ten survivor slots and previous checkpoints survive the upgrade byte for byte");
+            var backups=Directory.GetDirectories(Path.Combine(m.Root,"Save backups"));
+            Check(backups.Length>=2&&backups.All(b=>intact(Path.Combine(b,"Primary","SaveGames"))),"The original survivor files are present in every upgrade backup");
             await m.Install(old,current.Tag,current.Number,previous,Console.WriteLine,Runtime.Ensure,false);
-            var fork=Path.Combine(m.Root,"Profiles",old.Tag,"Saved","SaveGames","EARTHtotaled-Unreal-01.sav");
-            var bytes=File.ReadAllBytes(donor);
-            Check(bytes.SequenceEqual(File.ReadAllBytes(fork))&&bytes.SequenceEqual(File.ReadAllBytes(slot)),"Choosing the real previous release forks a byte-identical copy of the existing survivor");
+            var fork=Path.Combine(m.Root,"Profiles",old.Tag,"Saved","SaveGames");
+            Check(m.Active()[1]==old.Tag&&intact(fork)&&intact(dir),"Returning to the previous release forks all twenty files");
             await m.Install(current,old.Tag,current.Number,candidate,Console.WriteLine,Runtime.Ensure,false);
-            Check(bytes.SequenceEqual(File.ReadAllBytes(slot))&&m.Active()[0]==current.Tag,"Upgrading again selects Landfall and keeps the survivor intact");
+            Check(m.Active()[0]==current.Tag&&m.Active()[1]=="primary"&&intact(dir)&&intact(fork),"Switching forward again resumes the original survivor files");
             File.WriteAllText(Path.Combine(Path.GetDirectoryName(root),"tested-install.txt"),Path.GetDirectoryName(m.Game(current.Tag)));
+            File.WriteAllText(Path.Combine(Path.GetDirectoryName(root),"tested-profile.txt"),Path.GetDirectoryName(m.Saved));
         }
         static int Main(string[] args){
             Manager.EnableLongPaths();
             try{System.Net.ServicePointManager.SecurityProtocol=System.Net.SecurityProtocolType.Tls12;string root=Path.Combine(Path.GetFullPath(args[0]),Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);Tests(root,args.Contains("--online")).GetAwaiter().GetResult();
-                if(args.Length==5&&args[1]=="--packages")RealPackages(root,args[2],args[3],args[4]).GetAwaiter().GetResult();return 0;}
+                if(args.Length>=5&&args[1]=="--packages")RealPackages(root,args[2],args[3],args[4],args.Contains("--download")).GetAwaiter().GetResult();return 0;}
             catch(Exception e){Console.WriteLine(e.ToString());return 1;}
         }
     }

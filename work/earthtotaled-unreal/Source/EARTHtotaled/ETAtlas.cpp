@@ -1,3 +1,5 @@
+#include "ETWakeVehicle.h"
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETRingLine.h"
 #include "ETRailDistricts.h"
@@ -253,6 +255,13 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         const FIntPoint Cell(X,Y); if(Cell!=Home) Marker(ETNav::Refuge(Cell),true,false,P->World->TownStatus(Cell));
     }
     if(!Overview) Marker(City,true,true,Small?FString(ETNav::RefugeName(Home)):P->World->TownStatus(Home));
+    if(S.Wake.Chapter||S.ArrivalStage!=1){
+        for(int I=0;I<=ETWake::Herds;++I){
+            const bool Clear=I?((S.Wake.Silenced|S.Wake.Retuned)&(1<<(I-1)))!=0:S.Wake.Chapter>=ETWake::Garage;
+            if(Clear||P->Has(TEXT("molt-sense")))Marker(ETWake::Glade(I),false,false,FString(Clear?TEXT("Safe glade / "):TEXT("Pulse / "))+ETWake::Herd(I).Name);}
+        Marker(ETWake::Waypoint(W),false,true,TEXT("MegaWAKE / ")+ETWake::Target(S.Wake).ToString());
+        if(S.Wake.HasCar()&&W.WakeCar)Marker(FVector2D(W.WakeCar->GetActorLocation()),false,false,TEXT("Roadster"));
+        if(S.Wake.HasPlane()&&W.WakePlane)Marker(FVector2D(W.WakePlane->GetActorLocation()),false,false,TEXT("Survey plane"));}
     for(int I=0;I<S.MapPins.Num();++I) Marker(S.MapPins[I],false,I==S.TrackedPin,ETRailDistrict::PinLabel(S.MapPins[I],I));
     const auto PlayerPos=Chart.Plot(Here);
     if(FBox2D(Screen.Min+FVector2D(9*U),Screen.Max-FVector2D(9*U)).IsInsideOrOn(PlayerPos))

@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -67,12 +68,15 @@ void AETWorld::Loot(AETCharacter* P,const FString& Id,const FString& Table)
 }
 void AETCharacter::Inventory()
 {
+    if(Panel==TEXT("wake")&&WakePanelNode=="pack"){ClosePanel();return;}
     if(!Panel.IsEmpty()&&Panel!=TEXT("inventory")) return;
     if(Panel==TEXT("inventory")) {ClosePanel(); return;}
+    if(ETWake::BugPack(*this)){WakePanelNode="pack";WakeMessage(TEXT("SEALED SURVIVOR PACK"),FString::Printf(TEXT("Your human pack is stored in this save. %d supply types, %d weapons, %d relics, %d medkits and %d bottles. MOLT and living buildings are available in this body."),World->State->Inventory.Num(),World->State->Unlocked.Num(),World->State->Relics.Num(),World->State->Meds,World->State->Water));return;}
     OpenPanel(TEXT("inventory"),TEXT("PACK / SUPPLIES & ARSENAL"),TEXT("Select a supply to use it. Craft with recovered materials at any workbench."));
 }
 void AETCharacter::UseSupply(const FString& Id)
 {
+    if(ETWake::BugPack(*this))return;
     auto S=World->State; if(S->Inventory.FindRef(Id)<=0) return;
     if(Id==TEXT("food")||Id==TEXT("bandage")) {
         if(Id==TEXT("food")) S->StimTime=FMath::Max(S->StimTime,90.f);
@@ -85,7 +89,7 @@ void AETCharacter::UseSupply(const FString& Id)
 }
 void AETCharacter::Craft(const FString& Id)
 {
-    if(Panel!=TEXT("bench")) return; auto S=World->State;
+    if(ETWake::BugPack(*this)||Panel!=TEXT("bench")) return; auto S=World->State;
     for(const auto& R:World->Recipes) if(R.Id==Id) {
         bool Enough=S->Scrap>=R.Scrap; for(auto It:R.Ingredients) Enough&=S->Inventory.FindRef(It.Key)>=It.Value;
         if(!Enough) {PanelBody=TEXT("Missing materials. Search toolboxes, clinics, kitchens and electronics stores."); return;}
@@ -102,7 +106,8 @@ void AETCharacter::NextWeapon(){CycleWeapon(1);} void AETCharacter::PreviousWeap
 void AETCharacter::CycleWeapon(int32 Direction)
 {
     if(!World||!Panel.IsEmpty()) return;
-    if(Building) {BuildPiece=(BuildPiece+Direction+AETConstruction::Count)%AETConstruction::Count; RefreshBuild(); return;}
+    if(Building) {do{BuildPiece=(BuildPiece+Direction+AETConstruction::Count)%AETConstruction::Count;}while(!ETWake::CanBuild(World->State->Wake,BuildPiece));RefreshBuild();return;}
+    if(ETWake::BugPack(*this)||Ride())return;
     const auto& S=*World->State;const int Frames=World->Weapons.Num(),Count=Frames+S.Relics.Num();
     const int Current=S.Relics.IsValidIndex(S.EquippedRelic)?Frames+S.EquippedRelic:S.Weapon;
     for(int N=1;N<=Count;++N) {

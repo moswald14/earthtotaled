@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGeology.h"
 #include "ETGame.h"
 #include "ETRing.h"
@@ -8,6 +9,7 @@
 const TCHAR* UETGeology::DigRestriction(const FBox2D& Area) const
 {
     const FVector2D Center=Area.GetCenter();
+    if(ETWake::Reserved(World->State->Wake,Center,Area.GetExtent().Size()))return TEXT("Protected wildlife or airfield ground");
     const FVector2D Town(World->CityCenter(Center.X,Center.Y));
     const FVector2D Nearest(FMath::Clamp(Town.X,Area.Min.X,Area.Max.X),FMath::Clamp(Town.Y,Area.Min.Y,Area.Max.Y));
     if(FVector2D::DistSquared(Town,Nearest)<=FMath::Square(27000.)) return TEXT("Protected city ground / mine outside the district");

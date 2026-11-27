@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETUnderstory.h"
 #include "ETGame.h"
 #include "ETGeology.h"
@@ -36,7 +37,7 @@ struct FUnderstory {
             const FVector Local((X+Dice.FRandRange(.05f,.95f))*Span/8.,(Y+Dice.FRandRange(.05f,.95f))*Span/8.,0);
             const FVector P=Origin+Local;const double Patch=FMath::PerlinNoise2D(FVector2D(P)*.00065);
             if(Dice.FRand()>FMath::Clamp(.78+Patch*.48,.39,.98)||R.OnHighway(FVector2D(P),12)) continue;
-            if(FVector::Dist2D(P,HouseA)<1120||FVector::Dist2D(P,HouseB)<1120||W->Geology->SurfaceOpening(P.X,P.Y)<25) continue;
+            if(ETWake::Paved(W->State->Wake,FVector2D(P))||FVector::Dist2D(P,HouseA)<1120||FVector::Dist2D(P,HouseB)<1120||W->Geology->SurfaceOpening(P.X,P.Y)<25) continue;
             const double Z=W->SurfaceHeight(P.X,P.Y);const float Scale=Dice.FRandRange(.66,1.5);
             const FTransform T(FRotator(0,Dice.FRandRange(0,360),0),FVector(Local.X,Local.Y,Z-3),FVector(Scale));
             if(Dice.RandRange(0,19)==0) Weeds.Add(T);else Grass.Add(T);

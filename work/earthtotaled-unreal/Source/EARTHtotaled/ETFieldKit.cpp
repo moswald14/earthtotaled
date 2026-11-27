@@ -1,3 +1,4 @@
+#include "ETWakeVehicle.h"
 #include "ETGame.h"
 #include "ETLandfall.h"
 #include "ETSaveDisk.h"
@@ -7,6 +8,7 @@
 
 void AETCharacter::JumpPress()
 {
+    if(Ride()){LiftHeld=true;return;}
     if(!Panel.IsEmpty()||Climbing||JumpHeld) return;
     auto* Move=GetCharacterMovement();
     JumpHeld=true; JumpHeldTime=0; ThrustArmed=false;
@@ -21,7 +23,7 @@ void AETCharacter::JumpPress()
 }
 void AETCharacter::JumpRelease()
 {
-    JumpHeld=Jetting=ThrustArmed=false; JumpHeldTime=JetSoundTime=0; StopJumping();
+    LiftHeld=false;JumpHeld=Jetting=ThrustArmed=false; JumpHeldTime=JetSoundTime=0; StopJumping();
 }
 void AETCharacter::TickJet(float D)
 {
@@ -64,6 +66,7 @@ int32 AETCharacter::GunRank(int32 I) const
 void AETCharacter::TurnTool()
 {
     if(!Panel.IsEmpty()) return;
+    if(auto* Vehicle=Ride()){Vehicle->StartEngine();return;}
     if(Building) {BuildFacing=(BuildFacing+1)%4; RefreshBuild();}
     else if(Borer) {
         World->State->SquareBorer=!World->State->SquareBorer;

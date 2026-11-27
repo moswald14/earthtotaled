@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETLandfall.h"
 #include "ETRingLine.h"
@@ -110,7 +111,7 @@ void AETWorld::LoadDesign()
     if(Review&&FParse::Param(FCommandLine::Get(),TEXT("ETPhoto"))) {PhotoScene=ReviewScene;State->IntroRead=true;State->RetroDisplay=false;State->ClockOffset=ETDay::At(11);State->Elapsed=0;}
     for(auto& Pair:State->Towns) if(Pair.Value.Wave>0) Pair.Value.Claimed=true;
     PrepareLandscape();
-    PrepareHighwayGrades();
+    PrepareHighwayGrades();ETWake::SurveyFields(*this);
     Geology=NewObject<UETGeology>(this);
     Geology->Initialize(this);
     FString Source;
@@ -150,7 +151,7 @@ void AETWorld::LoadDesign()
 }
 void AETWorld::BeginPlay()
 {
-    Super::BeginPlay(); LoadDesign(); BuildStory();
+    Super::BeginPlay(); LoadDesign(); BuildStory(); SetWakePerks(); RefreshWake();
     for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("ET_BakedStart"))) {
         StoryActors.Add(*It);
         if(auto* Prop=Cast<AStaticMeshActor>(*It)) {
@@ -271,7 +272,11 @@ double AETWorld::Height(double X,double Y) const
         double Blend=FMath::Clamp((D-1)/1.2,0.0,1.0); Blend=Blend*Blend*(3-2*Blend);
         if(Blend<1) H=FMath::Lerp(Landscape(P.X,P.Y),H,Blend);
     }
-    return GradeHighway(X,Y,H);
+    H=GradeHighway(X,Y,H);
+    for(int I=0;I<2;++I){const auto Field=ETWake::Field(I,State->Wake);const auto Offset=(FVector2D(X,Y)-Field).GetAbs();
+        const double Edge=FMath::Max(Offset.X-6100.,Offset.Y-900.);
+        if(Edge<1200.) {const double Alpha=1.-FMath::SmoothStep(0.,1200.,Edge);return FMath::Lerp(H,Landscape(Field.X,Field.Y),Alpha);}}
+    return H;
 }
 UMaterialInterface* AETWorld::Material(const FString& Name) const
 {
@@ -364,6 +369,8 @@ void AETWorld::Tick(float Delta)
     Super::Tick(Delta);
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!P||P->Panel==TEXT("travel")) return;
     static const bool ArrivalQA=FParse::Param(FCommandLine::Get(),TEXT("ETLandfallQA"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
+    static const bool WakeQA=FCString::Strifind(FCommandLine::Get(),TEXT("-ETWakeTest="))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
+    if(WakeQA)ETWake::Trial(*this,*P);
     if(ArrivalQA) ETLandfall::DriveTest(*this,*P);
     static const bool RingQA=FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
     if(RingQA&&RingTrain) RingTrain->TestRide(*P);
@@ -382,6 +389,7 @@ void AETWorld::Tick(float Delta)
     TickAtmosphere(Delta);
     // Only the score/mix updates while menus pause survival, weather and streaming.
     if(UGameplayStatics::IsGamePaused(this)) return;
+    TickWake(*P,Delta);
     if(AtRecoveryShelter) {
         AtRecoveryShelter=false;
         if(Save()) Say(TEXT("Shelter 09 / wounds treated / equipment and excavations recovered"));
@@ -561,7 +569,7 @@ bool AETRegion::AdvanceGenerate()
         P.Z=W->Height(WP.X,WP.Y)-3;
         float S=R.FRandRange(.75,1.55); auto H=I<300?(I%9==0?Trees:I%5==0?Birches:I%2==0?PinesB:Pines):I<420?Rocks:Grass;
         FTransform T(FRotator(0,R.FRandRange(0,360),0),P,FVector(S,S,S));
-        if(OnHighway(FVector2D(WP),I<420?155.:25.)||InHighwayGrounds(FVector2D(WP))) continue;
+        if((I>=420&&ETWake::Paved(W->State->Wake,FVector2D(WP)))||(I<420&&ETWake::Reserved(W->State->Wake,FVector2D(WP)))||OnHighway(FVector2D(WP),I<420?155.:25.)||InHighwayGrounds(FVector2D(WP))) continue;
         if(I<300&&W->State->Consumed.Contains(W->TreeId(WP))) continue;
         H->AddInstance(T);
         if(I<300) Trunks->AddInstance(T);
@@ -573,7 +581,7 @@ bool AETRegion::AdvanceGenerate()
         if(W->InCity(Mid)||InHighwayGrounds(FVector2D(Mid))||FVector::Dist2D(Mid,W->HouseAnchor(C,0))<2250||FVector::Dist2D(Mid,W->HouseAnchor(C,1))<2250) continue;
         for(int J=0;J<34;++J) {
             FVector P(Root+FVector2D(Meadow.FRandRange(-1120,1120),Meadow.FRandRange(-1120,1120)),0);const auto WP=Origin+P;
-            if(OnHighway(FVector2D(WP),15)||W->Geology->SurfaceOpening(WP.X,WP.Y)<25) continue;
+            if(ETWake::Paved(W->State->Wake,FVector2D(WP))||OnHighway(FVector2D(WP),15)||W->Geology->SurfaceOpening(WP.X,WP.Y)<25) continue;
             P.Z=W->SurfaceHeight(WP.X,WP.Y)-2;const float S=Meadow.FRandRange(.75,1.60);
             (J%8==0?Weeds:Grass)->AddInstance(FTransform(FRotator(0,Meadow.FRandRange(0,360),0),P,FVector(S)));
         }
@@ -581,7 +589,7 @@ bool AETRegion::AdvanceGenerate()
     } else if(Stage==2) {
     for(int32 I=0;I<2;++I)
     {
-        FVector P=W->HouseAnchor(C,I); if(W->InCity(P)||InHighwayGrounds(FVector2D(P),700)||OnHighway(FVector2D(P),750)) continue; P.Z=W->Height(P.X,P.Y);
+        FVector P=W->HouseAnchor(C,I); if(ETWake::Reserved(W->State->Wake,FVector2D(P),1300)||W->InCity(P)||InHighwayGrounds(FVector2D(P),700)||OnHighway(FVector2D(P),750)) continue; P.Z=W->Height(P.X,P.Y);
         const FString Prefix=FString::Printf(TEXT("r%d,%d-house%d"),C.X,C.Y,I);
         Residents.Add(W->Static(TEXT("SM_House"),TEXT("Concrete"),P)); Residents.Add(W->Static(TEXT("SM_Roof"),TEXT("Steel"),P));
         Residents.Add(W->Static(TEXT("SM_Interior"),TEXT("Wood"),P));
@@ -637,7 +645,7 @@ bool AETRegion::AdvanceGenerate()
     }
     for(int32 I=0;I<3;++I)
     {
-        FVector P=Origin+FVector(R.FRandRange(1500,30000),R.FRandRange(1500,30000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+8;
+        FVector P=Origin+FVector(R.FRandRange(1500,30000),R.FRandRange(1500,30000),0); if(P.Size2D()<20000||ETWake::Reserved(W->State->Wake,FVector2D(P))) continue; P.Z=W->Height(P.X,P.Y)+8;
         auto Trap=W->Item(FString::Printf(TEXT("r%d,%d-trap%d"),C.X,C.Y,I),TEXT("trap"),TEXT("Disarm rusted trap"),P); if(Trap) Residents.Add(Trap);
     }    } else if(Stage==5) {AddDetails(); BuildHighwaySites(); AddTownLandmarks(); AddRailQuarter();}
     ++Stage;
@@ -731,13 +739,14 @@ void AETGameMode::InitGame(const FString& MapName,const FString& Options,FString
     FVector P=World->State->Position;
     if(World->Review&&!World->JourneyResume&&!World->MineResume) P.Z=World->Height(P.X,P.Y)+110;
     else P=World->State->OnRing&&World->RailLines.IsValidIndex(World->State->RailService)?World->RailLines[World->State->RailService]->SavedPosition():World->ResolveStart(P);
+    if(World->State->Wake.Seat!=ETWake::Foot)P=World->State->Wake.Seat==ETWake::Car?World->State->Wake.Roadster.Position:World->State->Wake.Aircraft.Position;
     if(World->HadSave&&UGameplayStatics::HasOption(Options,TEXT("ETRecoverShelter"))) {
         World->StreamAround(GetDefault<UETSave>()->Position,true);
         if(World->FindShelterLanding(P)) {
             World->State->Position=P; World->State->WinchAnchor=P; World->State->View=GetDefault<UETSave>()->View;
             World->State->Health=FMath::Max(50.f,World->State->Health);
             World->State->Hydration=FMath::Max(50.f,World->State->Hydration);
-            World->AtRecoveryShelter=true; World->State->OnRing=false;
+            World->AtRecoveryShelter=true; World->State->OnRing=false; World->State->Wake.Seat=ETWake::Foot;
         } else World->Say(TEXT("Shelter landing obstructed / resuming at your last save"));
     }
     World->StreamAround(P,true);

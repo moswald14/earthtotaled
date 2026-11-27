@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETGeology.h"
 #include "EngineUtils.h"
@@ -12,7 +13,7 @@ bool AETWorld::SettledCity(FVector P) const
 }
 bool AETWorld::SafeSettlement(FVector P) const
 {
-    if(SettledCity(P)) return true;
+    if(ETWake::Refuge(State->Wake,FVector2D(P))||SettledCity(P)) return true;
     if(P.Z<SurfaceHeight(P.X,P.Y)-360) return false;
     if(P.SizeSquared2D()<FMath::Square(2350.)) return true;
     for(TActorIterator<AETItem> It(GetWorld());It;++It) {
@@ -147,7 +148,7 @@ AETEnemyBolt::AETEnemyBolt()
 void AETEnemyBolt::Launch(AETAgent* Source,FVector Target,bool Acid)
 {
     SetOwner(Source); Field=Source->World;
-    FrontBolt=Source->FrontUnit; BugBolt=Source->IsBrood();
+    WakeHostile=Source->WakeEnemy();WakeAllied=Source->WakeTruce();FrontBolt=Source->FrontUnit; BugBolt=Source->IsBrood();
     const FVector Aim=(Target-GetActorLocation()).GetSafeNormal();
     SetActorRotation(Aim.Rotation()); Velocity=Aim*(Acid?1250:2250); Power=Acid?11:(Source->Kind==TEXT("robot")?13:6);
     Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
@@ -165,14 +166,14 @@ void AETEnemyBolt::Beam(AETWorld* W,FVector End)
 void AETEnemyBolt::Tick(float D)
 {
     Super::Tick(D); if(!Field) return;
-    if(!FrontBolt&&!Field->IsNight()) {Destroy(); return;}
+    if(!FrontBolt&&!WakeHostile&&!Field->IsNight()) {Destroy(); return;}
     const FVector From=GetActorLocation(),To=From+Velocity*D;
     FHitResult Hit; FCollisionQueryParams Q(SCENE_QUERY_STAT(ETEnemyBolt),false,this);
     Q.AddIgnoredActor(GetOwner());
     if(!GetWorld()->SweepSingleByChannel(Hit,From,To,FQuat::Identity,ECC_Pawn,FCollisionShape::MakeSphere(6),Q)) {SetActorLocation(To); return;}
     if(auto* Enemy=Cast<AETAgent>(Hit.GetActor());Enemy&&((BugBolt&&Enemy->IsMachine())||(!BugBolt&&Enemy->IsBrood())))
         Enemy->TakeDamage(Power,FDamageEvent(),nullptr,this);
-    if(auto* P=Cast<AETCharacter>(Hit.GetActor());P&&Field->IsNight()&&!Field->AtRefuge&&P->EnemyReacquireTime<=0) P->TakeDamage(Power,FDamageEvent(),nullptr,this);
+    if(auto* P=Cast<AETCharacter>(Hit.GetActor());P&&!WakeAllied&&(Field->IsNight()||WakeHostile)&&!Field->AtRefuge&&P->EnemyReacquireTime<=0) P->TakeDamage(Power,FDamageEvent(),nullptr,this);
     if(auto* Wall=Cast<AETConstruction>(Hit.GetActor());Wall&&(!FrontBolt||Field->IsNight())) Field->HitBuild(Wall,Power);
     Destroy();
 }

@@ -1,3 +1,5 @@
+#include "Audio.h"
+#include "Sound/SoundWaveProcedural.h"
 #include "ETGame.h"
 #include "Components/AudioComponent.h"
 #include "HAL/PlatformTime.h"
@@ -22,6 +24,7 @@ void AETWorld::LoadDialogue()
         FString Id; FETVoiceLine Line;
         if(!Object->TryGetStringField(TEXT("id"),Id)||!Object->TryGetStringField(TEXT("speaker"),Line.Speaker)||!Object->TryGetStringField(TEXT("text"),Line.Text)||Id.IsEmpty()) continue;
         VoiceLines.Add(Id,Line);
+        if(Id.StartsWith(TEXT("wake")))continue;
         const FString Asset=TEXT("S_Voice_")+Id;
         Sounds.Add(TEXT("Voice_")+Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     }
@@ -34,6 +37,13 @@ bool AETWorld::Speak(const FString& Id,const FString& SpeakerOverride)
     // Repeated clicks may refresh a panel, but must not repeatedly restart its voice.
     if(Id==VoiceId&&Now-VoiceStartedAt<1.5) return false;
     USoundBase* Clip=Sounds.FindRef(TEXT("Voice_")+Id);
+    if(Id.StartsWith(TEXT("wake"))){
+        TArray<uint8> Data;FWaveModInfo Wave;
+        if(FFileHelper::LoadFileToArray(Data,*(FPaths::ProjectContentDir()/TEXT("Data/Voices")/(TEXT("S_Voice_")+Id+TEXT(".wav"))))&&
+           Wave.ReadWaveInfo(Data.GetData(),Data.Num())&&*Wave.pBitsPerSample==16&&*Wave.pSamplesPerSec>0&&*Wave.pChannels==1){
+            auto* Voice=NewObject<USoundWaveProcedural>(this);Voice->SetSampleRate(*Wave.pSamplesPerSec);Voice->NumChannels=1;
+            Voice->Duration=float(Wave.SampleDataSize)/(*Wave.pSamplesPerSec*2);Voice->QueueAudio(Wave.SampleDataStart,Wave.SampleDataSize);Clip=Voice;}
+    }
     VoiceId=Id; VoiceStartedAt=Now;
     SubtitleSpeaker=SpeakerOverride.IsEmpty()?Line->Speaker:SpeakerOverride;
     SubtitleText=Line->Text;

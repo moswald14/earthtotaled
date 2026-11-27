@@ -8,6 +8,7 @@
 #include "ETWeatherMath.h"
 #include "ETNavigation.h"
 #include "ETDayCycle.h"
+#include "ETWakeState.h"
 #include "ETGame.generated.h"
 
 class UCameraComponent;
@@ -17,6 +18,7 @@ class UProceduralMeshComponent;
 class UMaterialInterface;
 class AETWorld;
 class AETRingLine;
+class AETWakeVehicle;
 class AETCharacter;
 class ADirectionalLight;
 class ASkyLight;
@@ -93,6 +95,7 @@ struct FETBuild
     // 0 wood, 1 stone, 2 metal. Legacy frames were assembled from salvage kits.
     UPROPERTY() int32 MaterialTier=0;
     UPROPERTY() bool FromKit=true;
+    UPROPERTY() bool Grown=false;
     UPROPERTY() float Integrity=160;
     UPROPERTY() float Work=0;
     UPROPERTY() int32 Iron=0;
@@ -127,6 +130,7 @@ class EARTHTOTALED_API UETSave : public USaveGame
     GENERATED_BODY()
 public:
     UPROPERTY() int32 Schema=1;
+    UPROPERTY() FETWakeSave Wake;
     UPROPERTY() int32 Seed=84371;
     UPROPERTY() FVector Position=FVector(0,-1500,110);
     UPROPERTY() FRotator View=FRotator(0,90,0);
@@ -238,7 +242,7 @@ public:
     static FTransform Shape(const FETBuild& Build);
     static FVector Extents(int32 Piece);
     int32 Appearance=-1;
-    static constexpr int32 Count=7, Core=4, Turret=5, Miner=6;
+    static constexpr int32 Count=11, Core=4, Turret=5, Miner=6, Nursery=7, Hive=8, Fabricator=9, Spire=10;
     static FIntPoint Cost(int32 Piece);
     static float Durability(int32 Piece,int32 Tier=0);
     static FString Recipe(int32 Piece,int32 Tier=0);
@@ -283,6 +287,10 @@ public:
     FVector Home=FVector::ZeroVector;
     bool Managed=false, FrontUnit=false;
     int32 TownIndex=INDEX_NONE;
+    int32 WakeHerd=INDEX_NONE, HerdMember=0;
+    bool TickWakeDeer(float Delta,AETCharacter& Player);
+    bool WakeEnemy() const;
+    bool WakeTruce() const;
     FIntPoint TownCell=FIntPoint::ZeroValue;
     float RivalScan=0,PlayerAggro=0;
     float FlinchTime=0,ImpactCooldown=0;
@@ -351,6 +359,17 @@ public:
     void LoadDesign();
     void EnsureRegion(FIntPoint Coord);
     void BuildStory();
+    void RefreshWake();
+    void TickWake(AETCharacter& Player,float Delta);
+    void SetWakePerks();
+    UPROPERTY() TMap<FName,AETItem*> WakeObjects;
+    UPROPERTY() TArray<AActor*> WakeScenery;
+    UPROPERTY() TArray<AETAgent*> WakeDeer;
+    UPROPERTY() AETWakeVehicle* WakeCar=nullptr;
+    UPROPERTY() AETWakeVehicle* WakePlane=nullptr;
+    int32 WakeLayout=INDEX_NONE;
+    float WakePulse=0, WakeFlash=0;
+    FVector WakeSpot(FName Node,int Index=0) const;
     void RestoreDrops(AETRegion* Region);
     bool Save();
     AETAgent* AddThreat(const FString& Id,const FString& Kind,FVector Position);
@@ -560,7 +579,7 @@ public:
     UPROPERTY() AETWorld* Field;
     FVector Velocity=FVector::ZeroVector;
     float Power=0;
-    bool FrontBolt=false, BugBolt=false;
+    bool FrontBolt=false, BugBolt=false,WakeHostile=false,WakeAllied=false;
     void Launch(AETAgent* Source,FVector Target,bool Acid);
     void Beam(AETWorld* World,FVector To);
     virtual void Tick(float Delta) override;
@@ -582,6 +601,26 @@ public:
     virtual float TakeDamage(float Damage, const FDamageEvent& Event, AController* Instigator, AActor* Causer) override;
     UPROPERTY() UCameraComponent* Camera;
     UPROPERTY() UStaticMeshComponent* Gun;
+    UPROPERTY() UStaticMeshComponent* WakeBody=nullptr;
+    UPROPERTY() UStaticMeshComponent* WakeCuff=nullptr;
+    void ApplyWakeBody();
+    void WakeUse(FName Node);
+    void WakeAction(const FString& Id);
+    void WakeJournal();
+    void WakeMessage(FString Title,FString Body,const FString& Cue=TEXT(""));
+    void WakeClaw();
+    void FinishWakeHerd();
+    void WakeBurrow();
+    void ArchiveJournal();
+    AETItem* NearbyWake() const;
+    TArray<TPair<FString,FString>> WakeChoices() const;
+    void EnterRide(AETWakeVehicle* Vehicle,bool Restore=false);
+    void LeaveRide();
+    AETWakeVehicle* Ride() const;
+    float DriveAxis=0, SteerAxis=0;
+    bool LiftHeld=false, DescentHeld=false;
+    FName WakePanelNode=NAME_None;
+    int32 WakeOffer=0;
     UPROPERTY() USpotLightComponent* Flashlight;
     UPROPERTY() class UPointLightComponent* Muzzle;
     UPROPERTY() AETWorld* World;
@@ -721,6 +760,8 @@ public:
     void DrawReclamation(AETCharacter* Player);
     void DrawLandfall(AETCharacter* Player);
     void DrawSkillWeb(AETCharacter* Player);
+    void DrawWake(AETCharacter* Player);
+    void DrawWakeTrail(AETCharacter* Player);
     void DrawNavigation(AETCharacter* Player);
     void DrawAtlas(AETCharacter* Player);
     void DrawChart(AETCharacter* Player,const ETNav::FChart& Chart,bool Small);

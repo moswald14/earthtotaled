@@ -44,7 +44,7 @@ namespace
         for(const auto& Loss:S.FrontLosses) if(!Loss.Key.StartsWith(TEXT("front/"))||!Number(Loss.Value,0,1.1e10f)) return false;
         if(S.MapPins.Num()>ETNav::MaxPins||(S.TrackedPin!=INDEX_NONE&&!S.MapPins.IsValidIndex(S.TrackedPin))) return false;
         for(FVector2D Pin:S.MapPins) if(!Location(FVector(Pin,0))) return false;
-        if(S.Schema!=1||!Location(S.Position)||!Location(S.WinchAnchor)||S.View.ContainsNaN()||
+        if(!S.Wake.Valid()||S.Schema!=1||!Location(S.Position)||!Location(S.WinchAnchor)||S.View.ContainsNaN()||
            S.ArmorTier<0||S.ArmorTier>3||!Number(S.Health,.00001f,1000)||!Number(S.Hydration,0,100)||
            !Number(S.Armor,0,S.ArmorLimit())||!Number(S.JetFuel,0,100)||!Number(S.Elapsed,0,1.e10f)||
            S.Weapon<0||S.Weapon>=Guns||S.Cores<0||S.Cores>4||S.Ammo.Num()>Guns||S.WeaponDamage.Num()>Guns||

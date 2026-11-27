@@ -1,3 +1,5 @@
+#include "ETWakeVehicle.h"
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETRingLine.h"
 #include "ETLandfall.h"
@@ -41,6 +43,7 @@ void AETHUD::DrawHUD()
 {
     Super::DrawHUD(); auto P=Cast<AETCharacter>(GetOwningPawn()); if(!P||!P->World) return;
     auto W=P->World; auto S=W->State; const float SW=Canvas->SizeX,SH=Canvas->SizeY;
+    if(P->Panel==TEXT("wake")){DrawWake(P);return;}
     if(P->Panel==TEXT("console")) return;
     if(P->Panel==TEXT("arrival")||P->Panel==TEXT("updates")||P->Panel==TEXT("relics")) {DrawLandfall(P);return;}
     if(P->Panel==TEXT("mods")||P->Panel==TEXT("devtools")||P->Panel==TEXT("town")) {DrawReclamation(P);return;}
@@ -79,7 +82,7 @@ void AETHUD::DrawHUD()
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
-        if(Title) Text(FString::Printf(TEXT("1.15.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
+        if(Title) Text(FString::Printf(TEXT("1.16.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
         if(Title) {
@@ -110,8 +113,9 @@ void AETHUD::DrawHUD()
     DrawRect(FLinearColor(.012f,.019f,.015f,.72f),20,SH-104,560,92);
     DrawRect(FLinearColor(.012f,.019f,.015f,.72f),SW-315,SH-103,300,90);
     Text(TEXT("EARTHtotaled"),32,24,Bone,1.8f); Text(TEXT("THE LAST SIGNAL"),34,52,Muted,.9f);
-    Text(W->StoryTitle(),32,83,Mint,1.1f);
-    Text(W->StoryObjective(),32,105,Bone,1.1f);
+    const bool Campaign=S->Wake.Chapter!=ETWake::Missing||S->ArrivalStage!=1;
+    Text(Campaign?(S->Wake.Chapter==ETWake::Home?TEXT("MEGAWAKE  /  KIT IS HOME"):TEXT("MEGAWAKE  /  FIND KIT")):W->StoryTitle(),32,83,Mint,1.1f);
+    Text(Campaign?ETWake::Objective(S->Wake):W->StoryObjective(),32,105,Bone,1.01f);
     const float Hour=W->Hour(); const int32 Minutes=FMath::FloorToInt(Hour*60);
     Text(FString::Printf(TEXT("DAY %d   %02d:%02d   /   %s"),1+FMath::FloorToInt((S->ClockOffset+S->Elapsed)/ETDay::Period),Minutes/60,Minutes%60,W->IsNight()?TEXT("DAWN AT 06:00"):TEXT("NIGHTFALL AT 19:00")),SW-410,30,W->IsNight()?Amber:Mint,1.0f);
     Text(W->PlaceName(P->GetActorLocation()),SW-410,57,Muted,.85f);
@@ -123,8 +127,9 @@ void AETHUD::DrawHUD()
     FString Vitals=FString::Printf(TEXT("HEALTH %d  /  SHIELD %d  /  SUIT %d"),FMath::CeilToInt(S->Health),FMath::CeilToInt(S->Shield),FMath::CeilToInt(S->Armor));
     if(S->Health<=25&&S->Health>0) Vitals+=S->Meds>0?TEXT("   CRITICAL / Q MEDKIT"):TEXT("   CRITICAL / TAKE COVER");
     Text(Vitals,32,SH-94,S->Health<=25?Amber:Bone,1.15f);
-    Text(FString::Printf(TEXT("WATER %d%%    %d bottles [H]"),FMath::CeilToInt(S->Hydration),S->Water),32,SH-65,S->Hydration<25?Amber:Mint,1.2f);
-    Text(FString::Printf(TEXT("WRAPPERS %d / SCRAP %d / MEDS %d [Q]"),S->Gold,S->Scrap,S->Meds),32,SH-36,Muted,1);
+    if(S->Wake.Body)Text(S->Wake.Body==ETWake::Bug?TEXT("MOLT   /   WATER INDEPENDENT"):TEXT("OVERRIDE   /   CLOSED-CYCLE FRAME"),32,SH-65,Mint,1.12f);
+    else Text(FString::Printf(TEXT("WATER %d%%    %d bottles [H]"),FMath::CeilToInt(S->Hydration),S->Water),32,SH-65,S->Hydration<25?Amber:Mint,1.2f);
+    Text(S->Wake.Body==ETWake::Bug?TEXT("Survivor pack sealed   /   Tab to inspect"):FString::Printf(TEXT("WRAPPERS %d / SCRAP %d / MEDS %d [Q]"),S->Gold,S->Scrap,S->Meds),32,SH-36,Muted,1);
     DrawRect(FLinearColor(.012,.019,.015,.8),20,SH-135,204,29);
     Text(FString::Printf(TEXT("JET %d%%"),FMath::RoundToInt(S->JetFuel)),30,SH-130,P->Jetting?Amber:Mint,.85f);
     DrawRect(Muted.CopyWithNewOpacity(.4f),104,SH-121,105,4);
@@ -152,6 +157,7 @@ void AETHUD::DrawHUD()
         FString Cost=AETConstruction::Recipe(P->BuildPiece,Tier);
         if(Frame) Cost+=FString::Printf(TEXT("  /  carrying %d"),S->Inventory.FindRef(AETConstruction::Resource(Tier)));
         if(Frame&&Tier==0&&S->BuildStock) Cost+=FString::Printf(TEXT(" + %d kits"),S->BuildStock);
+        if(S->Wake.Body)Cost=TEXT("No material cost");
         Text(Cost,SW-300,SH-73,Bone,.92f);
         Text(Frame?TEXT("Wheel  piece     C  material     R  rotate"):TEXT("Wheel  machine     R  rotate"),SW-300,SH-52,Mint,.84f);
         Text(TEXT("LMB place   RMB salvage   T upgrade   B exit"),SW-300,SH-32,Mint,.82f);
@@ -166,6 +172,9 @@ void AETHUD::DrawHUD()
             Text(P->SurveyReading,SW*.5f-140,SH*.5f+24,Amber,.95f);
         }
     }
+    else if(P->Ride()) {Text(S->Wake.Seat==ETWake::Car?TEXT("ROADSTER"):TEXT("SURVEY PLANE"),SW-300,SH-91,Amber,1.15f);
+        Text(FString::Printf(TEXT("%.0f km/h   /   %s"),P->Ride()->State().Speed*.036f,P->Ride()->State().Started?TEXT("engine on"):TEXT("engine off")),SW-300,SH-64,Bone,1.12f);}
+    else if(S->Wake.Body==ETWake::Bug){Text(TEXT("MOLT / LIVING CLAWS"),SW-300,SH-90,Amber,1.12f);Text(TEXT("LMB strike    G burrow    B grow"),SW-300,SH-60,Bone,1.f);}
     else if(W->Weapons.IsValidIndex(S->Weapon))
     {
         const int32 Rank=P->CurrentRank();
@@ -176,7 +185,7 @@ void AETHUD::DrawHUD()
     }
     if(P->Panel.IsEmpty())
     {
-        DrawNavigation(P);
+        DrawNavigation(P);DrawWakeTrail(P);
         DrawLine(SW/2-6,SH/2,SW/2+6,SH/2,Mint,1); DrawLine(SW/2,SH/2-6,SW/2,SH/2+6,Mint,1);
         if(P->HitTime>0) {DrawLine(SW/2-10,SH/2-10,SW/2-4,SH/2-4,Amber,2); DrawLine(SW/2+10,SH/2+10,SW/2+4,SH/2+4,Amber,2); DrawLine(SW/2+10,SH/2-10,SW/2+4,SH/2-4,Amber,2); DrawLine(SW/2-10,SH/2+10,SW/2-4,SH/2+4,Amber,2);}
         if(auto* Site=P->FocusBuild.Get();Site&&Site->Design.Piece>=AETConstruction::Core) Text(FString(TEXT("[E] "))+Site->Name(Site->Design.Piece),SW*.5f-100,SH*.5f+48,Mint,1.12f);
@@ -248,8 +257,10 @@ void AETHUD::DrawHUD()
     {
         Wrapped(P->PanelBody,X,Y+48,Width,SH<800?.9f:1.1f);
         float BY=SH*.65f;
+        if(P->Panel==TEXT("journal"))Button(TEXT("wake-journal"),TEXT("Kit / MegaWAKE field journal"),X,BY,325);
         if(P->Panel==TEXT("contact"))
         {
+            if(P->Contact==TEXT("SALT-7")||P->Contact==TEXT("Nora"))Button(TEXT("wake-journal"),TEXT("Kit / MegaWAKE"),X+590,BY+44,192);
             Button(TEXT("quest"),TEXT("Accept / turn in quest"),X,BY,250);
             if(P->Contact==TEXT("SALT-7"))
             {

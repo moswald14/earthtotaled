@@ -82,12 +82,13 @@ void AETCharacter::TickShield(float D)
 }
 void AETCharacter::CrouchLoot()
 {
+    if(Ride()){DescentHeld=true;return;}
     if(!Panel.IsEmpty()||Climbing||SweepHeld) return;
     Crouch(); SweepHeld=true; SweepArmed=false; SweepHold=SweepClock=0;
 }
 void AETCharacter::ReleaseLoot()
 {
-    SweepHeld=SweepArmed=false;SweepHold=SweepClock=0;UnCrouch();
+    DescentHeld=false;SweepHeld=SweepArmed=false;SweepHold=SweepClock=0;UnCrouch();
 }
 bool AETCharacter::TakeLoose(AETItem* A)
 {

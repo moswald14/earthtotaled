@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
@@ -7,6 +8,17 @@ void AETCharacter::OpenDevice(AETConstruction* A)
     const auto* B=A?World->State->Builds.Find(A->Id):nullptr;
     if(!B||B->Piece<AETConstruction::Core) return;
     DeviceId=A->Id; auto S=World->State;
+    if(B->Piece>=A->Nursery){
+        WakePanelNode="structure";FString Info;
+        if(!ETWake::CanBuild(S->Wake,B->Piece))Info=TEXT("This building answers to its faction's body.");
+        else if(B->Piece==A->Nursery){S->Health=FMath::Min(MaxHealth(),S->Health+35);Info=TEXT("The nursery closes a wound in your carapace. Up to 35 health restored.");}
+        else if(B->Piece==A->Hive)Info=ETWake::Objective(S->Wake)+TEXT(". The hive listens for the nearest relay while its brood shelter here.");
+        else if(B->Piece==A->Fabricator&&Has(TEXT("override-fabricate"))){++S->Meds;S->Inventory.FindOrAdd(TEXT("armorplate"))+=1;Info=TEXT("One medkit and one armor plate fabricated into your pack.");}
+        else if(B->Piece==A->Fabricator)Info=TEXT("Fabrication hall online. Learn Fabricate in the OVERRIDE web to print supplies.");
+        else {S->Shield=S->MaxShield();Info=TEXT("Parallax spire authorized. Your shield is fully recharged.");}
+        WakeMessage(A->Name(B->Piece),Info);return;
+    }
+    if(ETWake::BugPack(*this)){World->Say(TEXT("This machine requires ordinary equipment"));return;}
     FString Info=FString::Printf(TEXT("Integrity %.0f / %.0f     Pack: %d iron, %d gold ore\n\n"),B->Integrity,A->Durability(B->Piece),S->Inventory.FindRef(TEXT("ironore")),S->Inventory.FindRef(TEXT("goldore")));
     if(B->Piece==A->Core) {
         Info+=FString::Printf(TEXT("Outpost value %d / raids begin at 27. Turret power reaches 75 m.\nRaids held: %d. Armor tier %d / 3."),World->BaseValue(A->Id),S->Waves,S->ArmorTier);

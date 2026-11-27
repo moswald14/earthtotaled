@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
@@ -11,7 +12,7 @@
 namespace
 {
     constexpr double Bay=400, Storey=280;
-    const TCHAR* const Names[]={TEXT("Wall"),TEXT("Floor"),TEXT("Ramp"),TEXT("Roof"),TEXT("Relay"),TEXT("Auto turret"),TEXT("Turtle miner")};
+    const TCHAR* const Names[]={TEXT("Wall"),TEXT("Floor"),TEXT("Ramp"),TEXT("Roof"),TEXT("Relay"),TEXT("Auto turret"),TEXT("Turtle miner"),TEXT("Molt nursery"),TEXT("Listening hive"),TEXT("Fabrication hall"),TEXT("Parallax spire")};
     FVector Facing(int32 Quarter) {return FRotator(0,Quarter*90,0).Vector();}
     FVector SideOf(FVector Offset)
     {
@@ -36,6 +37,8 @@ FVector AETConstruction::Extents(int32 Piece)
         case 2:return FVector(FMath::Sqrt(Bay*Bay+Storey*Storey)*.5,200,10);
         case Core:return FVector(66,66,83);
         case Turret:return FVector(60,60,50);
+        case Nursery:case Hive:return FVector(125,125,110);
+        case Fabricator:case Spire:return FVector(155,145,145);
         case Miner:return FVector(70,47,34);
         default:return FVector(200,200,70);
     }
@@ -52,15 +55,25 @@ FTransform AETConstruction::Shape(const FETBuild& B)
 }
 void AETConstruction::Configure(AETWorld* W,const FETBuild& B,bool Ghost,bool Valid)
 {
-    Design=B; SetActorTransform(Shape(B));
+    Design=B;
+    auto PositionMesh=[&](){
+        auto Pose=Shape(B);
+        if(B.Piece>=Nursery&&Mesh->GetStaticMesh()){
+            const auto Bounds=Mesh->GetStaticMesh()->GetBounds();
+            const FVector Fit=Extents(B.Piece)/Bounds.BoxExtent.ComponentMax(FVector(1));
+            Pose.SetScale3D(Fit);Pose.AddToTranslation(-Pose.GetRotation().RotateVector(Bounds.Origin*Fit));
+        }
+        SetActorTransform(Pose);
+    };
     const int32 Style=(B.Piece*3+B.MaterialTier)*3+(Ghost?(Valid?1:2):0);
-    if(Style==Appearance) return;
+    if(Style==Appearance){PositionMesh();return;}
     Appearance=Style;
-    const FString Asset=B.Piece==Core?TEXT("SM_Relay"):B.Piece==Turret?TEXT("SM_SentryStand"):B.Piece==Miner?TEXT("SM_Turtle"):FString(TEXT("SM_Field"))+Name(B.Piece);
+    const FString Asset=B.Piece==Nursery?TEXT("SM_HiveNursery"):B.Piece==Hive?TEXT("SM_BellowsHive"):B.Piece==Fabricator?TEXT("SM_ComputeHall"):B.Piece==Spire?TEXT("SM_ParallaxSpire"):B.Piece==Core?TEXT("SM_Relay"):B.Piece==Turret?TEXT("SM_SentryStand"):B.Piece==Miner?TEXT("SM_Turtle"):FString(TEXT("SM_Field"))+Name(B.Piece);
     const FString Moving=B.Piece==Turret?TEXT("SM_SentryHead"):B.Piece==Miner?TEXT("SM_TurtleBit"):TEXT("");
     Mechanism->SetStaticMesh(Moving.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Moving+TEXT(".")+Moving)));
     Mechanism->SetRelativeLocation(B.Piece==Miner?FVector(52,0,-7):FVector(0,0,23));
     Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
+    PositionMesh();
     Mesh->SetCollisionProfileName(Ghost?TEXT("NoCollision"):TEXT("BlockAll"));
     Mesh->SetCastShadow(!Ghost);
     if(Ghost) {
@@ -107,9 +120,10 @@ void AETCharacter::UpgradeFrame()
     if(B->MaterialTier==2) {World->Say(TEXT("This frame is already metal")); return;}
     const int Tier=B->MaterialTier+1,Cost=A->FrameCost(Tier);
     auto& Stock=World->State->Inventory;
-    if(Stock.FindRef(A->Resource(Tier))<Cost) {World->Say(TEXT("Upgrade needs ")+A->Recipe(B->Piece,Tier)); return;}
+    if(World->State->Wake.Body!=ETWake::Frame&&Stock.FindRef(A->Resource(Tier))<Cost) {World->Say(TEXT("Upgrade needs ")+A->Recipe(B->Piece,Tier)); return;}
     const float Fraction=B->Integrity/A->Durability(B->Piece,B->MaterialTier);
-    Stock.FindOrAdd(A->Resource(Tier))-=Cost;
+    if(World->State->Wake.Body!=ETWake::Frame)Stock.FindOrAdd(A->Resource(Tier))-=Cost;
+    else B->Grown=true;
     B->MaterialTier=Tier; B->FromKit=false; B->Integrity=Fraction*A->Durability(B->Piece,Tier);
     A->Configure(World,*B); World->Sound(TEXT("FieldLatch")); World->Say(FString(TEXT("Upgraded to "))+A->MaterialName(Tier)); World->Save(); RefreshBuild();
 }
@@ -117,12 +131,14 @@ void AETCharacter::StopBuilding()
 {
     if(!Building) return;
     Building=false; if(IsValid(Preview)) Preview->Destroy(); Preview=nullptr;
-    Gun->SetVisibility(true); Firing=Aiming=false;
+    ApplyWakeBody(); Firing=Aiming=false;
 }
 void AETCharacter::ToggleBuild()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
+    if(Ride())return;
     if(Building) {StopBuilding(); return;}
+    if(!ETWake::CanBuild(World->State->Wake,BuildPiece))BuildPiece=ETWake::BugPack(*this)?AETConstruction::Nursery:0;
     if(Borer) EquipFrame(World->State->Weapon);
     Firing=Aiming=false; ReloadTime=0; Building=true; Gun->SetVisibility(false);
     BuildFacing=(FMath::RoundToInt(GetControlRotation().Yaw/90)+4)%4;
@@ -134,7 +150,9 @@ bool AETCharacter::BuildTarget(FETBuild& B,FString& Reason) const
     FHitResult H;
     FCollisionQueryParams Trace(SCENE_QUERY_STAT(ETBuildSite),false,this);
     if(Preview) Trace.AddIgnoredActor(Preview);
-    if(!GetWorld()->LineTraceSingleByChannel(H,Eye,Eye+Ray*1500,ECC_Visibility,Trace)) {Reason=TEXT("Aim at ground or a frame within 15 m"); return false;}
+    if(!GetWorld()->LineTraceSingleByChannel(H,Eye,Eye+Ray*(Has(TEXT("override-span"))?3000:1500),ECC_Visibility,Trace)) {Reason=TEXT("Aim at ground or a frame within 15 m"); return false;}
+    if(!ETWake::CanBuild(World->State->Wake,BuildPiece)){Reason=TEXT("This structure belongs to a different body");return false;}
+    if(BuildPiece==AETConstruction::Spire&&!Has(TEXT("override-permit"))){Reason=TEXT("Learn Authorize in OVERRIDE [K]");return false;}
     B.Piece=BuildPiece; B.Facing=BuildFacing; B.MaterialTier=BuildPiece<AETConstruction::Core?BuildMaterial:0;
     B.Integrity=AETConstruction::Durability(B.Piece,B.MaterialTier);
     B.Anchor=H.ImpactPoint;
@@ -207,6 +225,8 @@ bool AETCharacter::BuildTarget(FETBuild& B,FString& Reason) const
         if(Placed->Design.Piece==B.Piece && Placed->GetActorLocation().Equals(T.GetLocation(),28) &&
            (B.Piece!=2||Placed->Design.Facing==B.Facing)) {Reason=TEXT("A frame already occupies this socket"); return false;}
     }
+    B.Grown=World->State->Wake.Body!=ETWake::Human;
+    if(B.Grown){B.FromKit=false;Reason=TEXT("LMB place / no material cost");return true;}
     if(B.Piece>=AETConstruction::Core) {
         const auto Cost=AETConstruction::Cost(B.Piece);
         if(B.Piece==AETConstruction::Core && B.Anchor.Z<World->SurfaceHeight(B.Anchor.X,B.Anchor.Y)-300) {Reason=TEXT("The relay antenna needs a surface site"); return false;}
@@ -240,6 +260,7 @@ void AETCharacter::PlaceBuild()
     const FGuid Id=FGuid::NewGuid();
     if(!World->SpawnBuild(Id,B)) {World->Say(TEXT("Ground is still streaming")); return;}
     auto* S=World->State; S->Builds.Add(Id,B);
+    if(B.Grown){World->Sound(TEXT("FieldLatch"));World->Save();RefreshBuild();return;}
     if(B.Piece>=AETConstruction::Core) {
         const auto Cost=AETConstruction::Cost(B.Piece);
         S->Inventory.FindOrAdd(TEXT("ironore"))-=Cost.X; S->Inventory.FindOrAdd(TEXT("goldore"))-=Cost.Y;
@@ -255,6 +276,8 @@ void AETCharacter::SalvageBuild()
     auto* A=Cast<AETConstruction>(H.GetActor());
     if(!A||!World->State->Builds.Contains(A->Id)) return;
     const auto B=World->State->Builds.FindRef(A->Id);
+    if(B.Grown){World->RemoveBuild(A);World->Sound(TEXT("FieldLatch"));World->Save();RefreshBuild();return;}
+    if(ETWake::BugPack(*this)){World->Say(TEXT("Your shell cannot salvage ordinary equipment"));return;}
     if(B.Piece>=AETConstruction::Core) {
         const auto Cost=AETConstruction::Cost(B.Piece);
         World->State->Inventory.FindOrAdd(TEXT("ironore"))+=B.Iron+Cost.X/2;

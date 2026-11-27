@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "ETLandfall.h"
 #include "ETGeology.h"
@@ -19,6 +20,8 @@ void AETCharacter::ApplyFieldDisplay()
 void AETCharacter::ToggleBorer()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
+    if(Ride())return;
+    if(ETWake::BugPack(*this)){WakeBurrow();return;}
     StopBuilding();
     if(Borer) {EquipFrame(World->State->Weapon); return;}
     LampBeforeBorer=Flashlight->IsVisible();

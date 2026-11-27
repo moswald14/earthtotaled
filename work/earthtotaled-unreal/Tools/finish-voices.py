@@ -7,7 +7,8 @@ dialogue=json.loads((root/'Content/Data/dialogue.json').read_text())
 total=0
 lines=[line for line in dialogue['lines'] if not sys.argv[1:] or line['id'] in sys.argv[1:]]
 for line in lines:
-    path=root/'ArtSource'/('S_Voice_'+line['id']+'.wav')
+    folder=root/('Content/Data/Voices' if line['id'].startswith('wake') else 'ArtSource')
+    path=folder/('S_Voice_'+line['id']+'.wav')
     with wave.open(str(path),'rb') as sound:
         assert sound.getnchannels()==1 and sound.getsampwidth()==2 and sound.getframerate()==22050
         samples=array.array('h',sound.readframes(sound.getnframes()))

@@ -1,5 +1,13 @@
 # EARTHtotaled release record
 
+## Unreal 1.16.0 — MegaWAKE
+
+Meet Thrum at Shelter 09 to search for Mara’s son, Kit. Lead a glitched deer herd to safety, drive SALT-7’s roadster to East Dispatch and follow the relay records to fraudCORP. Bug crews silence relays and Supertech crews retune them. The journal warns on the third job for one faction. Its fourth job turns the rival faction hostile. Both friends stay with Mara.
+
+Repair a survey plane at Hollow Field and fly to Crown Field. In the vault, choose the Bug’s MOLT path or the Supertech frame’s OVERRIDE path. Both bodies can drive and fly. Escort Kit out before firing the Sunseed. Up to nine restored herds change the homecoming, and the survivor can keep exploring afterward.
+
+Choose **Game updates** from the title or pause menu and select **v1.16.0**. Setup backs up all ten slots, previous checkpoints, exports, settings and mods. Returning to an older version gives it a separate save profile.
+
 ## Unreal 1.15.0 — Interchange
 
 The West Ring and East Ring each have eight stops. Every city has two named, enterable businesses with supplies tied to the district. Find a crane over Cinder Quay's dockyard, potters' kilns at Kiln Exchange and a clock tower overlooking the bakery at Lastbell. Stock stays collected across saves and return visits.

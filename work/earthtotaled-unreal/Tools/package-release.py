@@ -16,7 +16,14 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions='''EARTHtotaled 1.15.0 / Interchange
+instructions='''EARTHtotaled 1.16.0 / MegaWAKE
+Find Thrum by Shelter 09 and follow Kit's field journal with J. The first herd opens
+the road to your car. Four jobs for the same faction reveal the road to Hollow Field.
+E boards and exits, R starts, W accelerates, A/D steer and S brakes. In the plane,
+Space climbs and Ctrl descends. Come to a stop on the runway to exit.
+The two permanent choices in the vault lead to separate routes into custody.
+Both friends stay with you. Herd restorations change Kit's homecoming.
+
 
 Two loops serve sixteen cities. The North Shuttle connects Kiln Exchange and Windfall
 Reach. The South Shuttle connects Signal Heights and Saltmarket. Both run both ways.
@@ -147,7 +154,7 @@ Enter runs a command, Up recalls it, and Escape returns to mouse look.
 Escape > Display / native shows the new 4K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.15.0.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.16.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -158,6 +165,6 @@ with zipfile.ZipFile(archive) as z:
 import shutil
 installer=outputs/'EARTHtotaled-Setup.exe'
 shutil.copy2(setup,installer)
-record={'version':'1.15.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+record={'version':'1.16.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

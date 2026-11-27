@@ -11,7 +11,7 @@ AETAgent::AETAgent()
     PrimaryActorTick.bCanEverTick=true; Pivot=CreateDefaultSubobject<USceneComponent>(TEXT("Body")); SetRootComponent(Pivot);
 }
 bool AETAgent::IsMachine() const {return Kind==TEXT("robot")||Kind==TEXT("drone");}
-bool AETAgent::Awake() const {return World&&(FrontUnit||Kind==TEXT("walker")||Kind==TEXT("deer")||World->IsNight());}
+bool AETAgent::Awake() const {return World&&(WakeEnemy()||FrontUnit||Kind==TEXT("walker")||Kind==TEXT("deer")||World->IsNight());}
 void AETAgent::UpdatePresence(FVector Viewer)
 {
     const double Distance=FVector::DistSquared2D(GetActorLocation(),Viewer);
@@ -90,6 +90,7 @@ void AETAgent::Tick(float D)
     auto Player=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!Player||!Player->Panel.IsEmpty()) return;
     TickImpact(D);
     Phase+=D; AttackTime-=D;
+    if(TickWakeDeer(D,*Player))return;
     if(Kind==TEXT("hive")) {
         if(AttackTime<=0&&FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.)) {
             AttackTime=14;
@@ -106,9 +107,10 @@ void AETAgent::Tick(float D)
     const bool Siege=World->RaidMember(Id);
     PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
     AETAgent* Enemy=Siege||Kind==TEXT("walker")?nullptr:FindRival(D);
-    if(World->IsNight()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
+    if((World->IsNight()||WakeEnemy())&&!WakeTruce()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
        (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
-    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||!World->IsNight())) return;
+    if(!Enemy&&WakeTruce())return;
+    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) return;
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
     AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
     if(Siege) {
@@ -183,6 +185,7 @@ void AETAgent::Tick(float D)
 }
 float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,AActor* Causer)
 {
+    if(WakeHerd>=0)return 0;
     if(!Awake()||Health<=0||Amount<=0) return 0;
     const float Applied=FMath::Min(Health,Amount*(Kind==TEXT("bulwark")?.72f:1.f)); Health-=Applied;
     ReceiveImpact(Applied,Event,Causer);

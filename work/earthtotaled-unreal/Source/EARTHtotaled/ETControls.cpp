@@ -6,7 +6,7 @@ void AETCharacter::Controls()
 {
     if(Panel==TEXT("controls")) {ClosePanel(); return;}
     if(!Panel.IsEmpty()&&Panel!=TEXT("title")&&Panel!=TEXT("pause")) return;
-    GuideOrigin=Panel; GuidePage=Building?1:Borer?2:0;
+    GuideOrigin=Panel; GuidePage=Ride()?3:Building?1:Borer?2:0;
     OpenPanel(TEXT("controls"),TEXT("FIELD GUIDE"),TEXT(""));
 }
 void AETHUD::DrawControls(AETCharacter* P)
@@ -39,7 +39,16 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Relay   /   Turret"),TEXT("A relay costs 2 iron + 1 gold ore. A turret costs 3 + 1 and needs a relay within 75 m.")},
          {TEXT("Turtle miner   /   E"),TEXT("Build for 4 iron + 1 gold ore. Use E to collect the hopper or service a machine.")},
          {TEXT("E at a relay"),TEXT("Repair, upgrade your armor, or trace a nest after defending a valuable base.")},
-         {TEXT("Esc   /   Survivor saves"),TEXT("Copy, import or export survivors here. Town boards fund watch shifts and mark water towers.")}}
+         {TEXT("Esc   /   Survivor saves"),TEXT("Copy, import or export survivors here. Town boards fund watch shifts and mark water towers.")}},
+        {{TEXT("J   /   M"),TEXT("Find Kit in the field journal. Follow its amber diamond in the world and its MegaWAKE marker on the atlas.")},
+         {TEXT("E near a vehicle"),TEXT("Board from either side. Stop and press E to exit. Vehicles work in both transformed bodies.")},
+         {TEXT("Roadster / R, W, A, D"),TEXT("R starts the engine. W accelerates, A/D steer, S brakes. Space is the handbrake. Ctrl+S reverses.")},
+         {TEXT("Plane / R, W, Space"),TEXT("Build runway speed above 47 km/h, then hold Space to take off. A/D turn, Space climbs, Ctrl descends.")},
+         {TEXT("Plane / landing"),TEXT("Line up over the lit strip. Hold Ctrl, brake below 68 km/h, stop and exit. E at a discovered hangar recalls the plane.")},
+         {TEXT("Relay field jobs"),TEXT("Bug crews guide deer to quiet glades. Supertech crews read a source and match its band at the receiver.")},
+         {TEXT("Third and fourth marks"),TEXT("Three jobs give a warning. The fourth makes rival patrols hostile. Thrum and SALT-7 stay friendly.")},
+         {TEXT("MOLT / K, B, G"),TEXT("Use claws and grow living buildings. Learn shell, signal-sensing or burrowing. Tab inspects your stored pack.")},
+         {TEXT("OVERRIDE / K, B, E"),TEXT("Build at no material cost. Learn fabrication, spire authorization and extended reach. Use E at faction buildings.")}}
     };
     const float SW=Canvas->SizeX,SH=Canvas->SizeY;
     const float U=FMath::Clamp(FMath::Min(SW/1366.f,SH/850.f),.60f,2.2f);
@@ -50,19 +59,19 @@ void AETHUD::DrawControls(AETCharacter* P)
     DrawRect(FLinearColor(.007,.009,.007,.42),0,0,SW,SH);
     DrawRect(Ink,X,Top,Width,Height); DrawRect(Mint,X,Top,4*U,Height);
     Text(TEXT("FIELD GUIDE"),Left,Top+12*U,Paper,2.05f*U);
-    const TCHAR* Ids[]={TEXT("guide-field"),TEXT("guide-build"),TEXT("guide-survive")};
-    const TCHAR* Titles[]={TEXT("Field controls"),TEXT("Harvest & build"),TEXT("Mining & survival")};
-    const float Tabs=Top+62*U,Tab=Inside/3;
+    const TCHAR* Ids[]={TEXT("guide-field"),TEXT("guide-build"),TEXT("guide-survive"),TEXT("guide-wake")};
+    const TCHAR* Titles[]={TEXT("Field controls"),TEXT("Harvest & build"),TEXT("Mining & survival"),TEXT("Vehicles & MegaWAKE")};
+    const float Tabs=Top+62*U,Tab=Inside/4;
     auto TabButton=[&](const TCHAR* Id,const TCHAR* Label,float BX,float BY,float BW,bool Active) {
         DrawRect(Active?Mint:Line,BX,BY,BW,35*U);
         Text(Label,BX+12*U,BY+7*U,Active?Ink:Paper,1.22f*U);
         AddHitBox(FVector2D(BX,BY),FVector2D(BW,35*U),FName(Id),true);
     };
-    for(int I=0;I<3;++I) {
+    for(int I=0;I<4;++I) {
         TabButton(Ids[I],Titles[I],Left+I*Tab,Tabs,Tab-4*U,I==P->GuidePage);
     }
     const float Begin=Tabs+49*U,End=Bottom-58*U,Row=(End-Begin)/9;
-    const auto& Page=Pages[FMath::Clamp(P->GuidePage,0,2)];
+    const auto& Page=Pages[FMath::Clamp(P->GuidePage,0,3)];
     for(int I=0;I<9;++I) {
         const float Y=Begin+I*Row;
         DrawLine(Left,Y+Row-1,Left+Inside,Y+Row-1,Line,1);

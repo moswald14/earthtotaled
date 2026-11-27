@@ -1,3 +1,4 @@
+#include "ETWake.h"
 #include "ETGame.h"
 #include "Engine/World.h"
 #include "Components/TextRenderComponent.h"
@@ -42,7 +43,7 @@ void AETRegion::AddDetails()
     for(auto* H:Instances) if(H->GetStaticMesh()&&H->GetStaticMesh()->GetFName()==TEXT("SM_Trunk")) {TreeTrunks=H; break;}
     TMap<FString,UHierarchicalInstancedStaticMeshComponent*> DetailMeshes;
     auto Detail=[&](const TCHAR* Asset,const TCHAR* Material,FVector P,FVector Scale,float Yaw,const TCHAR* Range) {
-        if(OnHighway(FVector2D(P),120)||InHighwayGrounds(FVector2D(P))) return;
+        if(ETWake::Reserved(W->State->Wake,FVector2D(P))||OnHighway(FVector2D(P),120)||InHighwayGrounds(FVector2D(P))) return;
         UHierarchicalInstancedStaticMeshComponent* H=DetailMeshes.FindRef(Asset);
         if(!H) {
             H=NewObject<UHierarchicalInstancedStaticMeshComponent>(this); H->SetupAttachment(Terrain);
@@ -163,7 +164,7 @@ void AETRegion::AddDetails()
     }
     // A reproducible campsite belongs to each wilderness house. Never place it in roads.
     for(int32 I=0;I<2;++I) {
-        FVector Home=W->HouseAnchor(C,I); if(W->InCity(Home)||InHighwayGrounds(FVector2D(Home),700)||OnHighway(FVector2D(Home),750)) continue;
+        FVector Home=W->HouseAnchor(C,I); if(ETWake::Reserved(W->State->Wake,FVector2D(Home),1300)||W->InCity(Home)||InHighwayGrounds(FVector2D(Home),700)||OnHighway(FVector2D(Home),750)) continue;
         FVector P=Home+FVector(1600,0,0); P.Z=W->Height(P.X,P.Y);
         const FString Id=FString::Printf(TEXT("v11-camp%d,%d-%d"),C.X,C.Y,I);
         Put(TEXT("SM_CampShelter"),TEXT("Canvas"),P); Put(TEXT("SM_Barrel"),TEXT("Rust"),P+FVector(400,120,0));

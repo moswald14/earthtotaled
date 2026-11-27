@@ -125,6 +125,134 @@
       "speaker": "Eli Venn / observatory archive",
       "rate": -1,
       "text": "I'm not waiting at the other end, Mara. I'm sorry. Wake the irrigation network, or send a warning into orbit. No machine making the choice for us. Whatever you decide, live."
+    },
+    {
+      "id": "wakethrum",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "The deer took the same three steps. I felt it in the roots. Come with me, Mara. We can still find Kit."
+    },
+    {
+      "id": "wakeband",
+      "speaker": "Mara",
+      "rate": -1,
+      "text": "This is Kit's wristband. He was scanned twice. Somebody moved him after the crash."
+    },
+    {
+      "id": "wakeguide",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "Walk with them. Let the last doe hear your feet. I'll keep the false predator quiet until we're clear."
+    },
+    {
+      "id": "wakeherd",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "She's eating. Look at that. For the first time today she chose her own next step."
+    },
+    {
+      "id": "wakecar",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "I have repaired the roadster. Take the shelter road to East Dispatch. I believe they recorded your son's transfer there.",
+      "robot": true
+    },
+    {
+      "id": "wakemanifest",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "His destination was erased. The field relays still hold pieces of its address. Thrum and I can both recover them.",
+      "robot": true
+    },
+    {
+      "id": "waketune",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "I have the carrier. Set the glade receiver to the band in your journal and the herd will hear itself again.",
+      "robot": true
+    },
+    {
+      "id": "wakewarn",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "That's the third mark. Their patrols have noticed. Do one more for the same side and the other will turn on you. I'll stay."
+    },
+    {
+      "id": "wakeleverage",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "Crown custody. Hold Kit Venn until Mara cooperates. That signature is fraudCORP's. They staged this war. Your son is alive.",
+      "robot": true
+    },
+    {
+      "id": "wakestrip",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "Take that end. Good. The roots are clear. Bring the little one home."
+    },
+    {
+      "id": "wakeflight",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "Survey plane ready. Build speed, lift above the trees, and follow the towers east to Crown Field.",
+      "robot": true
+    },
+    {
+      "id": "wakevault0",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "The juice doesn't make you less you. It just gives your body a new answer."
+    },
+    {
+      "id": "wakevault1",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "The frame gives you a different answer. A reliable one. With menus.",
+      "robot": true
+    },
+    {
+      "id": "wakevault2",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "That sounds boring."
+    },
+    {
+      "id": "wakevault3",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "It is extremely useful.",
+      "robot": true
+    },
+    {
+      "id": "wakemolt",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "Those claws are yours, Mara. Listen past the wall. Your son is still tapping."
+    },
+    {
+      "id": "wakeframe",
+      "speaker": "SALT-7",
+      "rate": -1,
+      "text": "Frame online. Water circuit closed. Welcome to the freight authorization menu.",
+      "robot": true
+    },
+    {
+      "id": "wakekit",
+      "speaker": "Kit",
+      "rate": 0,
+      "text": "Mum? They told me you'd gone. I kept counting your three knocks."
+    },
+    {
+      "id": "wakesafe",
+      "speaker": "Thrum",
+      "rate": -2,
+      "text": "He's clear. I felt his feet leave the ground. Take the signal out, Mara."
+    },
+    {
+      "id": "wakehome",
+      "speaker": "Kit",
+      "rate": 0,
+      "text": "That deer only jumped once. Can we stay and watch?"
     }
   ]
 }
