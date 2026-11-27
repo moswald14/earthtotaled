@@ -1,0 +1,6 @@
+newmtl Brick
+Kd 0.5 0.5 0.5
+newmtl Concrete
+Kd 0.5 0.5 0.5
+newmtl Steel
+Kd 0.5 0.5 0.5

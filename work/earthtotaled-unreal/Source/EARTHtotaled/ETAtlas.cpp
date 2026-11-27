@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETRingLine.h"
+#include "ETRailDistricts.h"
 #include "ETWarClock.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
@@ -79,6 +80,7 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
     const auto Here=FVector2D(P->GetActorLocation()); const auto Home=ETNav::District(Here);
     const auto City=ETNav::Refuge(Home),Tracked=S.MapPins.IsValidIndex(S.TrackedPin)?S.MapPins[S.TrackedPin]:City;
     const auto From=ETNav::District(Box.Min),To=ETNav::District(Box.Max);
+    const bool Overview=!Small&&Chart.Span>450000;
     const FLinearColor Lot(.25,.30,.237),Town(.084,.116,.095);
     for(int Y=From.Y;Y<=To.Y;++Y) for(int X=From.X;X<=To.X;++X) {
         const FIntPoint Cell(X,Y); const FVector2D C(X*ETNav::DistrictSpacing,Y*ETNav::DistrictSpacing);
@@ -98,9 +100,9 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         }
     }
     TArray<ETNav::FSite,TInlineAllocator<12>> Sites;
-    ETNav::Sites(Box.ExpandBy(1800),[&](const ETNav::FSite& Site) {Sites.Add(Site);});
+    if(!Overview) ETNav::Sites(Box.ExpandBy(1800),[&](const ETNav::FSite& Site) {Sites.Add(Site);});
     TArray<ETNav::FRoad,TInlineAllocator<80>> Roads;
-    ETNav::Roads(Box.ExpandBy(1800),[&](const ETNav::FRoad& Road){Roads.Add(Road);});
+    if(!Overview) ETNav::Roads(Box.ExpandBy(1800),[&](const ETNav::FRoad& Road){Roads.Add(Road);});
     if(Chart.Span<105000) {
         const int SX=FMath::FloorToInt32(Box.Min.X/AETWorld::RegionSize),EX=FMath::FloorToInt32(Box.Max.X/AETWorld::RegionSize);
         const int SY=FMath::FloorToInt32(Box.Min.Y/AETWorld::RegionSize),EY=FMath::FloorToInt32(Box.Max.Y/AETWorld::RegionSize);
@@ -138,28 +140,66 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         RoadLabels.Emplace(Label,FString(Road.Name));
     };
     for(const auto& Road:Roads) DrawRoad(Road);
-    const FLinearColor Rail(.27,.91,.80);
     if(W.RingTrain) {
-        static const TArray<FVector2D> Path=[] {
-            TArray<FVector2D> Points;
-            for(int I=0;I<=512;++I) Points.Add(ETRing::Position(I*UE_TWO_PI/512.));
-            return Points;
+        static const TArray<FVector2D> Circle=[]{
+            TArray<FVector2D> Path;
+            for(int I=0;I<=512;++I) Path.Add(ETRing::Position(I*UE_TWO_PI/512.));
+            return Path;
         }();
-        for(int I=1;I<Path.Num();++I) Stroke(Path[I-1],Path[I],Rail,Small?1.5f:2.f);
+        const FLinearColor Lines[]={{.27,.91,.80},{.58,.74,1.},{1.,.69,.26},{1.,.48,.31}};
         const FBox2D Inset(Screen.Min+FVector2D(10*U),Screen.Max-FVector2D(10*U));
-        for(int I=0;I<ETRing::Stops;++I) {
-            const auto Pixel=Chart.Plot(ETRing::Station(I));
-            if(!Inset.IsInsideOrOn(Pixel)) continue;
-            const double R=4*U;
-            DrawRect(Panel,Pixel.X-R-1,Pixel.Y-R-1,2*R+2,2*R+2);
-            DrawRect(Rail,Pixel.X-R,Pixel.Y-R,2*R,2*R);
-            if(!Small&&Pixel.X+130*U<Screen.Max.X&&Pixel.Y+24*U<Screen.Max.Y)
-                Text(FString::Printf(TEXT("R%d  %s"),I+1,ETRing::Name(I)),Pixel.X+7*U,Pixel.Y+6*U,Rail,.82*U);
+        for(const auto* ServiceActor:W.RailLines) {
+            const int Service=ServiceActor->Service;
+            const auto Rail=Lines[Service];
+            if(ETRing::Shuttle(Service)) {
+                Stroke(ETRing::Dock(Service,0),ETRing::Dock(Service,1),Rail,Small?2.f:3.f);
+                const auto Mid=Chart.Plot(ETRing::Track(Service,.5));
+                if(Overview&&Inset.IsInsideOrOn(Mid)) TickText(*this,ETRing::ServiceName(Service),Mid-FVector2D(0,19*U),Rail,.93*U);
+                for(int End:{0,1}) {
+                    const auto A=ETRing::Dock(Service,End),B=ETRing::CityStation(ETRing::CityAt(Service,End));
+                    for(int Dash=0;Dash<8;Dash+=2) Stroke(FMath::Lerp(A,B,Dash/8.),FMath::Lerp(A,B,(Dash+1)/8.),Rail,1.4f);
+                }
+            } else {
+                const auto Shift=Service==ETRing::West?FVector2D::ZeroVector:ETRing::EastOffset();
+                for(int I=1;I<Circle.Num();++I) Stroke(Circle[I-1]+Shift,Circle[I]+Shift,Rail,Small?1.5f:2.f);
+            }
+            const auto Train=Chart.Plot(ETRing::Track(Service,ServiceActor->Phase.Angle));
+            if(Inset.IsInsideOrOn(Train)) Arrow(*this,Train,ServiceActor->TravelDirection(),8*U,Rail);
+            for(int I=0;I<ETRing::StopCount(Service);++I) {
+                const int District=ETRing::CityAt(Service,I);
+                const auto Pixel=Chart.Plot(ETRing::Dock(Service,I));
+                if(!Inset.IsInsideOrOn(Pixel)) continue;
+                const double R=4*U;
+                DrawRect(Panel,Pixel.X-R-1,Pixel.Y-R-1,2*R+2,2*R+2);
+                DrawRect(Rail,Pixel.X-R,Pixel.Y-R,2*R,2*R);
+                if(Chart.Span<=60000) {
+                    const auto Lift=Chart.Plot(ETRing::LiftPoint(Service,I));
+                    if(Inset.IsInsideOrOn(Lift)) {
+                        Line(*this,Lift-FVector2D(0,4*U),Lift+FVector2D(0,4*U),Rail,2*U);
+                        Line(*this,Lift-FVector2D(3*U,0),Lift-FVector2D(0,4*U),Rail,2*U);
+                        if(!Small) Text(TEXT("Street lift"),Lift.X+6*U,Lift.Y,Rail,.8*U);
+                    }
+                }
+                if(!Small&&Pixel.X+105*U<Screen.Max.X&&Pixel.Y+24*U<Screen.Max.Y&&(!ETRing::Shuttle(Service)||Chart.Span<120000))
+                    Text(ETRing::Shuttle(Service)?FString(ETRing::ServiceName(Service)):FString(ETRing::CityName(District)),Pixel.X+7*U,Pixel.Y+6*U,Rail,.82*U);
+            }
         }
-        const auto Train=Chart.Plot(ETRing::Position(W.RingTrain->Phase.Angle));
-        if(Inset.IsInsideOrOn(Train)) {
-            auto D=ETRing::Radial(W.RingTrain->Phase.Angle);
-            Arrow(*this,Train,{-D.Y,D.X},8*U,Rail);
+        if(Chart.Span<=60000) for(int K=0;K<2*ETRing::Stops;++K) for(int J=0;J<2;++J) {
+            const auto Pxl=Chart.Plot(ETRailDistrict::Lot(K,J));
+            if(!Inset.IsInsideOrOn(Pxl)) continue;
+            const auto& Quarter=ETRailDistrict::Get(K);
+            const bool Taken=S.Consumed.Contains(ETRailDistrict::CacheId(K,J));
+            const auto Color=Taken?Sage:Gold;
+            DrawRect(Panel,Pxl.X-4*U,Pxl.Y-4*U,8*U,8*U);
+            Line(*this,Pxl-FVector2D(3*U,0),Pxl+FVector2D(3*U,0),Color,2*U);
+            if(!Taken) Line(*this,Pxl-FVector2D(0,3*U),Pxl+FVector2D(0,3*U),Color,2*U);
+            if(!Small) {
+                const FString Label=FString(Quarter.Places[J].Name)+(Taken?TEXT(" (searched)"):TEXT(""));
+                float TW,TH;GetTextSize(Label,TW,TH,GEngine->GetSmallFont(),.85*U);
+                const double X=FMath::Clamp(Pxl.X+(J?7*U:-TW-7*U),Inset.Min.X,FMath::Max(Inset.Min.X,Inset.Max.X-TW));
+                const double Y=FMath::Clamp(Pxl.Y-TH-3*U,Inset.Min.Y,Inset.Max.Y-TH);
+                DrawRect(Panel,X-1,Y,TW+3,TH);Text(Label,X,Y,Color,.85*U);
+            }
         }
     }
     for(const auto& Label:RoadLabels) Text(Label.Value,Label.Key.X,Label.Key.Y,Sage,.82*U);
@@ -209,11 +249,11 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
             }
         }
     }
-    if(!Small) for(int Y=From.Y;Y<=To.Y;++Y) for(int X=From.X;X<=To.X;++X) {
+    if(!Small&&!Overview) for(int Y=From.Y;Y<=To.Y;++Y) for(int X=From.X;X<=To.X;++X) {
         const FIntPoint Cell(X,Y); if(Cell!=Home) Marker(ETNav::Refuge(Cell),true,false,P->World->TownStatus(Cell));
     }
-    Marker(City,true,true,Small?FString(ETNav::RefugeName(Home)):P->World->TownStatus(Home));
-    for(int I=0;I<S.MapPins.Num();++I) Marker(S.MapPins[I],false,I==S.TrackedPin,FString::Printf(TEXT("Pin %d"),I+1));
+    if(!Overview) Marker(City,true,true,Small?FString(ETNav::RefugeName(Home)):P->World->TownStatus(Home));
+    for(int I=0;I<S.MapPins.Num();++I) Marker(S.MapPins[I],false,I==S.TrackedPin,ETRailDistrict::PinLabel(S.MapPins[I],I));
     const auto PlayerPos=Chart.Plot(Here);
     if(FBox2D(Screen.Min+FVector2D(9*U),Screen.Max-FVector2D(9*U)).IsInsideOrOn(PlayerPos))
         Arrow(*this,PlayerPos,FVector2D(FRotator(0,P->GetControlRotation().Yaw,0).Vector()),Small?8*U:10*U,Ink);
@@ -277,7 +317,7 @@ void AETHUD::DrawAtlas(AETCharacter* P)
     const auto& S=*P->World->State; const FVector2D Here(P->GetActorLocation()); const auto Cell=ETNav::District(Here);
     const bool Pinned=S.MapPins.IsValidIndex(S.TrackedPin);
     const auto Dest=Pinned?S.MapPins[S.TrackedPin]:ETNav::Refuge(Cell);
-    const FString Route=Pinned?FString::Printf(TEXT("Pin %d"),S.TrackedPin+1):ETNav::RefugeName(Cell);
+    const FString Route=Pinned?ETRailDistrict::PinLabel(S.MapPins[S.TrackedPin],S.TrackedPin):ETNav::RefugeName(Cell);
     DrawRect(FLinearColor(.015,.027,.023,.985),0,0,View.X,View.Y);
     const float X=Chart.Position.X;
     Text(TEXT("FIELD ATLAS"),X,16*U,Ink,1.9*U);
@@ -318,7 +358,7 @@ void AETHUD::DrawAtlas(AETCharacter* P)
         FillBox(*this,B,FLinearColor(.10,.15,.119));
         TickText(*this,Labels[I],{B.GetCenter().X,B.Min.Y+6*U},I==4&&!Pinned?Sage:Ink,1.02*U);
     }
-    Text(P->MapMessage.IsEmpty()?TEXT("Drag to pan    ·    Scroll to zoom    ·    Right-click to mark    ·    R to show Ringline"):P->MapMessage,
+    Text(P->MapMessage.IsEmpty()?TEXT("R  Rail network    ·    L  Local stops & loot    ·    Click to track    ·    Drag to pan    ·    Scroll to zoom"):P->MapMessage,
         X,End.Y+56*U,Ink,.99*U);
     const FString Legend=TEXT("City / amber     Pin / blue     Rail / teal"); GetTextSize(Legend,TW,TH,GEngine->GetSmallFont(),.92*U);
     if(View.X>1050*U) Text(Legend,End.X-TW,End.Y+57*U,Sage,.92*U);

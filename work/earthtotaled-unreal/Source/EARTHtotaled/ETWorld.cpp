@@ -1,6 +1,7 @@
 #include "ETGame.h"
 #include "ETLandfall.h"
 #include "ETRingLine.h"
+#include "ETRailDistricts.h"
 #include "ETSaveDisk.h"
 #include "ETGeology.h"
 #include "ETTerrainMath.h"
@@ -186,7 +187,11 @@ bool AETWorld::InCity(FVector P) const {return FVector::Dist2D(P,CityCenter(P.X,
 FString AETWorld::PlaceName(FVector P) const
 {
     auto C=CityCenter(P.X,P.Y); double D=FVector::Dist2D(P,C);
-    if(D<27000) return TownStatus(ETNav::District(FVector2D(C)));
+    if(D<27000) {
+        const auto Cell=ETNav::District(FVector2D(C));
+        const int RailCity=ETRing::CityIn(Cell);
+        return RailCity>0?FString(ETRing::CityName(RailCity)).ToUpper()+TEXT("  /  ")+TownStatus(Cell):TownStatus(Cell);
+    }
     if(const auto* R=Regions.FindRef({FMath::FloorToInt32(P.X/RegionSize),FMath::FloorToInt32(P.Y/RegionSize)}))
         for(const auto& S:R->HighwaySites) if(S.InGrounds(FVector2D(P),1700.))
             return FString(S.Bug?TEXT("BUG / "):TEXT("SUPERTECH / "))+FString(S.Name()).ToUpper();
@@ -362,6 +367,8 @@ void AETWorld::Tick(float Delta)
     if(ArrivalQA) ETLandfall::DriveTest(*this,*P);
     static const bool RingQA=FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
     if(RingQA&&RingTrain) RingTrain->TestRide(*P);
+    static const bool TransitQA=FParse::Param(FCommandLine::Get(),TEXT("ETInterchange"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
+    if(TransitQA&&RingTrain) RingTrain->TestInterchange(*P);
     if(P->Panel==TEXT("arrival")) {P->TickArrival();return;}
     if(SlotQA&&!SelfTest) TickSlotJourney(P);
     if(FrontierQA) TickFrontierJourney(P,Delta);
@@ -414,7 +421,8 @@ bool AETWorld::Save()
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0));
     if(!State||!P||P->Panel==TEXT("travel")||State->Health<=0||(Review&&JourneyEnding.IsEmpty())) return false;
     State->Position=P->Climbing?P->ClimbStart:P->GetActorLocation(); State->View=P->GetControlRotation();
-    if(RingTrain) RingTrain->Capture(*P);
+    if(auto* Line=AETRingLine::PassengerLine(*P)) Line->Capture(*P);
+    else State->OnRing=false;
     for(auto It:LiveThreats) if(IsValid(It.Value)) if(auto* R=State->Threats.Find(It.Key)) It.Value->Snapshot(*R);
     if(!ETSaveDisk::Write(State,SaveSlot)) {Say(TEXT("Save failed. Check available storage.")); return false;}
     HadSave=true; return true;
@@ -593,10 +601,12 @@ bool AETRegion::AdvanceGenerate()
         for(int32 Y=-3;Y<=3;++Y) for(int32 X=-3;X<=3;++X) {
             FVector P=City+FVector(X*6400,Y*6400,0); if(!Belongs(P)) continue;
             const FString Prefix=FString::Printf(TEXT("city%d,%d-block%d,%d"),int32(City.X/160000),int32(City.Y/160000),X,Y);
-            const bool Landmark=(X==-1&&Y==0)||(X==1&&Y==0)||(X==0&&Y==-1)||(X==0&&Y==1)||(X==2&&Y==2);
+            const int RailCity=ETRing::CityIn(ETNav::District(FVector2D(City)));
+            const bool Landmark=(X==-1&&Y==0)||(X==1&&Y==0)||(X==0&&Y==-1)||(X==0&&Y==1)||(X==2&&Y==2)||(RailCity!=INDEX_NONE&&X==0&&Y==-2);
             for(int32 Side=-1;Side<=1&&!Landmark;Side+=2) {
                 FVector B=P+FVector(Side*1600,0,0);
                 bool Tall=(X+Y+Side)%3==0;
+                if(RailCity==4||RailCity==9||RailCity==11||RailCity==14) Tall|=(X%2==0&&Y!=0);
                 Residents.Add(W->Static(Tall?TEXT("SM_Tenement"):TEXT("SM_House"),TEXT("Concrete"),B));
                 Residents.Add(W->Static(TEXT("SM_Interior"),TEXT("Wood"),B));
                 if(!Tall) Residents.Add(W->Static(TEXT("SM_Roof"),TEXT("Rust"),B));
@@ -629,7 +639,7 @@ bool AETRegion::AdvanceGenerate()
     {
         FVector P=Origin+FVector(R.FRandRange(1500,30000),R.FRandRange(1500,30000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+8;
         auto Trap=W->Item(FString::Printf(TEXT("r%d,%d-trap%d"),C.X,C.Y,I),TEXT("trap"),TEXT("Disarm rusted trap"),P); if(Trap) Residents.Add(Trap);
-    }    } else if(Stage==5) {AddDetails(); BuildHighwaySites(); AddTownLandmarks();}
+    }    } else if(Stage==5) {AddDetails(); BuildHighwaySites(); AddTownLandmarks(); AddRailQuarter();}
     ++Stage;
     if(Stage>=6) {
         for(auto A:Residents) if(IsValid(A)) A->SetOwner(this);
@@ -712,11 +722,15 @@ AETGameMode::AETGameMode() {DefaultPawnClass=AETCharacter::StaticClass(); HUDCla
 void AETGameMode::InitGame(const FString& MapName,const FString& Options,FString& Error)
 {
     Super::InitGame(MapName,Options,Error); World=GetWorld()->SpawnActor<AETWorld>(); World->LoadDesign();
-    World->RingTrain=GetWorld()->SpawnActor<AETRingLine>();
-    World->RingTrain->Initialize(World);
+    for(int I=0;I<ETRing::Services;++I) {
+        auto* Line=GetWorld()->SpawnActor<AETRingLine>();
+        Line->Initialize(World,I);
+        World->RailLines.Add(Line);
+    }
+    World->RingTrain=World->RailLines[ETRing::West];
     FVector P=World->State->Position;
     if(World->Review&&!World->JourneyResume&&!World->MineResume) P.Z=World->Height(P.X,P.Y)+110;
-    else P=World->State->OnRing?World->RingTrain->SavedPosition():World->ResolveStart(P);
+    else P=World->State->OnRing&&World->RailLines.IsValidIndex(World->State->RailService)?World->RailLines[World->State->RailService]->SavedPosition():World->ResolveStart(P);
     if(World->HadSave&&UGameplayStatics::HasOption(Options,TEXT("ETRecoverShelter"))) {
         World->StreamAround(GetDefault<UETSave>()->Position,true);
         if(World->FindShelterLanding(P)) {

@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETRing.h"
+#include "ETRailDistricts.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
@@ -134,16 +135,22 @@ void AETCharacter::UseMapPoint(FVector2D Pixel,const ETNav::FChart& Chart,bool P
     const auto Refuge=ETNav::Refuge(SelectedCity);
     const double RefugeDistance=FVector2D::Distance(Pixel,Chart.Plot(Refuge));
     bool AtRefuge=RefugeDistance<Best;
+    if(AtRefuge) Found=INDEX_NONE;
     TOptional<FVector2D> Landmark;
     double Nearest=FMath::Min(RefugeDistance,Best);
     auto Consider=[&](FVector2D At) {
         const double D=FVector2D::Distance(Pixel,Chart.Plot(At));
-        if(D<Nearest) {Nearest=D;Landmark=At;AtRefuge=false;}
+        if(D<Nearest) {Nearest=D;Landmark=At;AtRefuge=false;Found=INDEX_NONE;}
     };
     const FVector2D Reach(Best/Chart.Scale());
     ETNav::Sites(FBox2D(WorldPoint-Reach,WorldPoint+Reach),[&](const ETNav::FSite& S){
         Consider(S.Center);});
-    for(int I=0;I<ETRing::Stops;++I) Consider(ETRing::Station(I));
+    for(int Line=0;Line<ETRing::Services;++Line)
+        for(int I=0;I<ETRing::StopCount(Line);++I) {
+            Consider(ETRing::Dock(Line,I));
+            if(Chart.Span<=60000) Consider(ETRing::LiftPoint(Line,I));
+        }
+    if(Chart.Span<=60000) for(int City=0;City<ETRing::Stops*2;++City) for(int I:{0,1}) Consider(ETRailDistrict::Lot(City,I));
     if(Found!=INDEX_NONE) S->TrackedPin=Found;
     else if(AtRefuge&&SelectedCity==ETNav::District(FVector2D(GetActorLocation()))) S->TrackedPin=INDEX_NONE;
     else if(!Place&&!AtRefuge&&!Landmark.IsSet()) return;
@@ -159,8 +166,14 @@ void AETCharacter::MapCommand(FKey Key,FVector2D Viewport)
     if(Key==EKeys::M||Key==EKeys::Escape) {ClosePanel(); return;}
     if(Key==EKeys::Home) MapCenter=Here;
     else if(Key==EKeys::R) {
-        MapCenter=ETRing::Center;
-        MapSpan=FMath::Min(ETNav::MaxSpan,2.22*ETRing::Radius*FMath::Max(1.,Chart.Size.Y/Chart.Size.X));
+        MapCenter=ETRing::Center+ETRing::EastOffset()*.5;
+        MapSpan=FMath::Min(ETNav::MaxSpan,1.16*FMath::Max(ETRing::Radius*2.,(ETRing::EastOffset().X+2.*ETRing::Radius)*Chart.Size.Y/Chart.Size.X));
+    }
+    else if(Key==EKeys::L) {
+        int Closest=0;
+        for(int City=1;City<ETRing::Stops*2;++City)
+            if(FVector2D::DistSquared(Here,ETRing::CityStation(City))<FVector2D::DistSquared(Here,ETRing::CityStation(Closest))) Closest=City;
+        MapCenter=ETRing::CityStation(Closest); MapSpan=FMath::Max(19000.,20500.*Chart.Size.Y/Chart.Size.X);
     }
     else if(Key==EKeys::C) {
         const auto City=ETNav::Refuge(ETNav::District(Here)),Gap=(Here-City).GetAbs();

@@ -648,5 +648,155 @@
       "Rust",
       "Steel"
     ]
+  },
+  "SM_QuarterBeacon": {
+    "triangles": 3040,
+    "vertices": 5856,
+    "materials": [
+      "CircuitLight",
+      "Concrete",
+      "Greenline"
+    ]
+  },
+  "SM_QuarterQuayCrane": {
+    "triangles": 1972,
+    "vertices": 3168,
+    "materials": [
+      "Concrete",
+      "DarkMetal",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_QuarterGlasshouse": {
+    "triangles": 1932,
+    "vertices": 3080,
+    "materials": [
+      "Brick",
+      "Glass",
+      "Greenline"
+    ]
+  },
+  "SM_QuarterKilns": {
+    "triangles": 24252,
+    "vertices": 48456,
+    "materials": [
+      "Brick",
+      "DarkMetal",
+      "Rust"
+    ]
+  },
+  "SM_QuarterAerial": {
+    "triangles": 2748,
+    "vertices": 4728,
+    "materials": [
+      "CircuitLight",
+      "Concrete",
+      "Signal",
+      "Steel"
+    ]
+  },
+  "SM_QuarterVats": {
+    "triangles": 16620,
+    "vertices": 33032,
+    "materials": [
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_QuarterSawWheel": {
+    "triangles": 2588,
+    "vertices": 4696,
+    "materials": [
+      "Concrete",
+      "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_QuarterArch": {
+    "triangles": 3604,
+    "vertices": 6048,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "Steel"
+    ]
+  },
+  "SM_QuarterTurbine": {
+    "triangles": 874,
+    "vertices": 1740,
+    "materials": [
+      "Concrete",
+      "Plaster",
+      "Rust"
+    ]
+  },
+  "SM_QuarterDish": {
+    "triangles": 1692,
+    "vertices": 3096,
+    "materials": [
+      "CircuitLight",
+      "Concrete",
+      "Greenline",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_QuarterHeadframe": {
+    "triangles": 2560,
+    "vertices": 4784,
+    "materials": [
+      "Concrete",
+      "DarkMetal",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_QuarterClock": {
+    "triangles": 2448,
+    "vertices": 4544,
+    "materials": [
+      "Brick",
+      "Canvas",
+      "DarkMetal",
+      "Greenline",
+      "Steel"
+    ]
+  },
+  "SM_QuarterFilterBeds": {
+    "triangles": 9420,
+    "vertices": 18632,
+    "materials": [
+      "Greenline",
+      "Steel"
+    ]
+  },
+  "SM_QuarterCanopyWalk": {
+    "triangles": 3168,
+    "vertices": 5664,
+    "materials": [
+      "Rust",
+      "Wood"
+    ]
+  },
+  "SM_QuarterOrrery": {
+    "triangles": 5116,
+    "vertices": 10104,
+    "materials": [
+      "CircuitLight",
+      "Concrete",
+      "Gold",
+      "Steel"
+    ]
+  },
+  "SM_QuarterSaltSilos": {
+    "triangles": 9640,
+    "vertices": 18896,
+    "materials": [
+      "Plaster",
+      "Rust",
+      "Steel"
+    ]
   }
 }

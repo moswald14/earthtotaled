@@ -9,6 +9,7 @@ models = ['Relay','SentryStand','SentryHead','Turtle','TurtleBit','BroodSkimmer'
 surfaces = ['Ground','Bark','Concrete','FaultShale','FaultIron','FaultGold']
 reclamation = globals().get('reclamation', False)
 ringline = globals().get('ringline', False)
+quarters = globals().get('quarters', False)
 if reclamation:
     models = ['BladePatch','RoadWeed','HollowWalker','HillCistern','MoltRunner','MoltSpitter','MoltBulwark','MoltSkimmer','SupertechWarden','SupertechScout']
     surfaces = ['Ground','FaultShale','FaultIron','FaultGold','Carapace','AlloyHull','Pallor','RotCloth']
@@ -17,6 +18,10 @@ if reclamation:
 if ringline:
     models=['Pine','PineB','House','Tenement','RingSled','RingGuide','RingPier','RingStation']
     surfaces=['Ground','Bark','Concrete','Asphalt','Steel','Carapace','AlloyHull']
+if quarters:
+    models=sorted(p.stem[3:] for p in (root/'ArtSource').glob('SM_Quarter*.obj'))
+    if len(models)!=16: raise RuntimeError('Expected all sixteen rail district landmarks')
+    surfaces=[]
 maps = [('BaseColor',unreal.MaterialProperty.MP_BASE_COLOR),('Normal',unreal.MaterialProperty.MP_NORMAL),('Roughness',unreal.MaterialProperty.MP_ROUGHNESS)]
 files = ['SM_'+m+'.obj' for m in models]+['T_Relief'+m+'_'+s+'.png' for m in surfaces for s,_ in maps]
 tasks = []
@@ -34,7 +39,9 @@ for name in files:
         data=opts.static_mesh_import_data
         data.combine_meshes=data.auto_generate_collision=True
         data.generate_lightmap_u_vs=data.convert_scene=data.build_nanite=False
-        if ringline:
+        if quarters:
+            data.build_nanite=True
+        elif ringline:
             data.build_nanite = name in ['SM_Pine.obj','SM_PineB.obj','SM_House.obj','SM_Tenement.obj','SM_RingStation.obj','SM_RingSled.obj']
         data.normal_import_method=unreal.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS
         task.factory=unreal.FbxFactory()
@@ -111,5 +118,5 @@ if reclamation or ringline:
             if material is None: raise RuntimeError(str(slot.material_slot_name))
             mesh.set_material(index,material)
         editor.save_loaded_asset(mesh)
-(root/'Saved'/('ringline-ready.txt' if ringline else 'reclamation-ready.txt' if reclamation else 'outposts-ready.txt')).write_text(f'{len(models)} meshes and {len(surfaces)} PBR surfaces imported.\n')
+(root/'Saved'/('interchange-ready.txt' if quarters else 'ringline-ready.txt' if ringline else 'reclamation-ready.txt' if reclamation else 'outposts-ready.txt')).write_text(f'{len(models)} meshes and {len(surfaces)} PBR surfaces imported.\n')
 

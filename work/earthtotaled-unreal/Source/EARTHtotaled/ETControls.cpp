@@ -18,7 +18,7 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Left / right mouse"),TEXT("Fire or aim. Light aim assist helps near misses while aiming. Toggle it in Pause.")},
          {TEXT("R   /   1-0 or wheel"),TEXT("Reload your magazine or switch between guns. Reserve ammo is unlimited.")},
          {TEXT("E   /   Ctrl"),TEXT("Talk, loot, fell trees or climb marked routes with Climbing Grip. Hold Ctrl near loose loot to sweep.")},
-         {TEXT("E / Space at stations"),TEXT("Follow the teal Ringline on M. E takes the lift or waits for the train. Jump on or off the open deck.")},
+         {TEXT("E / Space at stations"),TEXT("M then R shows both loops and shuttles. L shows local loot. E at the rear takes the lift down. At the yellow edge E waits. Space boards.")},
          {TEXT("H   /   Q   /   F"),TEXT("Drink, use a medkit, or toggle your lamp. Shield recharges after 10 seconds out of combat.")},
          {TEXT("Tab   /   K   /   J   /   M"),TEXT("Open your pack, skill web, journal, or field atlas. Right-click the map to drop a pin.")},
          {TEXT("Esc   /   F1   /   F11"),TEXT("Pause and manage saves, open the field console, or toggle fullscreen.")}},

@@ -1,0 +1,10 @@
+newmtl Brick
+Kd 0.5 0.5 0.5
+newmtl Canvas
+Kd 0.5 0.5 0.5
+newmtl DarkMetal
+Kd 0.5 0.5 0.5
+newmtl Greenline
+Kd 0.5 0.5 0.5
+newmtl Steel
+Kd 0.5 0.5 0.5

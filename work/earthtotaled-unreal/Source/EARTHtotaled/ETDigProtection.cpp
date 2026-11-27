@@ -14,9 +14,17 @@ const TCHAR* UETGeology::DigRestriction(const FBox2D& Area) const
 
     // Keep the ground under each concrete pier, including piers in unloaded districts.
     constexpr double PierFoot=94.;
-    if(FMath::Abs(FVector2D::Distance(Center,ETRing::Center)-ETRing::Radius)<=Area.GetExtent().Size()+PierFoot) {
-        for(int I=0;I<ETRing::Spans;I+=2) {
-            const auto Pier=ETRing::Position(I*UE_TWO_PI/ETRing::Spans);
+    for(int Line=0;Line<ETRing::Services;++Line) {
+        const bool Straight=ETRing::Shuttle(Line);
+        if(Straight) {
+            if(!Area.ExpandBy(PierFoot).Intersect(FBox2D(ETRing::Dock(Line,0),ETRing::Dock(Line,1)))) continue;
+        } else {
+            const auto Origin=ETRing::Center+(Line==ETRing::East?ETRing::EastOffset():FVector2D::ZeroVector);
+            if(FMath::Abs(FVector2D::Distance(Center,Origin)-ETRing::Radius)>Area.GetExtent().Size()+PierFoot) continue;
+        }
+        const int End=ETRing::SpanCount(Line)+(Straight?1:0);
+        for(int I=0;I<End;I+=2) {
+            const auto Pier=ETRing::Track(Line,I*ETRing::StepSize(Line));
             if(Area.ComputeSquaredDistanceToPoint(Pier)<=FMath::Square(PierFoot)) return TEXT("Protected Ringline pier / mine between the supports");
         }
     }

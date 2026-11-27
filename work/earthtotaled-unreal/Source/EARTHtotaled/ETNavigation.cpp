@@ -1,4 +1,5 @@
 #include "ETNavigation.h"
+#include "ETRailDistricts.h"
 #include "ETTerrainMath.h"
 
 namespace ETNav
@@ -11,7 +12,10 @@ namespace ETNav
     {
         return FVector2D(C.X*DistrictSpacing,C.Y*DistrictSpacing)+(C==FIntPoint::ZeroValue?FVector2D(0,-1500):FVector2D(0,5660));
     }
-    const TCHAR* RefugeName(FIntPoint C) {return C==FIntPoint::ZeroValue?TEXT("Shelter 09"):TEXT("Greenline refuge");}
+    const TCHAR* RefugeName(FIntPoint C) {
+        const int City=ETRing::CityIn(C);
+        return City==INDEX_NONE?TEXT("Greenline refuge"):ETRing::CityName(City);
+    }
     const TCHAR* FSite::Name() const
     {
         const TCHAR* Hives[]={TEXT("Bellows Hive"),TEXT("Cindercomb Hive"),TEXT("Ochre Hive"),TEXT("Rattlewell Hive")};
@@ -67,12 +71,14 @@ namespace ETNav
         static const TCHAR* HomeAv[]={TEXT("Ranger Avenue"),TEXT("Signal Avenue"),TEXT("Garden Avenue")};
         for(int Y=From.Y-1;Y<=To.Y;++Y) for(int X=From.X-1;X<=To.X;++X) {
             const FIntPoint Cell(X,Y); const bool Home=Cell==FIntPoint::ZeroValue;
+            const int RailCity=ETRing::CityIn(Cell);
             const FVector2D C(X*DistrictSpacing,Y*DistrictSpacing);
             if(Area.Intersect(FBox2D(C-FVector2D(25000),C+FVector2D(25000)))) {
                 for(int I=Home?-1:-3;I<=(Home?1:3);++I) {
                     const double Row=Home?2600+I*7000:-1700+I*6400,Col=Home?2600+I*7000:3200+I*6400;
                     const double Edge=Home?16000.:22400.;
-                    Add(C+FVector2D(-Edge,Row),C+FVector2D(Edge,Row),Home?HomeSt[I+1]:Streets[I+3],Home?600:800,false);
+                    const auto RowName=!Home&&I==-1&&RailCity!=INDEX_NONE?ETRailDistrict::Street(RailCity).Name:Home?HomeSt[I+1]:Streets[I+3];
+                    Add(C+FVector2D(-Edge,Row),C+FVector2D(Edge,Row),RowName,Home?600:800,false);
                     Add(C+FVector2D(Col,Home?-Edge:-20900.),C+FVector2D(Col,Home?Edge:23900.),Home?HomeAv[I+1]:Avenues[I+3],Home?600:800,false);
                 }
             }

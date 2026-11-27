@@ -2,6 +2,12 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Interchange / 1.15
+
+The two circular lines serve sixteen station districts. North and South shuttles run straight between terminal pairs in both directions. Each station district has an original landmark and two enterable businesses with persistent, themed stock. Press M then R for the railway, or L in the atlas for local shops and transfers. Walk to the back of a platform and press E to reach the street. Use E at the boarding edge to wait.
+
+Run `Tools/verify-interchange.ps1` against a packaged Windows build to walk all 32 doors, test a continuous shopping trip and ride both shuttles in both directions.
+
 ## Ringline / 1.14
 
 The freight sled runs a 22.5 km elevated loop through eight city districts. Its Shelter 09 stop is about 95 m north of the crash site. The teal line, eight station markers and moving train arrow appear on the atlas and minimap. Press **R** in the atlas to see the full circle and click a station to track it. Walk up the switchback stairs or press **E** below the station to ride the lift. On the platform, **E** waits until the train arrives. Jump aboard the open deck and walk or jump off at any stop. The train spends 12 seconds at each station and reaches 396 km/h between them. Saving aboard restores the deck, timetable and rider together.

@@ -1,6 +1,8 @@
 #include "ETGame.h"
 #include "ETGeology.h"
 #include "ETRing.h"
+#include "ETRailDistricts.h"
+#include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/World.h"
@@ -10,6 +12,30 @@
 void AETWorld::RunSurvivorChecks(AETCharacter* P,TFunctionRef<void(bool,const FString&)> Check)
 {
     auto& S=*State;
+    bool AllQuarterStock=true,AllModels=true;
+    TSet<FString> Businesses,Landmarks;
+    for(int City=0;City<2*ETRing::Stops;++City) {
+        const auto& Quarter=ETRailDistrict::Get(City);
+        Landmarks.Add(Quarter.Landmark);
+        const FString Asset=FString(TEXT("/Game/EARTHtotaled/Art/SM_Quarter"))+Quarter.Landmark;
+        const auto* Mesh=LoadObject<UStaticMesh>(nullptr,*Asset);
+        AllModels&=Mesh&&Mesh->GetBounds().BoxExtent.Z>350;
+        for(const auto& Place:Quarter.Places) {
+            Businesses.Add(Place.Name); const auto* Entries=LootTables.Find(Place.Stock);
+            AllQuarterStock&=Entries&&Entries->Num()>=2;
+        }
+    }
+    Check(AllModels&&Landmarks.Num()==16,TEXT("All sixteen different station landmarks are present in the cooked world"));
+    Check(AllQuarterStock&&Businesses.Num()==32,TEXT("Every station has two named businesses with working loot tables"));
+    for(const int Line:{ETRing::NorthLink,ETRing::SouthLink}) {
+        const double HalfLeg=ETRing::Dwell+(ETRing::ShuttleLeg()-ETRing::Dwell)*.5;
+        const auto A=ETRing::ServiceAt(Line,HalfLeg),B=ETRing::ServiceAt(Line,ETRing::ShuttleLeg()+HalfLeg);
+        Check(A.Stop==1&&B.Stop==0&&A.Direction==-B.Direction&&FMath::IsNearlyEqual(A.Angle,.5)&&FMath::IsNearlyEqual(B.Angle,.5)
+            &&A.Speed==ETRing::Cruise&&B.Speed==A.Speed,TEXT("Straight shuttle crosses the same midpoint in each direction at full speed"));
+        const auto Start=ETRing::Dock(Line,0),End=ETRing::Dock(Line,1);
+        Check(Start.Y==End.Y&&End.X-Start.X==306400.&&ETRing::ServiceAt(Line,ETRing::ShuttleLeg()).Docked,
+            TEXT("Shuttle stops and reverses at a real platform on the other loop"));
+    }
     bool RailSupportProtected=false,OpenSpanMinable=false;
     for(int I=0;I<ETRing::Spans&&(!RailSupportProtected||!OpenSpanMinable);I+=2) {
         const auto Pier=ETRing::Position(I*UE_TWO_PI/ETRing::Spans);

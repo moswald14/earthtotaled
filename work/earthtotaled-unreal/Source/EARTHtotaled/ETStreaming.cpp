@@ -20,11 +20,10 @@ void AETWorld::StreamAround(FVector P,bool Preload)
     const int32 Radius=FMath::CeilToInt(Load/RegionSize)+1;
     TArray<FIntPoint> Wanted;
     const auto* Player=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0));
-    const bool Aboard=RingTrain&&Player&&RingTrain->Riding(*Player);
+    const auto* Aboard=Player?AETRingLine::PassengerLine(*Player):nullptr;
     FVector Lead=P;
     if(Aboard) {
-        const auto D=ETRing::Radial(RingTrain->Phase.Angle);
-        Lead+=FVector(-D.Y,D.X,0)*20000.;
+        Lead+=FVector(Aboard->TravelDirection(),0)*20000.;
     }
     for(int32 Y=-Radius;Y<=Radius;++Y) for(int32 X=-Radius;X<=Radius;++X) {
         const FIntPoint C=Center+FIntPoint(X,Y);
@@ -61,7 +60,7 @@ void AETWorld::StreamAround(FVector P,bool Preload)
 }
 void AETWorld::UpdateVisibility(FVector P)
 {
-    if(RingTrain) RingTrain->MatchViewDistance(State->ViewDistance);
+    for(auto* Line:RailLines) Line->MatchViewDistance(State->ViewDistance);
     const float Distance=State->ViewDistance*100.f;
     auto Apply=[&](AActor* A) {
         if(!IsValid(A)) return;

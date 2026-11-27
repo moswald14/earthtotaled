@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETRing.h"
+#include "ETRailDistricts.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
@@ -141,10 +142,15 @@ void AETWorld::CheckAtlasInput(AETCharacter* P,TFunctionRef<void(bool,const FStr
     Check(P->MapCenter.Equals(Here,.01),TEXT("Home recenters the large chart on the player"));
     if(State->MapPins.Num()) Click(EKeys::LeftMouseButton,Chart().Plot(State->MapPins[0]));
     Check(State->TrackedPin==0&&State->MapPins.Num()==1,TEXT("Clicking a saved marker restores its compass bearing"));
-    Key(EKeys::R);
-    bool AllVisible=P->MapCenter.Equals(ETRing::Center,1.);
-    for(int I=0;I<ETRing::Stops;++I) AllVisible&=Chart().Inside(Chart().Plot(ETRing::Station(I)));
-    Check(AllVisible,TEXT("R frames all eight Ringline station markers from the actual atlas"));
+    Key(EKeys::L);
+    const int PriorPins=State->MapPins.Num();
+    const auto Venue=ETRailDistrict::Lot(0,1);
+    Click(EKeys::LeftMouseButton,Chart().Plot(Venue));
+    Check(State->MapPins.Num()==PriorPins+1&&State->MapPins.IsValidIndex(State->TrackedPin)&&State->MapPins[State->TrackedPin].Equals(Venue,1.),TEXT("L frames the local station and clicking a shop sets its waypoint"));
+    Key(EKeys::Delete);Key(EKeys::R);
+    bool AllVisible=P->MapCenter.Equals(ETRing::Center+ETRing::EastOffset()*.5,1.);
+    for(int I=0;I<ETRing::Stops*2;++I) AllVisible&=Chart().Inside(Chart().Plot(ETRing::CityStation(I)));
+    Check(AllVisible,TEXT("R frames both loops and sixteen station districts from the actual atlas"));
     Click(EKeys::LeftMouseButton,Chart().Plot(ETRing::Station(4)));
     Check(State->MapPins.IsValidIndex(State->TrackedPin)&&State->MapPins[State->TrackedPin].Equals(ETRing::Station(4),1.),TEXT("Clicking a rail stop tracks its boarding platform"));
 }

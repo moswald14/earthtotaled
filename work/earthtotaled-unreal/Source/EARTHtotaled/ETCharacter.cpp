@@ -66,8 +66,8 @@ void AETCharacter::BeginPlay()
     Super::BeginPlay();
     for(TActorIterator<AETWorld> It(GetWorld());It;++It) {World=*It; break;}
     if(!World) return;
-    if(World->RingTrain) World->RingTrain->Restore(*this);
-    if(FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir=")))
+    for(auto* Line:World->RailLines) Line->Restore(*this);
+    if((FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))||FParse::Param(FCommandLine::Get(),TEXT("ETInterchange")))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir=")))
         World->AddTickPrerequisiteComponent(GetCharacterMovement());
     ApplyGraphics();
     if(World->State->Relics.IsValidIndex(World->State->EquippedRelic)) EquipRelic(World->State->EquippedRelic); else SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
@@ -223,11 +223,11 @@ void AETCharacter::BaseChange()
     Super::BaseChange();
     // The viaduct has its own right of way. Carry a grounded passenger through each
     // frame's full track displacement, including frames spent streaming a city.
-    GetCharacterMovement()->bFastAttachedMove=World&&World->RingTrain&&World->RingTrain->Riding(*this);
+    GetCharacterMovement()->bFastAttachedMove=AETRingLine::PassengerLine(*this)!=nullptr;
 }
 void AETCharacter::Landed(const FHitResult& Hit)
 {
-    if(World&&World->RingTrain&&Hit.GetComponent()==World->RingTrain->Deck) {
+    if(auto* Line=Cast<AETRingLine>(Hit.GetActor());Line&&Hit.GetComponent()==Line->Deck) {
         // Walking is relative to a movement base. Keep the landing impulse in the deck's frame.
         auto* Move=GetCharacterMovement();
         const FVector Relative=Move->Velocity-Hit.GetComponent()->GetComponentVelocity();
@@ -422,7 +422,9 @@ void AETCharacter::ApplyGraphics()
 void AETCharacter::Interact()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
-    if(World->RingTrain&&World->RingTrain->UseStation(*this)) return;
+    // The edge of a lift yard can meet a shop. Aimed stock and workbenches own the use key there.
+    if(!IsValid(Focus)&&!FocusBuild.IsValid()&&!TreeInReach&&!AETRingLine::PassengerLine(*this))
+        for(auto* Line:World->RailLines) if(Line->UseStation(*this)) return;
     if(auto* Device=FocusBuild.Get();Device&&Device->Design.Piece>=AETConstruction::Core) {OpenDevice(Device); return;}
     if(!IsValid(Focus)) {
         const FVector Eye=Camera->GetComponentLocation();

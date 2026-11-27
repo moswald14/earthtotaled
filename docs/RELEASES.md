@@ -1,5 +1,13 @@
 # EARTHtotaled release record
 
+## Unreal 1.15.0 — Interchange
+
+The West Ring and East Ring each have eight stops. Every city has two named, enterable businesses with supplies tied to the district. Find a crane over Cinder Quay's dockyard, potters' kilns at Kiln Exchange and a clock tower overlooking the bakery at Lastbell. Stock stays collected across saves and return visits.
+
+The North Shuttle runs between Kiln Exchange and Windfall Reach. The South Shuttle runs between Signal Heights and Saltmarket. Both reverse on straight 3.064 km tracks. The atlas shows moving trains, walking transfers and searchable buildings. Press M then R for the whole system or L for the nearest station district. At the rear of a platform, E descends to street level. At the boarding edge, E waits for the next departure.
+
+In the packaged Windows game a survivor boarded and jumped off at all sixteen ring stations, walked inside all 32 businesses and collected their stock. Reopening the save kept every shop searched. A second trip took both shuttles in both directions at 396 km/h and resumed on the moving westbound South Shuttle.
+
 ## Unreal 1.14.0 — Ringline
 
 An open freight platform runs a 22.5 km circle through eight city districts. It reaches 396 km/h between 12-second stops. Each station has walkable stairs, a freight lift and a way to wait for the next train. The timetable and the passenger's position on the deck travel with the survivor save. On the atlas, R frames the entire line and clicking a stop tracks its platform.

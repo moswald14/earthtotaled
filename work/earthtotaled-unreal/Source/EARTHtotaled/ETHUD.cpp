@@ -79,7 +79,7 @@ void AETHUD::DrawHUD()
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
-        if(Title) Text(FString::Printf(TEXT("1.14.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
+        if(Title) Text(FString::Printf(TEXT("1.15.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
         if(Title) {
@@ -194,12 +194,13 @@ void AETHUD::DrawHUD()
         }
         if(P->EnemyReacquireTime>0&&!W->AtRefuge&&W->IsNight())
             Text(FString::Printf(TEXT("Enemies can attack again in %ds"),FMath::CeilToInt(P->EnemyReacquireTime)),32,SH-163,Amber,1.05f);
-        if(W->RingTrain) {
-            const FString Rail=W->RingTrain->Prompt(*P);
+        for(auto* RailLine:W->RailLines) {
+            const FString Rail=RailLine->Prompt(*P);
             if(!Rail.IsEmpty()) {
                 float Width,Height; GetTextSize(Rail,Width,Height,GEngine->GetSmallFont(),1.12f);
                 DrawRect(FLinearColor(.023,.048,.045,.93),(SW-Width)*.5f-10,SH*.67f-4,Width+20,Height+9);
                 Text(Rail,(SW-Width)*.5f,SH*.67f,Mint,1.12f);
+                break;
             }
         }
         if(W->NoticeTime>0) Text(W->Notice,SW*.2f,SH-145,Mint,1.1f); DialogueSubtitle(); return;

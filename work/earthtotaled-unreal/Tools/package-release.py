@@ -16,11 +16,14 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions='''EARTHtotaled 1.14.0 / Ringline
+instructions='''EARTHtotaled 1.15.0 / Interchange
 
-Ride the teal Ringline from Shelter 09 across eight cities. Use E at the station lift,
-wait with E on the platform, and jump across the yellow edge. The 22.5 km loop
-reaches 396 km/h. Press R on the atlas to frame the loop and click a station to track it.
+Two loops serve sixteen cities. The North Shuttle connects Kiln Exchange and Windfall
+Reach. The South Shuttle connects Signal Heights and Saltmarket. Both run both ways.
+Press M then R for the network or L for the nearest station district and its shops.
+Click a building to track it. Walk inside, aim at the stock and press E to search.
+Jump off the deck and press E at the rear of the platform to take the lift down.
+Follow Street lift on the local atlas and press E at the curbside sign to go up. At the yellow edge E waits for the next train.
 
 Double-click EARTHtotaled.exe. Keep this entire folder together.
 Install or update from https://github.com/moswald14/earthtotaled/releases/latest
@@ -144,7 +147,7 @@ Enter runs a command, Up recalls it, and Escape returns to mouse look.
 Escape > Display / native shows the new 4K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.14.0.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.15.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -155,6 +158,6 @@ with zipfile.ZipFile(archive) as z:
 import shutil
 installer=outputs/'EARTHtotaled-Setup.exe'
 shutil.copy2(setup,installer)
-record={'version':'1.14.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+record={'version':'1.15.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

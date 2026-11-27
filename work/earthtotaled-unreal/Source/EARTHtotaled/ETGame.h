@@ -175,6 +175,10 @@ public:
     UPROPERTY() int32 RenderScale=100;
     UPROPERTY() bool HasRingDisplay=false;
     UPROPERTY() double RingClock=0;
+    UPROPERTY() double EastRingClock=0;
+    UPROPERTY() double NorthLinkClock=0;
+    UPROPERTY() double SouthLinkClock=0;
+    UPROPERTY() int32 RailService=0;
     UPROPERTY() bool OnRing=false;
     UPROPERTY() FVector RingOffset=FVector::ZeroVector;
     UPROPERTY() int32 MusicVolume=50;
@@ -309,6 +313,7 @@ public:
     bool AdvanceGenerate();
     void AddDetails();
     void AddTownLandmarks();
+    void AddRailQuarter();
     bool BuildTerrainSlice();
     void RefreshSurfaceCollision();
     void BuildRoadSurface();
@@ -340,6 +345,7 @@ class EARTHTOTALED_API AETWorld : public AActor
 public:
     AETWorld();
     UPROPERTY() AETRingLine* RingTrain=nullptr;
+    UPROPERTY() TArray<AETRingLine*> RailLines;
     virtual void BeginPlay() override;
     virtual void Tick(float Delta) override;
     void LoadDesign();
