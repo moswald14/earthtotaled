@@ -10,11 +10,11 @@ Bugs have segmented shells and Supertechs have armored bodies, sensors and rotor
 
 The title and pause menus include a Mod Workshop for creating, sharing, installing and redeeming custom loot. The game ships with a starter pack and an author kit for people, ChatGPT and other AIs. During play, **Ctrl + Shift + F10** opens the hidden test menu. [Modding guide](../work/earthtotaled-unreal/Content/ModWorkshop/README.md) · [Contributing](../CONTRIBUTING.md)
 
-The Windows game passed 444 in-game checks, including the slope of the graded highways and protection for earlier excavations. A copy of an existing survivor passed eight upgrade checks. Both story endings passed 38 checks each. Fullscreen play and restart passed 45 checks. A separate input test pressed Ctrl to crouch, opened the hidden menu, granted supplies and returned to captured mouse look. Bugs and Supertechs dealt damage to each other on both highway fronts.
+The Windows game passed 445 in-game checks, including highway grades, preservation of earlier excavations and loading a checkpoint inside a roof. On resume the game checks for room to stand and uses a nearby clear spot when construction or a low ceiling overlaps the standing survivor. A clear checkpoint keeps its exact position. A copy of an existing survivor passed eight upgrade checks. Both story endings passed 38 checks each. Fullscreen play and restart passed 45 checks. A separate input test pressed Ctrl to crouch, opened the hidden menu, granted supplies and returned to captured mouse look. Bugs and Supertechs dealt damage to each other on both highway fronts.
 
 A 15-minute scripted trip covered 5.96 km at normal movement speed across 12 streamed regions and two outlying towns. The survivor crossed nine city boundaries, looted four containers, traded for water three times and returned to previously searched streets. Consumed caches stayed empty. All 49 journey checks passed. Only the day and weather clock ran at 13 times normal speed, covering two full cycles and all five weather types.
 
-The ChatGPT companion produced and copied a pack in a test with a simulated signed-in response. No live model request was made. The in-game workshop separately imported, disabled and redeemed a pack. All 40 files in the Windows ZIP matched the packaged game byte for byte. ZIP SHA-256 `d2d8e606e96d852f5a3e0a09222ffc325d1c4803ecc20c01b728aa1d164094bb`.
+The ChatGPT companion produced and copied a pack in a test with a simulated signed-in response. No live model request was made. The in-game workshop separately imported, disabled and redeemed a pack. All 40 files in the Windows ZIP matched the packaged game byte for byte. ZIP SHA-256 `7786a31b2986d5fcd8e0d79c6c5745be1522da334853dc885af53005d37aa1d8`.
 
 ## Unreal 1.11.0
 

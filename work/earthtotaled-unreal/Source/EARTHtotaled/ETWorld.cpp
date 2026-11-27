@@ -3,6 +3,8 @@
 #include "ETGeology.h"
 #include "ETTerrainMath.h"
 #include "ETUnderstory.h"
+#include "ETSpawnSafety.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -649,6 +651,36 @@ bool AETWorld::FindShelterLanding(FVector& Out) const
     }
     return false;
 }
+bool ETSpawn::FindClear(AETWorld& World,FVector Checkpoint,FVector& Result)
+{
+    const auto* Capsule=GetDefault<AETCharacter>()->GetCapsuleComponent();
+    const float Half=Capsule->GetUnscaledCapsuleHalfHeight();
+    const auto Shape=FCollisionShape::MakeCapsule(Capsule->GetUnscaledCapsuleRadius()+1.f,Half+1.f);
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(ETCheckpointClearance),false);
+    auto Try=[&](const FVector& At) {
+        if(At.Z<World.SurfaceHeight(At.X,At.Y)&&!World.Geology->IsOpen(At)) return false;
+        if(World.GetWorld()->OverlapBlockingTestByChannel(At,FQuat::Identity,ECC_Pawn,Shape,Query)) return false;
+        Result=At;
+        return true;
+    };
+    if(Try(Checkpoint)) return true;
+    // A crouched survivor, a sloped roof or a reloaded prop may occupy the standing capsule.
+    for(double Radius:{12.,28.,55.,95.,145.,220.,340.,500.,750.,1100.}) {
+        if(Try(Checkpoint+FVector(0,0,Radius))) return true;
+        for(int Side=0;Side<8;++Side) {
+            const double Angle=Side*PI/4.;
+            const FVector Out(FMath::Cos(Angle),FMath::Sin(Angle),0);
+            if(Try(Checkpoint+Out*Radius)||Try(Checkpoint+(Out+FVector::UpVector).GetSafeNormal()*Radius)) return true;
+        }
+        if(Try(Checkpoint-FVector(0,0,Radius))) return true;
+    }
+    // Find the top of an unusually tall obstruction at the same horizontal position.
+    FHitResult Top;
+    const auto Above=Checkpoint+FVector(0,0,30000);
+    if(World.GetWorld()->LineTraceSingleByChannel(Top,Above,Checkpoint,ECC_Pawn,Query))
+        return Try(Top.ImpactPoint+FVector(0,0,Half+8.));
+    return false;
+}
 AETGameMode::AETGameMode() {DefaultPawnClass=AETCharacter::StaticClass(); HUDClass=AETHUD::StaticClass();}
 void AETGameMode::InitGame(const FString& MapName,const FString& Options,FString& Error)
 {
@@ -666,6 +698,14 @@ void AETGameMode::InitGame(const FString& MapName,const FString& Options,FString
         } else World->Say(TEXT("Shelter landing obstructed / resuming at your last save"));
     }
     World->StreamAround(P,true);
-    Start=GetWorld()->SpawnActor<APlayerStart>(P,World->State->View);
+    FVector Clear;
+    if(ETSpawn::FindClear(*World,P,Clear)) P=Clear;
+    else {
+        World->StreamAround(GetDefault<UETSave>()->Position,true);
+        if(World->FindShelterLanding(Clear)) P=Clear;
+    }
+    FActorSpawnParameters Marker;
+    Marker.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    Start=GetWorld()->SpawnActor<APlayerStart>(P,FRotator(0,World->State->View.Yaw,0),Marker);
 }
 AActor* AETGameMode::ChoosePlayerStart_Implementation(AController* Player) {return Start?Start:Super::ChoosePlayerStart_Implementation(Player);}

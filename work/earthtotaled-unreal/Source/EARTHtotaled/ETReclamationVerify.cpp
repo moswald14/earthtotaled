@@ -1,5 +1,7 @@
 #include "ETGame.h"
 #include "ETGeology.h"
+#include "ETSpawnSafety.h"
+#include "Components/BoxComponent.h"
 #include "UnrealClient.h"
 #include "Engine/GameViewportClient.h"
 #include "InputKeyEventArgs.h"
@@ -90,6 +92,14 @@ void AETWorld::RunReclamationChecks(AETCharacter* P,TFunctionRef<void(bool,const
     const bool Preserved=GradeHighway(271200.,-1700.,2468.)==2468.&&GradeHighway(271200.,12000.,1357.)==1357.;
     if(!AlreadyKept) S.OriginalRoadTerrain.Remove(BeforeCut);
     Check(Preserved,TEXT("Existing road excavations and natural hills outside the verge keep their original terrain"));
+    FVector BlockAt(52500,63300,0);BlockAt.Z=SurfaceHeight(BlockAt.X,BlockAt.Y)+5000.;
+    auto* TestRoof=GetWorld()->SpawnActor<AActor>();
+    auto* Solid=NewObject<UBoxComponent>(TestRoof);TestRoof->SetRootComponent(Solid);Solid->SetBoxExtent(FVector(130,130,70));
+    Solid->SetCollisionProfileName(TEXT("BlockAll"));Solid->RegisterComponent();TestRoof->SetActorLocation(BlockAt);
+    FVector Nearby,Unchanged;
+    const bool Recovered=ETSpawn::FindClear(*this,BlockAt,Nearby)&&FVector::Dist(Nearby,BlockAt)>90.&&FVector::Dist(Nearby,BlockAt)<230.;
+    Check(Recovered&&ETSpawn::FindClear(*this,Nearby,Unchanged)&&Nearby.Equals(Unchanged),TEXT("A checkpoint embedded in a roof finds nearby standing room and a clear checkpoint stays exact"));
+    TestRoof->Destroy();
     bool Art=true;
     for(const TCHAR* M:{TEXT("SM_MoltRunner"),TEXT("SM_MoltSpitter"),TEXT("SM_MoltBulwark"),TEXT("SM_MoltSkimmer"),TEXT("SM_SupertechWarden"),TEXT("SM_SupertechScout"),TEXT("SM_BladePatch"),TEXT("SM_RoadWeed"),TEXT("SM_HollowWalker"),TEXT("SM_HillCistern")}) {
         const FString Path=FString(TEXT("/Game/EARTHtotaled/Art/"))+M+TEXT(".")+M;const auto* Mesh=LoadObject<UStaticMesh>(nullptr,*Path);Art&=Mesh&&Mesh->GetNumTriangles(0)>100;
