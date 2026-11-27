@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace Earthtotaled.Setup {
     internal static class SetupChecks {
@@ -18,8 +25,76 @@ namespace Earthtotaled.Setup {
             using(var s=File.OpenRead(path))using(var sha=SHA256.Create())return new Release{Tag=tag,Size=s.Length,Hash=BitConverter.ToString(sha.ComputeHash(s)).Replace("-","").ToLowerInvariant()};
         }
         static string Zip(string root,string tag){return Path.Combine(root,tag+".zip");}
+        sealed class TestHttp : HttpMessageHandler {
+            internal readonly List<string> Requests=new List<string>();
+            internal Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> Respond;
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancel) {
+                Requests.Add(request.RequestUri.AbsoluteUri);return Respond(request,cancel);
+            }
+        }
+        sealed class StalledBody : MemoryStream {
+            public override async Task<int> ReadAsync(byte[] buffer,int offset,int count,CancellationToken cancel) {
+                await Task.Delay(Timeout.Infinite,cancel);return 0;
+            }
+        }
+        static async Task UpdateRecovery(string root,Manager manager) {
+            string separate=Path.Combine(root,"separate profile");Directory.CreateDirectory(separate);
+            string child=Path.Combine(root,"EARTHtotaled-Win64-Shipping.exe");
+            File.Copy(Assembly.GetExecutingAssembly().Location,child);
+            string args="--fixture-game -UserDir=\""+separate+"\"";
+            using(var game=Process.Start(new ProcessStartInfo(child,args){UseShellExecute=false,CreateNoWindow=true})) {
+                try {
+                    Check(GameSessions.BlockingGame(manager,0)!=game.Id,"A running isolated game with a quoted save path does not block installation");
+                    Check(GameSessions.BlockingGame(manager,game.Id)==game.Id,"The game that requested the update must finish saving even with a separate profile");
+                    using(var cancel=new CancellationTokenSource()) {
+                        bool waiting=false,cancelled=false;
+                        try{await GameSessions.WaitForSaves(manager,game.Id,s=>{if(s.StartsWith("Waiting for your game")){waiting=true;cancel.Cancel();}},cancel.Token);}
+                        catch(OperationCanceledException){cancelled=true;}
+                        Check(waiting&&cancelled&&!game.HasExited,"Waiting names the saving step and can be cancelled without stopping the game");
+                    }
+                } finally{if(!game.HasExited)game.Kill();game.WaitForExit();}
+            }
+            Directory.CreateDirectory(manager.Saved);Directory.CreateDirectory(manager.Root);
+            string primary=Path.GetDirectoryName(manager.Saved);
+            var protectedArgs=new[]{"","-UserDir=relative","-UserDir=\""+primary+"\"","-UserDir=\""+manager.Root+"\"",
+                "-UserDir=\""+separate+"\" -UserDir=\""+primary+"\""};
+            Check(protectedArgs.All(arg=>!GameSessions.UsesSeparateSaves("game.exe "+arg,manager)),
+                "Default, managed, relative and ambiguous save profiles remain protected");
+            string tag="v1.18.1",name="EARTHtotaled-Unreal-Windows-"+tag+".zip",hash=new string('a',64);
+            string json=new JavaScriptSerializer().Serialize(new[]{new{tag_name=tag,draft=false,prerelease=false,assets=new[]{new{name=name,
+                browser_download_url=Catalog.Assets+tag+"/"+name,size=12,digest="sha256:"+hash}}}});
+            var api=new TestHttp();
+            api.Respond=(req,token)=>Task.FromResult(req.RequestUri.AbsoluteUri==Catalog.LatestFile?
+                new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(json)}:new HttpResponseMessage(HttpStatusCode.Forbidden));
+            using(var http=new HttpClient(api)) {
+                var list=await Catalog.Read(http,CancellationToken.None,null);
+                Check(api.Requests.Count==2&&list.Count==1&&list[0].Hash==hash&&list[0].Size==12,"A rate-limited API recovers through the verified latest-release file");
+                api.Respond=(req,token)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+                bool retry=false;try{await Catalog.Read(http,CancellationToken.None,null);}catch(IOException ex){retry=ex.Message.Contains("Retry releases");}
+                Check(retry,"When both GitHub routes fail Setup offers a release retry");
+                api.Respond=(req,token)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(json)});
+                Check((await Catalog.Read(http,CancellationToken.None,null)).Count==1,"Retry recovers when the release list returns");
+            }
+            var stalled=new TestHttp();
+            stalled.Respond=async(req,token)=>{await Task.Delay(Timeout.Infinite,token);return new HttpResponseMessage();};
+            using(var http=new HttpClient(stalled))using(var cancel=new CancellationTokenSource()) {
+                cancel.CancelAfter(70);bool stopped=false;
+                try{await Catalog.Read(http,cancel.Token,null);}catch(OperationCanceledException){stopped=true;}
+                Check(stopped&&stalled.Requests.Count==1,"Cancelling a slow release lookup does not start another lookup");
+                bool timedOut=false;
+                try{await Manager.Download(http,new Release{Tag=tag,Url=Catalog.Assets+tag+"/"+name,Size=12},Path.Combine(root,"stall.zip"),s=>{},CancellationToken.None,TimeSpan.FromMilliseconds(80));}
+                catch(IOException ex){timedOut=ex.Message.Contains("Retry install");}
+                Check(timedOut,"An unresponsive download stops and supplies a retry");
+                stalled.Respond=(req,token)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StreamContent(new StalledBody())});
+                timedOut=false;
+                try{await Manager.Download(http,new Release{Tag=tag,Url=Catalog.Assets+tag+"/"+name,Size=12},Path.Combine(root,"body.zip"),s=>{},CancellationToken.None,TimeSpan.FromMilliseconds(90));}
+                catch(IOException ex){timedOut=ex.Message.Contains("Retry install");}
+                Check(timedOut,"A stalled transfer after headers also stops and supplies a retry");
+            }
+        }
         static async Task Tests(string root,bool network) {
             var m=new Manager(Path.Combine(root,"Programs"),Path.Combine(root,"Personal","Saved"));
+            await UpdateRecovery(root,m);
             string slots=Path.Combine(m.Saved,"SaveGames"),mods=Path.Combine(m.Saved,"Mods");Directory.CreateDirectory(slots);Directory.CreateDirectory(mods);
             for(int i=1;i<=10;i++){File.WriteAllText(Path.Combine(slots,i+".sav"),"slot "+i);File.WriteAllText(Path.Combine(slots,i+"-previous.sav"),"previous "+i);}
             File.WriteAllText(Path.Combine(mods,"existing.earthmod.json"),"my mod");
@@ -44,6 +119,10 @@ namespace Earthtotaled.Setup {
             Check(failed&&m.Active()[0]==future.Tag&&!File.Exists(Path.Combine(m.Versions,"outside.exe")),"An invalid archive cannot replace the active installation");
             bad.Hash=new string('0',64);failed=false;try{Manager.VerifyArchive(Zip(root,bad.Tag),bad);}catch(IOException){failed=true;}
             Check(failed,"A mismatched download checksum is rejected");
+            using(var cancelled=new CancellationTokenSource()) {
+                failed=false;try{await m.Install(r,future.Tag,future.Number,Zip(root,r.Tag),quiet,()=>cancelled.Cancel(),false,cancelled.Token);}catch(OperationCanceledException){failed=true;}
+                Check(failed&&m.Active()[0]==future.Tag&&File.ReadAllText(Path.Combine(slots,"1.sav"))=="slot 1","Cancelling before activation keeps the playable version and original saves");
+            }
             Console.WriteLine("Installed Microsoft Visual C++ detected: "+Runtime.HasVC()+" / GameInput detected: "+Runtime.HasInput());
             if(network){var list=await Catalog.Read();Check(list.Any(x=>x.Tag=="v1.12.0")&&list.All(x=>x.Hash.Length==64),"Live public GitHub version list has verified Windows downloads");}
             Console.WriteLine(count+" installer checks passed.");
@@ -90,10 +169,20 @@ namespace Earthtotaled.Setup {
             Check(m.Active()[1]==old.Tag&&intact(fork)&&intact(dir),"Returning to the previous release forks all twenty files");
             await m.Install(current,old.Tag,current.Number,candidate,Console.WriteLine,Runtime.Ensure,false);
             Check(m.Active()[0]==current.Tag&&m.Active()[1]=="primary"&&intact(dir)&&intact(fork),"Switching forward again resumes the original survivor files");
+            string oldSetup=Path.Combine(m.Versions,old.Tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
+            string currentSetup=Path.Combine(m.Versions,current.Tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
+            File.Copy(oldSetup,m.Launcher);
+            m.RefreshLauncher(currentSetup);
+            Check(File.ReadAllBytes(currentSetup).SequenceEqual(File.ReadAllBytes(m.Launcher))&&intact(dir),
+                "Launching a legacy upgrade refreshes the stable Start menu launcher without touching saves");
+            m.RefreshLauncher(oldSetup);
+            Check(File.ReadAllBytes(currentSetup).SequenceEqual(File.ReadAllBytes(m.Launcher)),
+                "An inactive older game cannot downgrade the selected version manager");
             File.WriteAllText(Path.Combine(Path.GetDirectoryName(root),"tested-install.txt"),Path.GetDirectoryName(m.Game(current.Tag)));
             File.WriteAllText(Path.Combine(Path.GetDirectoryName(root),"tested-profile.txt"),Path.GetDirectoryName(m.Saved));
         }
         static int Main(string[] args){
+            if(args.Contains("--fixture-game")){Thread.Sleep(18000);return 0;}
             Manager.EnableLongPaths();
             try{System.Net.ServicePointManager.SecurityProtocol=System.Net.SecurityProtocolType.Tls12;string root=Path.Combine(Path.GetFullPath(args[0]),Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);Tests(root,args.Contains("--online")).GetAwaiter().GetResult();
                 if(args.Length>=5&&args[1]=="--packages")RealPackages(root,args[2],args[3],args[4],args.Contains("--download")).GetAwaiter().GetResult();return 0;}

@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using Microsoft.Win32;
@@ -23,12 +24,13 @@ namespace Earthtotaled.Setup {
     }
     internal sealed class Catalog {
         internal const string Api="https://api.github.com/repos/moswald14/earthtotaled/releases";
+        internal const string LatestFile="https://github.com/moswald14/earthtotaled/releases/latest/download/EARTHtotaled-Windows-update.json";
         internal const string Assets="https://github.com/moswald14/earthtotaled/releases/download/";
         internal static readonly Regex TagPattern=new Regex(@"^v(0|[1-9]\d{0,6})\.(0|[1-9]\d{0,6})\.(0|[1-9]\d{0,6})$");
         internal static readonly HttpClient Http=MakeClient();
         static HttpClient MakeClient() {
-            var http=new HttpClient { Timeout=TimeSpan.FromMinutes(30) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.13");return http;
+            var http=new HttpClient { Timeout=System.Threading.Timeout.InfiniteTimeSpan };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.18.1");return http;
         }
         internal static Release Parse(Dictionary<string,object> row) {
             string tag=Convert.ToString(row["tag_name"]);
@@ -43,14 +45,39 @@ namespace Earthtotaled.Setup {
             }
             return null;
         }
-        internal static async Task<List<Release>> Read() {
-            var found=new List<Release>();var json=new JavaScriptSerializer {MaxJsonLength=32*1024*1024};
-            for(int page=1;;page++) {
-                var rows=json.Deserialize<Dictionary<string,object>[]>(await Http.GetStringAsync(Api+"?per_page=100&page="+page).ConfigureAwait(false));
-                foreach(var row in rows) {var r=Parse(row);if(r!=null) found.Add(r);}
-                if(rows.Length<100) break;
+        internal static Task<List<Release>> Read(CancellationToken cancel=default(CancellationToken),Action<string> status=null) {
+            return Read(Http,cancel,status);
+        }
+        static async Task<Dictionary<string,object>[]> Page(HttpClient http,string url,CancellationToken cancel) {
+            using(var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel)) {
+                deadline.CancelAfter(TimeSpan.FromSeconds(14));
+                using(var response=await http.GetAsync(url,deadline.Token).ConfigureAwait(false)) {
+                    response.EnsureSuccessStatusCode();
+                    string body=await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return new JavaScriptSerializer{MaxJsonLength=32*1024*1024}.Deserialize<Dictionary<string,object>[]>(body);
+                }
             }
-            return found.OrderByDescending(r=>r.Number).ToList();
+        }
+        internal static async Task<List<Release>> Read(HttpClient http,CancellationToken cancel,Action<string> status) {
+            var found=new List<Release>();
+            try {
+                for(int page=1;;page++) {
+                    var rows=await Page(http,Api+"?per_page=100&page="+page,cancel).ConfigureAwait(false);
+                    foreach(var row in rows) {var release=Parse(row);if(release!=null)found.Add(release);}
+                    if(rows.Length<100)break;
+                }
+                if(found.Count!=0)return found.OrderByDescending(r=>r.Number).ToList();
+            } catch(Exception){cancel.ThrowIfCancellationRequested();}
+            if(status!=null)status("Checking the latest Windows release directly on GitHub…");
+            try {
+                var rows=await Page(http,LatestFile,cancel).ConfigureAwait(false);
+                var latest=rows.Select(Parse).Where(r=>r!=null).OrderByDescending(r=>r.Number).FirstOrDefault();
+                if(latest==null)throw new InvalidDataException("No verified Windows package was listed.");
+                return new List<Release>{latest};
+            } catch(Exception e) {
+                cancel.ThrowIfCancellationRequested();
+                throw new IOException("Could not load Windows releases from GitHub. Check your connection and choose Retry releases. "+e.Message,e);
+            }
         }
     }
     internal sealed class Manager {
@@ -92,12 +119,13 @@ namespace Earthtotaled.Setup {
                 if(BitConverter.ToString(sha.ComputeHash(stream)).Replace("-","").ToLowerInvariant()!=r.Hash)
                     throw new IOException("The ZIP checksum differs from GitHub's release record. Please retry.");
         }
-        internal static void Unpack(string zip,string stage) {
+        internal static void Unpack(string zip,string stage,CancellationToken cancel=default(CancellationToken)) {
             Directory.CreateDirectory(stage);
             using(var z=ZipFile.OpenRead(zip)) {
                 long bytes=0;const string prefix="EARTHtotaled-Unreal/";
                 if(z.Entries.Count>24000) throw new InvalidDataException("Too many files in this release.");
                 foreach(var e in z.Entries) {
+                    cancel.ThrowIfCancellationRequested();
                     string key=e.FullName;
                     if(!key.StartsWith(prefix,StringComparison.Ordinal)||key.IndexOf('\\')>=0||key.Contains(":")) throw new InvalidDataException("Unexpected archive layout.");
                     string relative=key.Substring(prefix.Length);
@@ -113,7 +141,39 @@ namespace Earthtotaled.Setup {
             }
             if(!File.Exists(Path.Combine(stage,"EARTHtotaled.exe"))||!File.Exists(Path.Combine(stage,"EARTHtotaled","Binaries","Win64","EARTHtotaled-Win64-Shipping.exe"))||!Directory.Exists(Path.Combine(stage,"EARTHtotaled","Content","Paks"))) throw new InvalidDataException("The Unreal game is incomplete.");
         }
-        internal async Task Install(Release release,string from,Version latest,string sibling,Action<string> status,Action prereqs,bool register) {
+        internal static async Task Download(HttpClient http,Release release,string zip,Action<string> status,CancellationToken cancel,TimeSpan idle) {
+            status("Connecting to the "+release.Tag+" download…");
+            using(var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel)) {
+                try {
+                    deadline.CancelAfter(idle);
+                    using(var response=await http.GetAsync(release.Url,HttpCompletionOption.ResponseHeadersRead,deadline.Token).ConfigureAwait(false)) {
+                        response.EnsureSuccessStatusCode();
+                        using(var stop=deadline.Token.Register(response.Dispose))
+                        using(var input=await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        using(var output=File.Create(zip)) {
+                            byte[] buffer=new byte[131072];long total=0;int last=-1;
+                            status("Downloading "+release.Tag+"   0%");
+                            while(true) {
+                                deadline.CancelAfter(idle);
+                                int n=await input.ReadAsync(buffer,0,buffer.Length,deadline.Token).ConfigureAwait(false);
+                                deadline.Token.ThrowIfCancellationRequested();
+                                if(n==0)break;
+                                total+=n;if(total>release.Size)throw new IOException("The download exceeded the published release size.");
+                                await output.WriteAsync(buffer,0,n,cancel).ConfigureAwait(false);
+                                int percent=(int)(total*100/release.Size);
+                                if(percent!=last){last=percent;status("Downloading "+release.Tag+"   "+percent+"%");}
+                            }
+                        }
+                    }
+                } catch(Exception) {
+                    cancel.ThrowIfCancellationRequested();
+                    if(deadline.IsCancellationRequested)throw new IOException("GitHub stopped sending the download. Check your connection and choose Retry install.");
+                    throw;
+                }
+            }
+        }
+        internal async Task Install(Release release,string from,Version latest,string sibling,Action<string> status,Action prereqs,bool register,CancellationToken cancel=default(CancellationToken)) {
+            cancel.ThrowIfCancellationRequested();
             if(!Catalog.TagPattern.IsMatch(release.Tag)) throw new InvalidDataException("Invalid release.");
             Directory.CreateDirectory(Versions);string target=Path.Combine(Versions,release.Tag);
             string work=Path.Combine(Versions,".stage-"+Guid.NewGuid().ToString("N"));
@@ -124,26 +184,17 @@ namespace Earthtotaled.Setup {
                         if(Directory.Exists(target)) throw new IOException("This version's installation is incomplete or changed. Rename its folder in Versions before reinstalling.");
                         string zip=Path.Combine(work,"release.zip");
                         if(sibling!=null&&File.Exists(sibling)) {status("Checking the local release ZIP…");zip=sibling;}
-                        else {
-                            status("Downloading "+release.Tag+"…");
-                            using(var response=await Catalog.Http.GetAsync(release.Url,HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) {
-                                response.EnsureSuccessStatusCode();using(var input=await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-                                using(var output=File.Create(zip)) {
-                                    byte[] buf=new byte[131072];long total=0;int n,last=-1;
-                                    while((n=await input.ReadAsync(buf,0,buf.Length).ConfigureAwait(false))>0) {
-                                        total+=n;if(total>release.Size) throw new IOException("The download exceeded the release size.");
-                                        await output.WriteAsync(buf,0,n).ConfigureAwait(false);
-                                        int pct=(int)(total*100/release.Size);if(pct!=last){last=pct;status("Downloading "+release.Tag+"   "+pct+"%");}
-                                    }
-                                }
-                            }
-                        }
-                        status("Verifying and unpacking "+release.Tag+"…");VerifyArchive(zip,release);
-                        var staged=Path.Combine(work,"Game");Unpack(zip,staged);File.WriteAllText(Path.Combine(staged,".release"),release.Hash);
+                        else await Download(Catalog.Http,release,zip,status,cancel,TimeSpan.FromSeconds(40)).ConfigureAwait(false);
+                        cancel.ThrowIfCancellationRequested();
+                        status("Verifying the "+release.Tag+" download…");VerifyArchive(zip,release);
+                        status("Unpacking "+release.Tag+"…");
+                        var staged=Path.Combine(work,"Game");Unpack(zip,staged,cancel);File.WriteAllText(Path.Combine(staged,".release"),release.Hash);
                         Directory.Move(staged,target);
                     }
                     // Complete all prerequisites and backups before selecting a new startup version.
-                    status("Checking Microsoft prerequisites…");prereqs();
+                    cancel.ThrowIfCancellationRequested();
+                    status("Checking Microsoft prerequisites. Windows may ask you to approve a runtime installer.");prereqs();
+                    cancel.ThrowIfCancellationRequested();
                     var previous=Active();
                     Version high=release.Number;
                     foreach(string old in new[]{from,previous.Length>2?previous[2]:""})
@@ -155,13 +206,16 @@ namespace Earthtotaled.Setup {
                     status("Backing up survivor slots, settings and mods…");
                     Snapshot(Saved,Path.Combine(destinationBackup,"Primary"));
                     if(currentSource!=Saved) Snapshot(currentSource,Path.Combine(destinationBackup,"Previous version"));
+                    cancel.ThrowIfCancellationRequested();
                     if(older) {
                         string fork=Path.Combine(Root,"Profiles",release.Tag);
                         if(!Directory.Exists(fork)) {
                             string tmp=Path.Combine(work,"Profile");Directory.CreateDirectory(tmp);Snapshot(currentSource,Path.Combine(tmp,"Saved"));
+                            cancel.ThrowIfCancellationRequested();
                             Directory.CreateDirectory(Path.GetDirectoryName(fork));Directory.Move(tmp,fork);
                         }
                     }
+                    status("Finishing the installation…");
                     if(register) InstallLauncher();
                     AtomicText(Pointer,new[]{release.Tag,profile,"v"+high});
                 } finally {
@@ -170,12 +224,32 @@ namespace Earthtotaled.Setup {
                 }
             }
         }
-        void InstallLauncher() {
-            string myself=Assembly.GetExecutingAssembly().Location;
-            if(!myself.Equals(Launcher,StringComparison.OrdinalIgnoreCase)) {
-                string tmp=Path.Combine(Root,"launcher-"+Guid.NewGuid().ToString("N")+".exe");File.Copy(myself,tmp);
-                if(File.Exists(Launcher)) File.Replace(tmp,Launcher,null);else File.Move(tmp,Launcher);
+        static Version ToolVersion(string file) {
+            var v=FileVersionInfo.GetVersionInfo(file);
+            return new Version(v.FileMajorPart,v.FileMinorPart,v.FileBuildPart,v.FilePrivatePart);
+        }
+        void CopyNewerLauncher(string source) {
+            if(source.Equals(Launcher,StringComparison.OrdinalIgnoreCase))return;
+            if(File.Exists(Launcher)&&ToolVersion(Launcher)>=ToolVersion(source))return;
+            string tmp=Path.Combine(Root,"launcher-"+Guid.NewGuid().ToString("N")+".exe");
+            try {
+                File.Copy(source,tmp);
+                if(File.Exists(Launcher))File.Replace(tmp,Launcher,null);else File.Move(tmp,Launcher);
+            } finally{if(File.Exists(tmp))File.Delete(tmp);}
+        }
+        internal void RefreshLauncher(string source) {
+            if(!File.Exists(Pointer))return;
+            using(var locker=new FileStream(Path.Combine(Root,"install.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None)) {
+                var active=Active();
+                if(active.Length<2||!Catalog.TagPattern.IsMatch(active[0]))return;
+                string versionDir=Path.Combine(Versions,active[0]);
+                string bundled=Path.Combine(versionDir,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
+                if(Path.GetFullPath(source).Equals(bundled,StringComparison.OrdinalIgnoreCase)&&File.Exists(Path.Combine(versionDir,".release")))
+                    CopyNewerLauncher(bundled);
             }
+        }
+        void InstallLauncher() {
+            CopyNewerLauncher(Assembly.GetExecutingAssembly().Location);
             string menu=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),"EARTHtotaled");Directory.CreateDirectory(menu);
             dynamic shell=Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
             foreach(var title in new[]{"EARTHtotaled","Manage EARTHtotaled versions"}) {

@@ -34,6 +34,8 @@ A 1986 fraudCORP pilot crash-lands at SHELTER 09 in 2253. New survivors receive 
 
 Build the Windows installer with `Tools/Setup/Build-Setup.ps1` or `Build-Unreal.ps1 -Mode Package`. The installer embeds the Microsoft-signed x64 runtime and GameInput packages from this engine installation. It verifies the size and SHA-256 published by GitHub before installing each Windows ZIP. Backups live in `%LOCALAPPDATA%\Programs\EARTHtotaled\Save backups`. Older builds play on a separate version-specific copy of the survivor slots.
 
+Publish `EARTHtotaled-Windows-update.json` from `Tools/package-release.py` alongside the installer and versioned Windows ZIP on each GitHub release. Setup and the in-game menu can use this file to find the latest verified ZIP when GitHub’s release list is unavailable. Setup records its last steps in `%LOCALAPPDATA%\Programs\EARTHtotaled\setup.log`.
+
 ## Reclamation / 1.12
 
 Version 1.12 brings a 52-minute day, 22-minute night, persistent zombie clearances, gated town walls, powered sentries and refillable hill cisterns. Read a settlement board to track the next infestation or the town's water tower. Combat drains your shield first. Use medkits for wounds and hold Ctrl near spilled loot to expand the pickup radius.

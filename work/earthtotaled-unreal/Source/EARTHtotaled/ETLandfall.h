@@ -6,7 +6,7 @@ class AETWorld; class AETCharacter;
 namespace ETLandfall {
     void DriveTest(AETWorld& World,AETCharacter& Player);
     inline constexpr int Pistol=6;
-    inline constexpr const TCHAR* Version=TEXT("v1.18.0");
+    inline constexpr const TCHAR* Version=TEXT("v1.18.1");
     inline FVector2D Corner(int Side) {
         static const FVector2D Corners[]={{-1080,-2280},{1080,-2280},{1080,1320},{-1080,1320}};
         return Corners[Side%4];

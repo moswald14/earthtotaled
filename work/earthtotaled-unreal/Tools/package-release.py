@@ -1,7 +1,9 @@
 """Bundle the verified Windows archive without source debug symbols."""
 from pathlib import Path
-import argparse, hashlib, json, zipfile
+import argparse, hashlib, json, re, zipfile
 root=Path(__file__).resolve().parents[1]
+version=re.search(r'^ProjectVersion=(\d+\.\d+\.\d+)-unreal$',(root/'Config/DefaultGame.ini').read_text(encoding='utf-8'),re.MULTILINE).group(1)
+tag='v'+version
 outputs=root.parents[1]/'outputs'
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--game-root',type=Path,default=outputs/'EARTHtotaled-Unreal-Windows/Windows')
@@ -16,7 +18,7 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions='''EARTHtotaled 1.18.0 / Combat Signals
+instructions=f'''EARTHtotaled {version} / Combat Signals - Windows update repair
 Enemy calls now come from their position. Esc changes alert volume, captions and damage flash.
 Health and shield bracket the reticle. The upper bar tracks one opponent.
 Look for folded candy wrappers, bent ferns and repeating hoofprints along the shelter road.
@@ -159,7 +161,7 @@ Enter runs a command, Up recalls it, and Escape returns to mouse look.
 Escape > Display / native shows the new 4K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.18.0.zip'
+archive=outputs/f'EARTHtotaled-Unreal-Windows-{tag}.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -170,6 +172,11 @@ with zipfile.ZipFile(archive) as z:
 import shutil
 installer=outputs/'EARTHtotaled-Setup.exe'
 shutil.copy2(setup,installer)
-record={'version':'1.18.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+record={'version':version+'-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
+# A small public fallback for Windows clients when the release-list API is busy.
+asset={'name':archive.name,'size':record['zip_bytes'],'digest':'sha256:'+record['zip_sha256'],
+       'browser_download_url':f'https://github.com/moswald14/earthtotaled/releases/download/{tag}/{archive.name}'}
+latest=[{'tag_name':tag,'draft':False,'prerelease':False,'assets':[asset]}]
+(outputs/'EARTHtotaled-Windows-update.json').write_text(json.dumps(latest,indent=2)+'\n',encoding='utf-8')
 print(json.dumps(record,indent=2))

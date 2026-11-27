@@ -6,13 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 [assembly: AssemblyTitle("EARTHtotaled Setup")]
 [assembly: AssemblyProduct("EARTHtotaled")]
-[assembly: AssemblyFileVersion("1.18.0.0")]
-[assembly: AssemblyVersion("1.18.0.0")]
+[assembly: AssemblyFileVersion("1.18.1.0")]
+[assembly: AssemblyVersion("1.18.1.0")]
 
 namespace Earthtotaled.Setup {
     internal sealed class SetupForm : Form {
@@ -23,7 +24,8 @@ namespace Earthtotaled.Setup {
         readonly Button close=new Button{Text="Close",AutoSize=true};
         readonly ProgressBar progress=new ProgressBar{Dock=DockStyle.Fill,Style=ProgressBarStyle.Blocks};
         readonly string selected,old,origin;readonly int wait;
-        bool busy;
+        CancellationTokenSource operation;
+        bool closeWhenIdle;
         internal SetupForm(string tag,string from,int pid,string source) {
             selected=tag;old=from;wait=pid;origin=source;Text="EARTHtotaled   |   Install and update";StartPosition=FormStartPosition.CenterScreen;
             Icon=Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
@@ -34,43 +36,95 @@ namespace Earthtotaled.Setup {
             grid.Controls.Add(new Label{Text="Choose a Windows release from GitHub",AutoSize=true});
             grid.Controls.Add(choices);grid.Controls.Add(note);grid.Controls.Add(progress);
             var buttons=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=FlowDirection.RightToLeft};buttons.Controls.Add(close);buttons.Controls.Add(install);grid.Controls.Add(buttons);
-            Controls.Add(grid);close.Click+=(s,e)=>Close();install.Click+=async(s,e)=>await Apply();
-            FormClosing+=(s,e)=>{if(busy)e.Cancel=true;};Shown+=async(s,e)=>await LoadChoices();
+            Controls.Add(grid);
+            close.Click+=(s,e)=>{if(operation==null)Close();else Cancel();};
+            install.Click+=async(s,e)=>{if(choices.SelectedItem==null)await LoadChoices();else await Apply();};
+            FormClosing+=(s,e)=>{if(operation!=null){e.Cancel=true;closeWhenIdle=true;Cancel();}};
+            Shown+=async(s,e)=>await LoadChoices();
         }
-        void Status(string s){if(IsDisposed)return;if(InvokeRequired){BeginInvoke(new Action<string>(Status),s);return;}note.Text=s;}
+        void Status(string message) {
+            if(IsDisposed||Disposing)return;
+            if(InvokeRequired){BeginInvoke(new Action<string>(Status),message);return;}
+            if(operation!=null&&operation.IsCancellationRequested)return;
+            note.Text=message;
+            int percent=0,space=message.LastIndexOf(' ');
+            bool measured=message.EndsWith("%")&&space>=0&&int.TryParse(message.Substring(space+1).TrimEnd('%'),out percent);
+            progress.Style=measured||operation==null?ProgressBarStyle.Blocks:ProgressBarStyle.Marquee;
+            if(measured)progress.Value=Math.Max(0,Math.Min(100,percent));
+            if(!measured||percent%25==0) {
+                try{Directory.CreateDirectory(manager.Root);File.AppendAllText(Path.Combine(manager.Root,"setup.log"),DateTime.Now.ToString("s")+"  "+message+Environment.NewLine);}
+                catch(IOException){}catch(UnauthorizedAccessException){}
+            }
+        }
+        CancellationToken StartOperation() {
+            operation=new CancellationTokenSource();
+            choices.Enabled=false;install.Enabled=false;close.Enabled=true;close.Text="Cancel";
+            progress.Value=0;progress.Style=ProgressBarStyle.Marquee;
+            return operation.Token;
+        }
+        void EndOperation() {
+            operation.Dispose();operation=null;progress.Style=ProgressBarStyle.Blocks;progress.Value=0;
+            choices.Enabled=choices.Items.Count>0;install.Enabled=true;close.Text="Close";close.Enabled=true;
+        }
+        void Cancel() {
+            if(operation.IsCancellationRequested)return;
+            note.Text="Cancelling at the next safe step…";close.Enabled=false;operation.Cancel();
+        }
         async Task LoadChoices() {
+            if(operation!=null)return;
+            var cancel=StartOperation();choices.Items.Clear();
+            bool autoInstall=false;string message;
             try {
-                Status("Contacting GitHub…");var releases=await Catalog.Read();if(releases.Count==0)throw new IOException("No compatible Windows releases were found.");
-                foreach(var r in releases)choices.Items.Add(r);
-                var chosen=selected==null?releases[0]:releases.FirstOrDefault(r=>r.Tag==selected);
-                if(chosen==null)throw new IOException("The selected release is unavailable on GitHub.");
-                choices.SelectedItem=chosen;install.Enabled=true;
-                Status("Setup installs missing Microsoft runtimes and backs up all survivor slots. Older versions use a separate copy. Windows may ask for permission to install a runtime.");
-                if(selected!=null) await Apply();
-            } catch(Exception e){Status(e.GetBaseException().Message);}
+                Status("Loading Windows releases from GitHub…");
+                var releases=await Catalog.Read(cancel,Status);
+                cancel.ThrowIfCancellationRequested();
+                foreach(var release in releases)choices.Items.Add(release);
+                var requested=releases.FirstOrDefault(r=>r.Tag==selected);
+                choices.SelectedItem=requested??releases[0];
+                autoInstall=requested!=null;
+                install.Text="Install and play";
+                message=selected!=null&&requested==null?
+                    selected+" is unavailable. Choose Install and play to use "+releases[0].Tag+", or close Setup.":
+                    "Setup backs up your survivor slots and installs missing Microsoft runtimes. Older versions use a separate copy of your saves.";
+            } catch(OperationCanceledException){message="Release check cancelled.";install.Text="Retry releases";}
+              catch(Exception e){message=e.Message;install.Text="Retry releases";}
+            finally{EndOperation();}
+            if(closeWhenIdle){Close();return;}
+            Status(message);
+            if(autoInstall)await Apply();
         }
         async Task Apply() {
-            var r=choices.SelectedItem as Release;if(busy||r==null)return;
-            busy=true;install.Enabled=false;choices.Enabled=false;close.Enabled=false;progress.Style=ProgressBarStyle.Marquee;
-            bool done=false;
+            var r=choices.SelectedItem as Release;if(operation!=null||r==null)return;
+            var cancel=StartOperation();bool done=false;string message;
             try {
-                if(wait>0) await Task.Run(()=>{try{using(var p=Process.GetProcessById(wait)){if(!p.HasExited&&p.ProcessName.Equals("EARTHtotaled-Win64-Shipping",StringComparison.OrdinalIgnoreCase)&&!p.WaitForExit(90000))throw new IOException("Close the game and retry.");}}catch(ArgumentException){}});
-                foreach(var p in Process.GetProcessesByName("EARTHtotaled-Win64-Shipping")) using(p) {if(!p.HasExited)throw new IOException("Save and close EARTHtotaled, then choose Install and play again.");}
+                await GameSessions.WaitForSaves(manager,wait,Status,cancel);
                 string sibling=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"EARTHtotaled-Unreal-Windows-"+r.Tag+".zip");
                 var latest=((Release)choices.Items[0]).Number;
-                await Task.Run(()=>manager.Install(r,old,latest,sibling,Status,Runtime.Ensure,true));
+                await Task.Run(()=>manager.Install(r,old,latest,sibling,Status,Runtime.Ensure,true,cancel));
                 manager.RememberPortable(origin);
                 if(Runtime.RestartRecommended) {MessageBox.Show(this,"Installation is complete. Restart Windows, then open EARTHtotaled from Start.","EARTHtotaled Setup",MessageBoxButtons.OK,MessageBoxIcon.Information);}
-                else manager.Play();
-                done=true;Status("Installation complete.");
-            } catch(Exception e){Status(e.GetBaseException().Message);}
-            finally{busy=false;install.Enabled=true;choices.Enabled=true;close.Enabled=true;progress.Style=ProgressBarStyle.Blocks;}
-            if(done)Close();
+                else if(!closeWhenIdle&&!cancel.IsCancellationRequested)manager.Play();
+                done=true;message=r.Tag+" installed.";
+            } catch(OperationCanceledException){message="Update cancelled. You can retry or close Setup.";}
+              catch(Exception e){message=e.Message;}
+            finally{EndOperation();}
+            Status(message);install.Text="Retry install";
+            if(done||closeWhenIdle)Close();
         }
     }
     internal static class Program {
         [STAThread] static void Main(string[] args) {
             Manager.EnableLongPaths();
+            if(args.Length==1&&args[0]=="--refresh-launcher") {
+                // Older installers copy themselves into Start. Refresh it after the selected game opens.
+                var manager=Manager.Standard();
+                for(int attempt=0;attempt<4;attempt++) {
+                    try {manager.RefreshLauncher(Assembly.GetExecutingAssembly().Location);return;}
+                    catch(IOException){}catch(UnauthorizedAccessException){}
+                    Thread.Sleep(350);
+                }
+                return;
+            }
             ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
             Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
             try {

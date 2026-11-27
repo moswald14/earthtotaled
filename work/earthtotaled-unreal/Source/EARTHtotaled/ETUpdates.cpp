@@ -39,6 +39,20 @@ void AETCharacter::CheckVersions(bool Automatic)
     if(Automatic&&!FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="))) {
         const auto Managed=FPlatformMisc::GetEnvironmentVariable(TEXT("LOCALAPPDATA"))/TEXT("Programs/EARTHtotaled");
         const auto Executable=FPaths::ConvertRelativePathToFull(FPlatformProcess::ExecutablePath());
+#if PLATFORM_WINDOWS
+        // A legacy Setup may just have installed this game and copied its old version manager to Start.
+        const FString CurrentDir=Managed/TEXT("Versions")/ETLandfall::Version;
+        const FString Shipping=CurrentDir/TEXT("EARTHtotaled/Binaries/Win64/EARTHtotaled-Win64-Shipping.exe");
+        const FString Setup=CurrentDir/TEXT("EARTHtotaled/Content/UpdateTools/EARTHtotaled-Setup.exe");
+        static bool CheckedLauncher=false;
+        if(!CheckedLauncher&&FPaths::IsSamePath(Executable,Shipping)) {
+            CheckedLauncher=true;
+            if(FPlatformMisc::GetFileVersion(Setup)>FPlatformMisc::GetFileVersion(Managed/TEXT("EARTHtotaled.exe"))) {
+                auto Repair=FPlatformProcess::CreateProc(*Setup,TEXT("--refresh-launcher"),true,true,true,nullptr,0,nullptr,nullptr);
+                if(Repair.IsValid())FPlatformProcess::CloseProc(Repair);
+            }
+        }
+#endif
         TArray<FString> Origins;FFileHelper::LoadFileToStringArray(Origins,*(Managed/TEXT("portable-origins.txt")));
         if(Origins.ContainsByPredicate([&](const FString& Origin){return FPaths::IsSamePath(Origin,Executable);})&&FPaths::FileExists(Managed/TEXT("active.txt"))) {
             auto H=FPlatformProcess::CreateProc(*(Managed/TEXT("EARTHtotaled.exe")),TEXT(""),true,false,false,nullptr,0,nullptr,nullptr);
@@ -54,13 +68,19 @@ void AETCharacter::CheckVersions(bool Automatic)
 }
 void AETCharacter::ReadReleasePage(int Page,bool Automatic)
 {
+    // Real release-list pages start at one. The separate latest-release file has one row.
+    constexpr int LatestReleaseFile=0;
+    const bool LatestOnly=Page==LatestReleaseFile;
     auto Req=FHttpModule::Get().CreateRequest();
-    Req->SetURL(FString::Printf(TEXT("https://api.github.com/repos/moswald14/earthtotaled/releases?per_page=100&page=%d"),Page));
+    Req->SetURL(LatestOnly?FString(TEXT("https://github.com/moswald14/earthtotaled/releases/latest/download/EARTHtotaled-Windows-update.json")):FString::Printf(TEXT("https://api.github.com/repos/moswald14/earthtotaled/releases?per_page=100&page=%d"),Page));
     Req->SetVerb(TEXT("GET"));Req->SetHeader(TEXT("User-Agent"),TEXT("EARTHtotaled-Windows"));Req->SetHeader(TEXT("Accept"),TEXT("application/vnd.github+json"));Req->SetTimeout(14);
-    Req->OnProcessRequestComplete().BindWeakLambda(this,[this,Automatic,Page](FHttpRequestPtr,FHttpResponsePtr Res,bool OK) {
+    auto Handled=MakeShared<bool>(false);
+    auto Complete=[this,Automatic,Page,LatestOnly,Handled](FHttpRequestPtr,FHttpResponsePtr Res,bool OK) {
+        if(*Handled)return;
+        *Handled=true;
         TArray<TSharedPtr<FJsonValue>> Rows;
         if(OK&&Res&&Res->GetResponseCode()==200&&FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Res->GetContentAsString()),Rows)) {
-            if(Page==1){ReleaseTags.Reset();ReleaseIndex=0;}
+            if(Page<=1){ReleaseTags.Reset();ReleaseIndex=0;}
             for(auto& V:Rows) {
                 const auto O=V->AsObject(); if(!O||O->GetBoolField(TEXT("draft"))||O->GetBoolField(TEXT("prerelease"))) continue;
                 const auto Tag=O->GetStringField(TEXT("tag_name"));FIntVector Num;if(!ReadVersion(Tag,Num)) continue;
@@ -70,15 +90,19 @@ void AETCharacter::ReadReleasePage(int Page,bool Automatic)
                     if(File&&File->TryGetStringField(TEXT("name"),Name)&&Name==Zip&&File->TryGetStringField(TEXT("digest"),Digest)&&Digest.StartsWith(TEXT("sha256:"))&&Digest.Len()==71) {ReleaseTags.AddUnique(Tag);break;}
                 }
             }
-            if(Rows.Num()==100){ReadReleasePage(Page+1,Automatic);return;}
+            if(!LatestOnly&&Rows.Num()==100){ReadReleasePage(Page+1,Automatic);return;}
             ReleaseTags.Sort([](const FString& A,const FString& B){return Newer(A,B);});
-            UpdateNote=ReleaseTags.IsEmpty()?TEXT("No installable Windows releases found."):TEXT("");
+            UpdateNote=ReleaseTags.IsEmpty()?TEXT("No installable Windows releases found."):LatestOnly?TEXT("Showing the latest Windows release."):TEXT("");
+        } else if(Page==1) {
+            ReadReleasePage(LatestReleaseFile,Automatic);
+            return;
         } else UpdateNote=TEXT("Could not reach GitHub. You can return to play or try again later.");
         CheckingVersions=false;
         if(Panel==TEXT("updates")) ShowVersions();
         else if(Automatic&&Panel==TEXT("title")&&!ReleaseTags.IsEmpty()&&Newer(ReleaseTags[0],ETLandfall::Version)) {UpdateOrigin=Panel;ShowVersions();}
-    });
-    if(!Req->ProcessRequest()) {CheckingVersions=false;UpdateNote=TEXT("GitHub is unavailable.");if(Panel==TEXT("updates")) ShowVersions();}
+    };
+    Req->OnProcessRequestComplete().BindWeakLambda(this,Complete);
+    if(!Req->ProcessRequest()) Complete(Req,nullptr,false);
 }
 void AETCharacter::UpdateAction(const FString& Id)
 {
