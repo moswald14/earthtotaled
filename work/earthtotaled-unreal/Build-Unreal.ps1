@@ -30,6 +30,7 @@ if ($Mode -eq 'Play') {
     return
 }
 if (!$OutputDirectory) {$OutputDirectory=Join-Path $projectRoot '..\..\outputs\EARTHtotaled-Unreal-Windows'}
+& (Join-Path $projectRoot 'Tools/Setup/Build-Setup.ps1') -EngineRoot $EngineRoot
 $uat=Join-Path $EngineRoot 'Engine\Build\BatchFiles\RunUAT.bat'
 & $uat BuildCookRun "-project=$projectFile" -noP4 -platform=Win64 -clientconfig=Shipping -build -cook -stage -pak -iostore -archive "-archivedirectory=$OutputDirectory" -utf8output
 if ($LASTEXITCODE -ne 0) {throw 'Unreal Windows packaging failed.'}

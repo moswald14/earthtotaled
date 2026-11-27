@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
@@ -40,6 +41,7 @@ void AETHUD::DrawHUD()
     Super::DrawHUD(); auto P=Cast<AETCharacter>(GetOwningPawn()); if(!P||!P->World) return;
     auto W=P->World; auto S=W->State; const float SW=Canvas->SizeX,SH=Canvas->SizeY;
     if(P->Panel==TEXT("console")) return;
+    if(P->Panel==TEXT("arrival")||P->Panel==TEXT("updates")||P->Panel==TEXT("relics")) {DrawLandfall(P);return;}
     if(P->Panel==TEXT("mods")||P->Panel==TEXT("devtools")||P->Panel==TEXT("town")) {DrawReclamation(P);return;}
     if(P->Panel==TEXT("map")) {DrawAtlas(P); return;}
     if(P->Panel==TEXT("controls")) {DrawControls(P); return;}
@@ -76,7 +78,7 @@ void AETHUD::DrawHUD()
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
-        if(Title) Text(FString::Printf(TEXT("1.12.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
+        if(Title) Text(FString::Printf(TEXT("1.13.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
         if(Title) {
@@ -84,13 +86,22 @@ void AETHUD::DrawHUD()
             Button(TEXT("new"),W->HadSave?TEXT("New survivor"):TEXT("Start at Shelter 09"),X,Row,Width*.72f);
             Button(TEXT("slots"),TEXT("Survivor saves  /  import and export"),X,Row+42,Width*.72f);
             Button(TEXT("controls"),TEXT("Field guide & controls   /   F2"),X,Row+84,Width*.72f);
-            Button(TEXT("mods"),TEXT("Mod workshop"),X,Row+126,Width*.72f);
+            Button(TEXT("mods"),TEXT("Mod workshop"),X,Row+126,Width*.35f);
+            Button(TEXT("updates"),TEXT("Game updates"),X+Width*.37f,Row+126,Width*.35f);
             Button(TEXT("quit"),TEXT("Exit to desktop"),X,Row+168,Width*.72f);
         } else {
             Button(TEXT("cancel"),TEXT("Keep my survivor"),X,Row,Width*.72f);
             Button(TEXT("confirm"),TEXT("Back up and start again"),X,Row+46,Width*.72f);
         }
         return;
+    }
+    if(P->Panel.IsEmpty()&&S->ArrivalStage==1) {
+        int Side=ETLandfall::NextBank(S->TrenchSides);
+        if(Side>=0) {const auto XY=ETLandfall::Stake(Side);const FVector Goal(XY,W->SurfaceHeight(XY.X,XY.Y)+155);
+            const auto Pixel=Project(Goal,true);
+            if(Pixel.Z>0&&Pixel.X>75&&Pixel.X<SW-80&&Pixel.Y>125&&Pixel.Y<SH-130)
+                Text(FString::Printf(TEXT("◇ %s bank   %.0f m"),ETLandfall::Bank(Side),FVector::Dist(Goal,P->GetActorLocation())/100),Pixel.X-50,Pixel.Y,Amber,1.f);
+        }
     }
     // Dark backing keeps survival information readable against bright sky and at night.
     DrawRect(FLinearColor(.012f,.019f,.015f,.68f),20,17,520,116);
@@ -156,11 +167,11 @@ void AETHUD::DrawHUD()
     }
     else if(W->Weapons.IsValidIndex(S->Weapon))
     {
-        const int32 Rank=P->GunRank(S->Weapon);
-        Text(FString::Printf(TEXT("%s  /  Mk %d"),*W->Weapons[S->Weapon].Name,Rank),SW-300,SH-94,Bone,1.05f);
-        Text(P->ReloadTime>0?TEXT("RELOADING"):FString::Printf(TEXT("%02d  /  UNLIMITED"),S->Ammo[S->Weapon]),SW-300,SH-68,Mint,1.23f);
-        const float Next=P->NextGunRank(Rank);
-        Text(Next>0?FString::Printf(TEXT("%.0f / %.0f damage to next upgrade"),S->WeaponDamage[S->Weapon],Next):TEXT("Maximum weapon rank"),SW-300,SH-40,Muted,.85f);
+        const int32 Rank=P->CurrentRank();
+        Text(FString::Printf(TEXT("%s  /  Mk %d"),*P->CurrentGun().Name,Rank),SW-300,SH-94,Bone,1.05f);
+        Text(P->ReloadTime>0?TEXT("RELOADING"):FString::Printf(TEXT("%02d  /  UNLIMITED"),P->CurrentMagazine()),SW-300,SH-68,Mint,1.23f);
+        const float Next=P->CurrentThreshold(Rank);
+        Text(Next>0?FString::Printf(TEXT("%.0f / %.0f damage to next upgrade"),P->CurrentGunDamage(),Next):TEXT("Maximum weapon rank"),SW-300,SH-40,Muted,.85f);
     }
     if(P->Panel.IsEmpty())
     {
@@ -200,10 +211,10 @@ void AETHUD::DrawHUD()
             if(Supply.Usable) Button(TEXT("use:")+Supply.Id,Label,X,RY,Width*.44f);
             else Text(Label,X+10,RY+8,Bone,1.05f);
         }
-        Text(TEXT("ARSENAL / select to equip"),Right,Y+74,Mint,1.1f);
+        Button(TEXT("relics"),FString::Printf(TEXT("Unique gun rack   /   %d found"),S->Relics.Num()),Right,Y+65,Width*.44f);
         for(int32 I=0;I<W->Weapons.Num();++I) {
             float RY=Y+105+I*Row; bool Owned=S->Unlocked.Contains(I);
-            FString Label=FString::Printf(TEXT("%s%s"),S->Weapon==I?TEXT("> "):TEXT(""),*W->Weapons[I].Name);
+            FString Label=FString::Printf(TEXT("%s%s"),S->EquippedRelic==INDEX_NONE&&S->Weapon==I?TEXT("> "):TEXT(""),*W->Weapons[I].Name);
             if(Owned) Button(FString::Printf(TEXT("equip:%d"),I),Label+FString::Printf(TEXT(" / Mk %d"),P->GunRank(I)),Right,RY,Width*.44f);
             else Text(Label+TEXT(" / undiscovered"),Right+10,RY+8,Muted,.9f);
         }
@@ -256,11 +267,10 @@ void AETHUD::DrawHUD()
             Text(FString::Printf(TEXT("%d x %d internal picture / higher detail costs performance"),FMath::RoundToInt(SW*S->RenderScale/100),FMath::RoundToInt(SH*S->RenderScale/100)),X,BY+47,Muted,.95f);
             Button(TEXT("music-volume"),FString::Printf(TEXT("Music volume   %d%%"),S->MusicVolume),X,BY+80,ControlWidth);
             Button(TEXT("weather-volume"),FString::Printf(TEXT("Weather volume   %d%%"),S->WeatherVolume),X+ControlWidth+12,BY+80,ControlWidth);
-            const TCHAR* Tracks[]={TEXT("Embers in the Canopy"),TEXT("Concrete Echoes"),TEXT("The Last Frequency")};
             Button(TEXT("slots"),TEXT("Survivor saves"),X+2*(ControlWidth+12),BY+80,ControlWidth);
             Button(TEXT("aim-assist"),S->LightAimAssist?TEXT("Aim assist / light"):TEXT("Aim assist / off"),X+2*(ControlWidth+12),BY+122,ControlWidth);
             Button(TEXT("skills"),TEXT("Survivor skill web  /  K"),X+ControlWidth+12,BY+122,ControlWidth);
-            Text(FString(TEXT("SCORE / "))+Tracks[W->MusicFor(P->GetActorLocation())],X,BY+128,Muted,1);
+            Button(TEXT("updates"),TEXT("Game updates"),X,BY+122,ControlWidth);
         }
         if(P->Panel==TEXT("ending")) {Button(TEXT("garden"),TEXT("Wake irrigation"),X,BY,260); Button(TEXT("signal"),TEXT("Transmit warning"),X+280,BY,260);}
         if(P->Panel==TEXT("death")) {

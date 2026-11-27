@@ -139,7 +139,7 @@ void AETWorld::RunReclamationChecks(AETCharacter* P,TFunctionRef<void(bool,const
     const FString File=FPaths::ProjectSavedDir()/TEXT("reclamation.etsave");FString Why;
     const bool Stored=P->ExportProfile(State,File,Why);const auto* Read=Stored?P->ReadProfile(File,Why):nullptr;
     Check(Read&&Read->Towns.FindRef(Cell).Treasury==12&&Read->TowerRefills.Contains(Cell)&&Read->Shield==S.Shield,TEXT("Portable save round trip retains watch funds, tower refill and shield"));
-    S.Elapsed=S.Towns[Cell].Upkeep+721;TownTick=0;TickTowns(P,1);Check(!S.Towns[Cell].Claimed&&S.Towns[Cell].Wave==1&&TownRemaining(Cell)>0,TEXT("An unpaid watch allows another infestation"));
+    S.Elapsed=S.Towns[Cell].Upkeep+721;TownTick=0;TickTowns(P,1);Check(S.Towns[Cell].Claimed&&TownRemaining(Cell)==0&&SettledCity(P->GetActorLocation()),TEXT("An unfunded reclaimed city remains settled"));
     FString Raw;const auto Kit=FPaths::ProjectContentDir()/TEXT("ModWorkshop");
     FETModPack Candidate;bool Starter=FFileHelper::LoadFileToString(Raw,*(Kit/TEXT("starter.earthmod.json")))&&ParseMod(Raw,Candidate,Why);
     Check(Starter&&Candidate.Finds.Num()==2&&IFileManager::Get().FileExists(*(Kit/TEXT("mod.schema.json"))),TEXT("Shipped starter and author schema are readable through the installed workshop"));

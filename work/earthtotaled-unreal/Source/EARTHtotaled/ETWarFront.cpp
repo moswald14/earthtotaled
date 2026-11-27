@@ -46,6 +46,7 @@ AETAgent* AETAgent::FindRival(float Delta)
 
 AETAgent* AETWorld::FrontFighter(const FString& Id,const TCHAR* Kind,FVector Position)
 {
+    if(SettledCity(Position)) return nullptr;
     if(auto* A=FrontUnits.FindRef(Id);IsValid(A)) return A;
     if(State->FrontLosses.FindRef(Id)>State->Elapsed) return nullptr;
     auto* A=GetWorld()->SpawnActor<AETAgent>(Position,FRotator::ZeroRotator);

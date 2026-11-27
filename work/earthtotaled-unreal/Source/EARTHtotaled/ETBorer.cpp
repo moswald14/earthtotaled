@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -19,7 +20,7 @@ void AETCharacter::ToggleBorer()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
     StopBuilding();
-    if(Borer) {SelectWeapon(World->State->Weapon); return;}
+    if(Borer) {EquipFrame(World->State->Weapon); return;}
     LampBeforeBorer=Flashlight->IsVisible();
     Borer=true; Firing=Aiming=false; ReloadTime=0; ShotTime=.15f;
     Gun->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Game/EARTHtotaled/Art/SM_SurveyBorer.SM_SurveyBorer")));

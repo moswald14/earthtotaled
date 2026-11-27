@@ -56,6 +56,15 @@ struct FETWeapon
 };
 
 USTRUCT()
+struct FETRelic
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Seed=1;
+    UPROPERTY() int32 Loaded=0;
+    UPROPERTY() float DamageDealt=0;
+};
+
+USTRUCT()
 struct FETPerk
 {
     GENERATED_BODY()
@@ -186,6 +195,11 @@ public:
     UPROPERTY() float NextPatrol=8;
     UPROPERTY() TMap<FString,float> FrontLosses;
     UPROPERTY() bool IntroRead=false;
+    // Negative is an existing survivor whose original starting geology must remain accessible.
+    UPROPERTY() int32 ArrivalStage=-1;
+    UPROPERTY() int32 TrenchSides=0;
+    UPROPERTY() TArray<FETRelic> Relics;
+    UPROPERTY() int32 EquippedRelic=INDEX_NONE;
     UPROPERTY() int32 ArmorTier=0;
     UPROPERTY() float MaxDepth=0;
     UPROPERTY() int32 LandscapeEdition=0;
@@ -361,6 +375,9 @@ public:
     void TickSlotJourney(AETCharacter* Player);
     void RunOutpostChecks(AETCharacter* Player,TFunctionRef<void(bool,const FString&)> Check);
     bool SafeSettlement(FVector Position) const;
+    bool SettledCity(FVector Position) const;
+    void MakeTrenchStakes();
+    void RunLandfallChecks(AETCharacter* Player,TFunctionRef<void(bool,const FString&)> Check);
     UPROPERTY() TMap<FString,AETAgent*> LiveThreats;
     float PatrolTick=0;
     bool AtRefuge=false;
@@ -646,6 +663,20 @@ public:
     void FireStart(); void FireStop(); void AimStart(); void AimStop(); void SprintStart(); void SprintStop();
     void Interact(); void Reload(); void Drink(); void Heal(); void Skills(); void Journal(); void Pause(); void Fullscreen();
     void SelectWeapon(int32 Index);
+    void EquipFrame(int32 Index); void EquipRelic(int32 Index);
+    FETWeapon CurrentGun() const;
+    int32& CurrentMagazine();
+    float& CurrentGunDamage();
+    int32 CurrentRank() const;
+    float CurrentThreshold(int32 Rank) const;
+    void RelicRack(); int32 RackIndex=0;
+    void StartArrival(); void TickArrival(); void FinishArrival();
+    double ArrivalTime=0; float FlightSeconds=0; int32 FlightCue=-1;
+    UPROPERTY() class ACameraActor* FlightCamera=nullptr;
+    UPROPERTY() UAudioComponent* FlightAudio=nullptr;
+    void ReadReleasePage(int Page,bool Automatic); void CheckVersions(bool Automatic); void UpdateAction(const FString& Id); void ShowVersions();
+    TArray<FString> ReleaseTags; FString UpdateOrigin, UpdateNote; int32 ReleaseIndex=0;
+    bool CheckingVersions=false, ConfirmVersion=false;
     void Weapon1(); void Weapon2(); void Weapon3(); void Weapon4(); void Weapon5(); void Weapon6();
     void Weapon7(); void Weapon8(); void Weapon9(); void Weapon10();
     void NextWeapon(); void PreviousWeapon(); void CycleWeapon(int32 Direction);
@@ -675,6 +706,7 @@ public:
     void DialogueSubtitle();
     void DrawControls(AETCharacter* Player);
     void DrawReclamation(AETCharacter* Player);
+    void DrawLandfall(AETCharacter* Player);
     void DrawSkillWeb(AETCharacter* Player);
     void DrawNavigation(AETCharacter* Player);
     void DrawAtlas(AETCharacter* Player);

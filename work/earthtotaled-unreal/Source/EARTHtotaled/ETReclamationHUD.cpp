@@ -31,7 +31,7 @@ void AETHUD::DrawReclamation(AETCharacter* P)
         Add(TEXT("cheat-shield"),P->TestInvincible?TEXT("Disable invincibility"):TEXT("Enable invincibility"));
         Add(TEXT("cheat-supply"),TEXT("Grant test supplies"));Add(TEXT("cheat-town"),TEXT("Travel to infestation"));
         Add(TEXT("cheat-tower"),TEXT("Travel to cistern"));Add(TEXT("cheat-clear"),TEXT("Clear local zombies"));Add(TEXT("cheat-loot"),TEXT("Scatter test loot"));
-        Add(TEXT("cheat-day"),TEXT("Advance to dawn"));Add(TEXT("cheat-night"),TEXT("Advance to night"));
+        Add(TEXT("cheat-relic"),TEXT("Drop a unique gun"));Add(TEXT("cheat-day"),TEXT("Advance to dawn"));Add(TEXT("cheat-night"),TEXT("Advance to night"));
     } else {
         const auto* T=P->World->State->Towns.Find(P->BoardCell);
         Add(TEXT("mark-tower"),TEXT("Track hill cistern"));Add(TEXT("mark-town"),TEXT("Track nearest infestation"));

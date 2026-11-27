@@ -6,8 +6,13 @@
 #include "Engine/DamageEvents.h"
 #include "Materials/MaterialInterface.h"
 
+bool AETWorld::SettledCity(FVector P) const
+{
+    return InCity(P)&&TownRemaining(ETNav::District(FVector2D(P)))==0;
+}
 bool AETWorld::SafeSettlement(FVector P) const
 {
+    if(SettledCity(P)) return true;
     if(P.Z<SurfaceHeight(P.X,P.Y)-360) return false;
     if(P.SizeSquared2D()<FMath::Square(2350.)) return true;
     for(TActorIterator<AETItem> It(GetWorld());It;++It) {
@@ -20,6 +25,7 @@ bool AETWorld::SafeSettlement(FVector P) const
 }
 AETAgent* AETWorld::AddThreat(const FString& Id,const FString& Kind,FVector At)
 {
+    if(SettledCity(At)) return nullptr;
     if(auto* A=LiveThreats.FindRef(Id);IsValid(A)) return A;
     auto* A=GetWorld()->SpawnActor<AETAgent>(At,FRotator::ZeroRotator);
     if(!A) return nullptr;
@@ -67,6 +73,7 @@ void AETWorld::TickPatrols(AETCharacter* P,float Delta)
     for(auto It=State->Threats.CreateIterator();It;++It) {
         auto* Live=LiveThreats.FindRef(It.Key());
         if(IsValid(Live)) Live->Snapshot(It.Value());
+        if(SettledCity(It.Value().Position)) {if(IsValid(Live)) Live->Destroy(); LiveThreats.Remove(It.Key());It.RemoveCurrent();continue;}
         const double D=FVector::DistSquared(Here,It.Value().Position);
         if(D>FMath::Square(14500.)) {
             if(IsValid(Live)) Live->Destroy();

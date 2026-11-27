@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "ETSaveDisk.h"
 #include "ETGeology.h"
 #include "ETTerrainMath.h"
@@ -77,7 +78,7 @@ void AETWorld::LoadDesign()
     if(Review&&JourneyEnding.IsEmpty()&&!MineResume&&!FrontierQA) SaveSlot=TEXT("EARTHtotaled-QA-Preview");
     if((!Review||JourneyResume||MineResume)&&UGameplayStatics::DoesSaveGameExist(SaveSlot,0)) State=Cast<UETSave>(UGameplayStatics::LoadGameFromSlot(SaveSlot,0));
     HadSave=State&&State->Schema==1;
-    if(!HadSave) {State=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass())); State->BuildStock=0;}
+    if(!HadSave) {State=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass())); State->BuildStock=0; if(!Review&&!FrontierQA&&!BorerRecoveryQA) State->ArrivalStage=0;}
     if(!State->ModernDay) {
         if(HadSave) {State->ClockOffset=ETDay::FromOld(State->Elapsed); State->Shield=State->Health<25?0.f:60.f; State->ShieldDelay=10;}
         else {State->ClockOffset=ETDay::At(9);State->RetroDisplay=false;}
@@ -99,6 +100,7 @@ void AETWorld::LoadDesign()
         if(ReviewScene==TEXT("mine")) {State->Position=FVector(410,-2750,110); State->View=FRotator(-17,0,0);}
     }
     if(Review&&FParse::Param(FCommandLine::Get(),TEXT("ETPhoto"))) {PhotoScene=ReviewScene;State->IntroRead=true;State->RetroDisplay=false;State->ClockOffset=ETDay::At(11);State->Elapsed=0;}
+    for(auto& Pair:State->Towns) if(Pair.Value.Wave>0) Pair.Value.Claimed=true;
     PrepareLandscape();
     PrepareHighwayGrades();
     Geology=NewObject<UETGeology>(this);
@@ -200,12 +202,16 @@ void AETWorld::UpdateNightWatch(FVector Viewer)
 }
 FString AETWorld::StoryTitle() const
 {
+    if(State->ArrivalStage==1) return TEXT("FIRST WATCH / SHELTER 09");
+    if(State->ArrivalStage==2&&State->Cores==0) return TEXT("THE SECOND TRANSMISSION");
     if(State->Ending==TEXT("garden")) return TEXT("THE FIRST RAIN");
     if(State->Ending==TEXT("signal")) return TEXT("A LIGHT IN THE DARK");
     return ChapterNames.IsValidIndex(State->Cores)?ChapterNames[State->Cores]:TEXT("KEEP GOING");
 }
 FString AETWorld::StoryObjective() const
 {
+    if(State->ArrivalStage==1) {const int Side=ETLandfall::NextBank(State->TrenchSides); if(Side>=0) return FString::Printf(TEXT("G: borer  /  fire at the %s trench stake"),ETLandfall::Bank(Side));}
+    if(State->ArrivalStage==2&&State->Cores==0) return TEXT("Follow Eli\'s radio call to the transit core");
     if(!State->Ending.IsEmpty()) return TEXT("Keep exploring / help settlements / stay alive");
     return Objectives.IsValidIndex(State->Cores)?Objectives[State->Cores]:TEXT("Explore the wilderness");
 }
@@ -290,7 +296,9 @@ AETItem* AETWorld::Item(const FString& Id,const FString& Kind,const FString& Lab
         Asset=Type==TEXT("medical")?TEXT("SM_MedCase"):Type==TEXT("armory")?TEXT("SM_WeaponCase"):Type==TEXT("tools")?TEXT("SM_Toolbox"):Type==TEXT("electronics")?TEXT("SM_ElectronicsCase"):TEXT("SM_PantryCase");
     }
     if(Kind==TEXT("weapon")) Asset=TEXT("SM_WeaponCase");
+    if(const int Seed=ETLandfall::RelicSeed(Kind)) {Asset=FString::Printf(TEXT("SM_Weapon%d"),ETLandfall::FRoll(Seed).Frame);A->SetActorScale3D(FVector(1.4));}
     if(Kind==TEXT("tower")) Asset=TEXT("SM_HillCistern");
+    if(Kind==TEXT("stake")) Asset=TEXT("SM_Sign");
     if(Kind==TEXT("survey")) Asset=TEXT("SM_Sign");
     // "gold" is the legacy saved drop kind; new and previously dropped currency are wrappers.
     if(Kind==TEXT("gold")) Asset=TEXT("SM_Wrappers");
@@ -342,6 +350,9 @@ void AETWorld::Tick(float Delta)
 {
     Super::Tick(Delta);
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!P||P->Panel==TEXT("travel")) return;
+    static const bool ArrivalQA=FParse::Param(FCommandLine::Get(),TEXT("ETLandfallQA"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
+    if(ArrivalQA) ETLandfall::DriveTest(*this,*P);
+    if(P->Panel==TEXT("arrival")) {P->TickArrival();return;}
     if(SlotQA&&!SelfTest) TickSlotJourney(P);
     if(FrontierQA) TickFrontierJourney(P,Delta);
     if(BorerRecoveryQA) TickBorerRecoveryCheck(P);
@@ -432,7 +443,8 @@ void AETWorld::BuildStory()
         Item(FString::Printf(TEXT("city-%d,%d"),Col,Row),TEXT("loot"),TEXT("Search household supplies"),P+FVector(-300,200,70),FMath::Abs(Col+Row)%3);
     }
     Item(TEXT("salt"),TEXT("friend"),TEXT("SALT-7 / Greenline"),FVector(1100,500,0),0,TEXT("SALT-7"));
-    if(auto* Marker=Item(TEXT("faultline-survey"),TEXT("survey"),TEXT("Read the mine survey"),FVector(750,-3110,0))) {
+    if(State->ArrivalStage>=0) MakeTrenchStakes();
+    if(State->ArrivalStage<0) if(auto* Marker=Item(TEXT("faultline-survey"),TEXT("survey"),TEXT("Read the mine survey"),FVector(750,-3110,0))) {
         auto* Sign=NewObject<UTextRenderComponent>(Marker); Sign->SetupAttachment(Marker->Mesh);
         Sign->SetText(FText::FromString(TEXT("SHELTER MINE\nQUARRY 067")));
         Sign->SetHorizontalAlignment(EHTA_Center); Sign->SetVerticalAlignment(EVRTA_TextCenter);
@@ -440,7 +452,7 @@ void AETWorld::BuildStory()
         Sign->SetRelativeLocation(FVector(0,16,330)); Sign->SetRelativeRotation(FRotator(0,90,0)); Sign->RegisterComponent();
     }
     // Battery work lamps mark the descent and pick out the two exposed seams.
-    for(const FVector Point:{FVector(790,-2940,170),FVector(2500,-2910,-500),FVector(3500,-2880,-680)}) {
+    if(State->ArrivalStage<0) for(const FVector Point:{FVector(790,-2940,170),FVector(2500,-2910,-500),FVector(3500,-2880,-680)}) {
         auto* Lamp=NewObject<UPointLightComponent>(this); Lamp->SetLightColor(FLinearColor(1,.61f,.27f));
         Lamp->SetIntensity(2800); Lamp->SetAttenuationRadius(840); Lamp->SetCastShadows(false); Lamp->RegisterComponent(); Lamp->SetWorldLocation(Point);
     }
@@ -450,7 +462,8 @@ void AETWorld::BuildStory()
     {
         Item(FString::Printf(TEXT("core-%d"),I),TEXT("core"),Labels[I],Sites[I]+FVector(0,100,100),I);
         FString GuardId=FString::Printf(TEXT("guard-%d"),I);
-        if(!State->Consumed.Contains(GuardId)) {auto A=GetWorld()->SpawnActor<AETAgent>(Sites[I]+FVector(2200,0,30),FRotator::ZeroRotator); A->Configure(this,GuardId,TEXT("robot"));}
+        FVector Border=Sites[I].GetSafeNormal2D()*29100.; Border.Z=SurfaceHeight(Border.X,Border.Y)+10;
+        if(!State->Consumed.Contains(GuardId)&&!SettledCity(Border)) if(auto* A=GetWorld()->SpawnActor<AETAgent>(Border,FRotator::ZeroRotator)) A->Configure(this,GuardId,TEXT("robot"));
     }
     Item(TEXT("filter"),TEXT("quest"),TEXT("Ceramic water filter"),Sites[0]+FVector(220,200,40),0,TEXT("filter"));
     Item(TEXT("pump"),TEXT("quest"),TEXT("Pump fuse"),Sites[1]+FVector(220,200,40),0,TEXT("pump"));
@@ -461,7 +474,7 @@ void AETWorld::BuildStory()
     Item(TEXT("uplink"),TEXT("uplink"),TEXT("HELIOS / final command"),FVector(0,-15000,80));
     for(int32 I=0;I<6;++I)
         Item(FString::Printf(TEXT("relief-%d"),I),TEXT("water"),TEXT("Sealed relief water"),FVector(2200+I*1900,2000-I*600,40),2);
-    Item(TEXT("starter-drifter"),TEXT("weapon"),TEXT("Drifter .44 / ranger's sidearm"),FVector(-2800,-600,60),6);
+    Item(TEXT("starter-drifter"),TEXT("weapon"),State->ArrivalStage<0?TEXT("Drifter .44 / ranger's sidearm"):TEXT("RUST-9 / ranger's carbine"),FVector(-2800,-600,60),State->ArrivalStage<0?6:0);
     Item(TEXT("starter-medical"),TEXT("container"),TEXT("Search first-aid case"),FVector(2800,-500,60),0,TEXT("medical"));
     Item(TEXT("starter-pantry"),TEXT("container"),TEXT("Search shelter provisions"),FVector(-1600,-100,40),0,TEXT("relief"));
     Item(TEXT("starter-tools"),TEXT("container"),TEXT("Search repair depot"),FVector(-5000,1300,40),0,TEXT("tools"));
@@ -595,7 +608,7 @@ bool AETRegion::AdvanceGenerate()
     for(int32 I=0;I<5;++I)
     {
         FVector P=Origin+FVector(R.FRandRange(3000,29000),R.FRandRange(3000,29000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+30;
-        FString Id=FString::Printf(TEXT("r%d,%d-agent%d"),C.X,C.Y,I); if(W->State->Consumed.Contains(Id)) continue;
+        FString Id=FString::Printf(TEXT("r%d,%d-agent%d"),C.X,C.Y,I); if(W->State->Consumed.Contains(Id)||(I<3&&W->SettledCity(P))) continue;
         auto A=GetWorld()->SpawnActor<AETAgent>(P,FRotator::ZeroRotator); A->SetOwner(this); A->Configure(W,Id,I==0?TEXT("robot"):I==1?TEXT("wolf"):I==2?TEXT("boar"):TEXT("deer")); Residents.Add(A);
     }
     for(int32 I=0;I<3;++I)

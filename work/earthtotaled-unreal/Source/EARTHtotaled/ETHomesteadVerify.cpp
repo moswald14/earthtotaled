@@ -32,9 +32,10 @@ void AETWorld::RunHomesteadChecks(AETCharacter* P,TFunctionRef<void(bool,const F
     P->Controls(); P->Action(TEXT("guide-survive")); P->Controls();
     Check(P->Panel.IsEmpty()&&!PC->bShowMouseCursor&&!PC->IsLookInputIgnored()&&!UGameplayStatics::IsGamePaused(this),TEXT("Field guide returns to captured mouse look and live survival"));
 
-    const FVector Pad(4000,-6400,0); EnsureRegion({0,-1}); P->SetActorLocation(Pad+FVector(0,0,110));
+    const FVector Pad(38000,-6400,SurfaceHeight(38000,-6400)); EnsureRegion({1,-1}); P->SetActorLocation(Pad+FVector(0,0,110));
     S->ClockOffset=ETDay::At(16.5); S->Elapsed=599; UpdateNightWatch(Pad);
     auto* Beast=AddThreat(TEXT("verify-watch"),TEXT("spitter"),Pad+FVector(940,0,8));
+    if(!Beast){Check(false,TEXT("A wilderness spitter can be created outside the settled city"));return;}
     auto* Deer=GetWorld()->SpawnActor<AETAgent>(Pad+FVector(730,300,0),FRotator::ZeroRotator);
     Deer->Configure(this,TEXT("verify-day-deer"),TEXT("deer")); AtRefuge=false;
     S->NextPatrol=0; const int Patrol=S->PatrolNumber; PatrolTick=0; TickPatrols(P,1);

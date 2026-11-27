@@ -55,6 +55,9 @@ public:
     void RegisterGroundProp(AStaticMeshActor* Prop);
     void ForgetGroundProp(AStaticMeshActor* Prop);
     bool CanBore(const FHitResult& Hit) const;
+    bool CutTrench(int32 Side,FString& Reward);
+    bool BugCanStep(FVector From,FVector To) const;
+    void IndexTrench(int32 Side,TSet<FIntVector>& Dirty);
     // All depths share the same surface ownership. A nonempty reason denies the whole edit.
     const TCHAR* DigRestriction(const FBox2D& Footprint) const;
     bool Blast(const FHitResult& Hit,FString& Reward,bool Square=false,bool Recover=true);

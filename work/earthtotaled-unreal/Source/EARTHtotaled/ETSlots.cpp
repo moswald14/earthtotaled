@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "ETSaveDisk.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/Paths.h"
@@ -150,7 +151,7 @@ void AETCharacter::SlotAction(const FString& Id)
     }
     UETSave* Source=Op==TEXT("slot-copy")?World->State:PendingImport;
     if(Op==TEXT("slot-new")) {
-        Source=NewObject<UETSave>(this); Source->RetroDisplay=false; Source->ModernDay=true; Source->ClockOffset=ETDay::At(9); Source->Seed=FMath::RandRange(1,MAX_int32-1); Source->LandscapeEdition=1; Source->BuildStock=0;
+        Source=NewObject<UETSave>(this); Source->ArrivalStage=0; Source->RetroDisplay=false; Source->ModernDay=true; Source->ClockOffset=ETDay::At(9); Source->Seed=FMath::RandRange(1,MAX_int32-1); Source->LandscapeEdition=1; Source->BuildStock=0;
         auto* Old=World->State; Source->MusicVolume=Old->MusicVolume; Source->WeatherVolume=Old->WeatherVolume;
         Source->RetroDisplay=Old->RetroDisplay; Source->RenderScale=Old->RenderScale; Source->ViewDistance=Old->ViewDistance;
     }

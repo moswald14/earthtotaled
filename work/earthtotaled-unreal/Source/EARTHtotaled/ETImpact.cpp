@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETGeology.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/World.h"
@@ -66,6 +67,7 @@ void AETAgent::TickImpact(float D)
     if(GetWorld()->SweepSingleByChannel(Hit,Hip,Hip+Step,FQuat::Identity,ECC_Pawn,FCollisionShape::MakeSphere(24),Q))
         Step*=FMath::Max(0.f,Hit.Time-.03f);
     FVector Next=From+Step;
+    if(IsBrood()&&Kind!=TEXT("skimmer")&&!World->Geology->BugCanStep(From,Next)) return;
     if(Kind!=TEXT("drone")&&Kind!=TEXT("skimmer")) {
         if(!GetWorld()->LineTraceSingleByChannel(Hit,Next+FVector(0,0,50),Next-FVector(0,0,65),ECC_Visibility,Q)||
            Hit.ImpactNormal.Z<.58||Cast<AETAgent>(Hit.GetActor())||Cast<AETCharacter>(Hit.GetActor())) return;

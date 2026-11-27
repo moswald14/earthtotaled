@@ -1,12 +1,14 @@
 # EARTHtotaled
 
-A solo survival shoot-and-loot game about Mara Venn following the last signal through endless forests and ruined cities. Water keeps you alive. Candybar wrappers are the currency.
+In 1986, fraudCORP space traveler Mara Venn enters a time warp. She crash-lands at SHELTER 09 in 2253 and follows the last signal through endless forests and ruined cities. Water keeps you alive. Candybar wrappers are the currency.
 
 ## Play on Windows
 
-**Install.** Download the Windows ZIP under Assets, choose **Extract All**, and run **EARTHtotaled.exe** inside the extracted folder. [Latest Windows release](https://github.com/moswald14/earthtotaled/releases/latest)
+Run **EARTHtotaled-Setup.exe**, choose a version, and select **Install and play**. Setup installs missing Microsoft prerequisites. Pin **EARTHtotaled** from the Windows Start menu to keep the same shortcut across versions. [Download the Windows installer](https://github.com/moswald14/earthtotaled/releases/latest/download/EARTHtotaled-Setup.exe)
 
-**Update.** Close the game, extract the newest Windows ZIP, and replace the previous game folder at the same location. Launch the game and choose **Continue survivor**. Windows stores your saves separately. You can export a backup from **Survivor saves**.
+Open **Game updates** from the title or pause menu to select a GitHub release. Confirm to save, install and relaunch, or keep playing. Setup preserves all ten slots and mods. Older versions use a separate copy of your progress. Return to the latest to resume your main survivor. You can also open **Manage EARTHtotaled versions** from Start. [All releases and portable ZIPs](https://github.com/moswald14/earthtotaled/releases)
+
+Start a new survivor for the crash landing and the Drifter .44. Press **G** and fire at the four marked trench stakes to defend Shelter 09. Ground Bugs stop at the holes. Reclaimed cities stay settled. Hostile kills have a 1-in-400 chance to spill a gun with rolled stats, two perks and a damage-based upgrade path. Hold **Ctrl** near it to collect it and use **Tab → Unique gun rack** to inspect and equip it.
 
 Daylight lasts 52 real minutes and night lasts 22. Shelter 09 is safe. Clear infected towns, then use their settlement boards to fund the watch, build walls and place powered sentries. Track the hill cistern for drinking water. Your shield recharges after combat. Medkits restore health. Approach spilled loot and hold **Ctrl** to sweep it into your pack.
 

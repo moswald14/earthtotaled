@@ -67,6 +67,10 @@ void AETAgent::Fly(float D,AETCharacter* Player,AETAgent* Enemy)
     const FVector Orbit(-Radial.Y*Hand,Radial.X*Hand,0);
     const FVector Goal=Target-Radial*690+Orbit*(210+90*FMath::Sin(Phase))+FVector(0,0,95+65*FMath::Sin(Phase*2));
     FVector Step=(Goal-Here).GetClampedToMaxSize((Siege&&World->State->RaidStage==1?65:Wing?610:485)*D);
+    if(Wing&&Here.Z>=World->SurfaceHeight(Here.X,Here.Y)-50) {
+        const auto Next=Here+Step;const double Soil=World->SurfaceHeight(Next.X,Next.Y);
+        if(World->Geology->SurfaceOpening(Next.X,Next.Y)<45) Step.Z=FMath::Max(Step.Z,Soil+100-Here.Z);
+    }
     FCollisionQueryParams Q(SCENE_QUERY_STAT(ETDrone),false,this);
     FHitResult H;
     if(GetWorld()->SweepSingleByChannel(H,Here,Here+Step,FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(22),Q)) {
@@ -131,6 +135,7 @@ void AETAgent::Tick(float D)
     if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
         FVector Next=P+Direction*Speed*D; Next.Z=World->Height(Next.X,Next.Y)+8;
+        if(Brood&&!World->Geology->BugCanStep(P,Next)) {Home=P-Direction*650;return;}
         const auto Rock=ETRock::Chunk(Next);
         if(FrontUnit||World->Geology->ReplacesSurface({Rock.X,Rock.Y})) {
             FHitResult Ground;
@@ -139,7 +144,7 @@ void AETAgent::Tick(float D)
             else {
                 // Stay on the bank. If the survivor excavates directly underneath,
                 // settle onto the uppermost remaining floor instead of hovering.
-                if(World->Geology->IsOpen(P-FVector(0,0,28))&&GetWorld()->LineTraceSingleByChannel(Ground,P+FVector(0,0,16),P-FVector(0,0,6000),ECC_Visibility,Params))
+                if(!Brood&&World->Geology->IsOpen(P-FVector(0,0,28))&&GetWorld()->LineTraceSingleByChannel(Ground,P+FVector(0,0,16),P-FVector(0,0,6000),ECC_Visibility,Params))
                     SetActorLocation(Ground.ImpactPoint+FVector(0,0,8));
                 Home=P-Direction*650;
                 return;
@@ -153,7 +158,7 @@ void AETAgent::Tick(float D)
             FVector Side=FVector(-Direction.Y,Direction.X,0)*Hand;
             FVector Around=P+Side*Speed*D;
             FHitResult Bank;
-            if(!GetWorld()->LineTraceTestByChannel(P+FVector(0,0,60),Around+Side*70+FVector(0,0,60),ECC_Visibility,Params)&&
+            if((!Brood||World->Geology->BugCanStep(P,Around))&&!GetWorld()->LineTraceTestByChannel(P+FVector(0,0,60),Around+Side*70+FVector(0,0,60),ECC_Visibility,Params)&&
                GetWorld()->LineTraceSingleByChannel(Bank,Around+FVector(0,0,68),Around-FVector(0,0,85),ECC_Visibility,Params)&&Bank.ImpactNormal.Z>.62)
                 SetActorLocation(Bank.ImpactPoint+FVector(0,0,8));
             Home=P+Side*600;

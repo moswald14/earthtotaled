@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -18,6 +19,7 @@ void AETItem::Tick(float Delta)
 }
 FString AETWorld::DropLabel(const FString& Kind) const
 {
+    if(const int Seed=ETLandfall::RelicSeed(Kind)) return TEXT("Unique gun / ")+ETLandfall::FRoll(Seed).Name;
     if(const auto* Find=ModFind(Kind)) return Find->Name;
     if(Kind==TEXT("gold")) return TEXT("Candybar wrappers");
     if(Kind==TEXT("chitin")) return TEXT("Bug shell");
@@ -49,7 +51,7 @@ void AETWorld::SpillLoot(AETAgent* Victim,bool Credited)
     FRandomStream R(GetTypeHash(Base)^State->Seed); int Slot=0;
     const auto From=Victim->GetActorLocation()+FVector(0,0,58);
     auto Spill=[&](const FString& Kind,int N) {
-        const FString Id=Slot==0?Base:Base+FString::Printf(TEXT("-%d"),Slot); ++Slot;
+        const FString Id=Kind.StartsWith(TEXT("relic."))?Base+TEXT("/")+Kind:Slot==0?Base:Base+FString::Printf(TEXT("-%d"),Slot); ++Slot;
         const float Yaw=R.FRandRange(0.f,360.f),Radius=R.FRandRange(48.f,115.f);
         FVector End=From+FRotator(0,Yaw,0).Vector()*Radius; FHitResult Hit;
         FCollisionQueryParams Q(SCENE_QUERY_STAT(ETLootSpill),false,Victim); Q.AddIgnoredActor(P);
@@ -65,6 +67,9 @@ void AETWorld::SpillLoot(AETAgent* Victim,bool Credited)
     else if(Victim->IsMachine()) {Spill(TEXT("gunparts"),1);Spill(TEXT("scrap"),1);}
     else if(Walker) {Spill(TEXT("gold"),R.RandRange(3,7));Spill(R.RandRange(0,4)?TEXT("cloth"):TEXT("medkit"),1);}
     else {Spill(Victim->IsBrood()?TEXT("chitin"):TEXT("harvest"),1);Spill(TEXT("scrap"),2);}
+    FRandomStream WeaponRoll(FMath::Rand());
+    if(const int Seed=ETLandfall::RollDrop(WeaponRoll,Victim->Kind!=TEXT("deer")))
+        Spill(FString::Printf(TEXT("relic.%d"),Seed),1);
     for(const auto& Pack:Mods) if(Pack.Enabled) for(const auto& Find:Pack.Finds)
         if(Find.Source==Source&&R.RandRange(1,100)<=Find.Chance) Spill(Find.Key,1);
 }
@@ -88,7 +93,9 @@ bool AETCharacter::TakeLoose(AETItem* A)
 {
     if(!IsValid(A)||!World->State->DropPositions.Contains(A->Id)) return false;
     auto& S=*World->State; const auto Kind=S.DropKinds.FindRef(A->Id); const int N=FMath::Max(1,S.DropAmounts.FindRef(A->Id));
-    if(Kind==TEXT("gold")) S.Gold+=N;
+    if(const int Seed=ETLandfall::RelicSeed(Kind)) {
+        FETRelic G;G.Seed=Seed;const ETLandfall::FRoll Roll(Seed);G.Loaded=Roll.Build(World->Weapons[Roll.Frame],1).Mag;S.Relics.Add(G);
+    } else if(Kind==TEXT("gold")) S.Gold+=N;
     else if(Kind==TEXT("medkit")) S.Meds+=N;
     else if(Kind==TEXT("scrap")) S.Scrap+=N;
     else if(Kind==TEXT("chitin")) {S.BuildStock+=N; AddXP(10);}

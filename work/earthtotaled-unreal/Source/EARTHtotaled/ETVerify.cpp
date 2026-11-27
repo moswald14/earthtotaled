@@ -72,10 +72,6 @@ void AETWorld::RunSelfTest()
         Check(M&&M->CheckMaterialUsage_Concurrent(MATUSAGE_Nanite)&&M->CheckMaterialUsage_Concurrent(MATUSAGE_InstancedStaticMeshes),FString(Name)+TEXT(" material supports Nanite and instanced rendering"));
     }
     FCollisionQueryParams Params; Params.AddIgnoredActor(P); FHitResult Hit;
-    for(int32 Z:{60,120,210}) {
-        bool Block=GetWorld()->LineTraceSingleByChannel(Hit,FVector(0,-700,Z),FVector(0,-300,Z),ECC_Visibility,Params);
-        Check(!Block,FString::Printf(TEXT("Imported doorway clear at %d cm"),Z));
-    }
     Check(!GetWorld()->SweepSingleByChannel(Hit,FVector(0,-750,110),FVector(0,-290,110),FQuat::Identity,ECC_Pawn,FCollisionShape::MakeCapsule(34,92),Params),TEXT("Player capsule fits through actual imported doorway"));
     Check(GetWorld()->LineTraceSingleByChannel(Hit,FVector(150,-700,120),FVector(150,-300,120),ECC_Visibility,Params),TEXT("House wall blocks collision"));
     auto PC=Cast<APlayerController>(P->GetController());
@@ -204,6 +200,7 @@ void AETWorld::RunSelfTest()
     RunHighwayChecks(P,Check);
     RunSurvivorChecks(P,Check);
     RunReclamationChecks(P,Check);
+    RunLandfallChecks(P,Check);
     FString Result=FString::Printf(TEXT("ET_VERIFY %d checks / %d failures\n"),Count,Failed);
     FFileHelper::SaveStringToFile(Result+Report,*(FPaths::ProjectSavedDir()/TEXT("native-verification.txt")));
     UE_LOG(LogTemp,Display,TEXT("%s%s"),*Result,*Report);

@@ -1,5 +1,6 @@
 #include "ETGeology.h"
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "ETTerrainMath.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -94,11 +95,14 @@ void UETGeology::Initialize(AETWorld* InWorld)
     World=InWorld;
     Fields.Reset(); RegionChunks.Reset(); LowestCut.Reset(); IndexedCuts.Reset(); IndexedBoxes.Reset(); ActiveGalleries.Reset();
     TSet<FIntVector> Dirty;
-    // The original shelter adit remains walkable in every save.
+    // Previous survivors may have saved or built inside the original adit.
+    if(World->State->ArrivalStage<0) {
     AddCavity({FVector(770,-2750,300),FVector(3120,-2750,-760),270},Dirty);
     // Raise the wider chamber's centreline so its floor meets the ramp tangentially.
     AddCavity({FVector(3040,-2750,-565),FVector(3570,-2750,-805),410},Dirty);
     AddCavity({FVector(3250,-2780,-810),FVector(3490,-3500,-930),220},Dirty);
+    }
+    for(int Side=0;Side<4;++Side) if(World->State->TrenchSides&(1<<Side)) IndexTrench(Side,Dirty);
     for(FIntVector Cut:World->State->BoreCuts) IndexCut(Cut,Dirty,false,true);
     for(FIntVector Cut:World->State->SquareCuts) IndexCut(Cut,Dirty,true,true);
     for(FIntVector Node:World->State->FallenRock) IndexFallen(Node,Dirty);
@@ -246,6 +250,12 @@ bool UETGeology::CanBore(const FHitResult& Hit) const
 bool UETGeology::Blast(const FHitResult& Hit,FString& Reward,bool Square,bool Recover)
 {
     Reward.Reset();
+    const auto* Stake=Cast<AETItem>(Hit.GetActor());
+    if(Recover&&World->State->ArrivalStage==1) for(int Side=0;Side<4;++Side) {
+        const auto Mark=ETLandfall::Stake(Side);
+        const bool Aimed=CanBore(Hit)&&FVector2D::Distance(Mark,FVector2D(Hit.ImpactPoint))<210&&FMath::Abs(Hit.ImpactPoint.Z-World->SurfaceHeight(Mark.X,Mark.Y))<140;
+        if((Stake&&Stake->Kind==TEXT("stake")&&Stake->Amount==Side)||Aimed) return CutTrench(Side,Reward);
+    }
     if(!CanBore(Hit)) {
         if(const auto* Why=DigRestriction(FBox2D(FVector2D(Hit.ImpactPoint),FVector2D(Hit.ImpactPoint)))) Reward=Why;
         return false;

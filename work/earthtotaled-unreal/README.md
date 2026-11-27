@@ -2,6 +2,12 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Landfall / 1.13
+
+A 1986 fraudCORP pilot crash-lands at SHELTER 09 in 2253. New survivors receive the Drifter .44, then open four defensive banks with the borer. Previously cleared cities stay free of hostile spawns. One in 400 hostile deaths drops a rolled weapon with two perks and an individual upgrade path. Inspect these guns in the pack. Existing survivors keep their checkpoint and terrain.
+
+Build the Windows installer with `Tools/Setup/Build-Setup.ps1` or `Build-Unreal.ps1 -Mode Package`. The installer embeds the Microsoft-signed x64 runtime and GameInput packages from this engine installation. It verifies the size and SHA-256 published by GitHub before installing each Windows ZIP. Backups live in `%LOCALAPPDATA%\Programs\EARTHtotaled\Save backups`. Older builds play on a separate version-specific copy of the survivor slots.
+
 ## Reclamation / 1.12
 
 Version 1.12 brings a 52-minute day, 22-minute night, persistent zombie clearances, gated town walls, powered sentries and refillable hill cisterns. Read a settlement board to track the next infestation or the town's water tower. Combat drains your shield first. Use medkits for wounds and hold Ctrl near spilled loot to expand the pickup radius.

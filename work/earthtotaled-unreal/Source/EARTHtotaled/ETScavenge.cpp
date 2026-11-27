@@ -103,8 +103,11 @@ void AETCharacter::CycleWeapon(int32 Direction)
 {
     if(!World||!Panel.IsEmpty()) return;
     if(Building) {BuildPiece=(BuildPiece+Direction+AETConstruction::Count)%AETConstruction::Count; RefreshBuild(); return;}
-    for(int32 N=1;N<=World->Weapons.Num();++N) {
-        int32 I=(World->State->Weapon+N*Direction+World->Weapons.Num())%World->Weapons.Num();
-        if(World->State->Unlocked.Contains(I)) {SelectWeapon(I); return;}
+    const auto& S=*World->State;const int Frames=World->Weapons.Num(),Count=Frames+S.Relics.Num();
+    const int Current=S.Relics.IsValidIndex(S.EquippedRelic)?Frames+S.EquippedRelic:S.Weapon;
+    for(int N=1;N<=Count;++N) {
+        const int I=(Current+N*Direction+Count)%Count;
+        if(I>=Frames) {EquipRelic(I-Frames);return;}
+        if(S.Unlocked.Contains(I)) {SelectWeapon(I);return;}
     }
 }

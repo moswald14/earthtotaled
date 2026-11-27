@@ -94,9 +94,8 @@ void AETWorld::TickTowns(AETCharacter* P,float D)
     if(T.Claimed) {
         if(State->Elapsed<T.Upkeep) return;
         const int Owed=FMath::Clamp(FMath::FloorToInt((State->Elapsed-T.Upkeep)/Shift)+1,1,1000000);
-        if(T.Treasury>=Wage*Owed) {T.Treasury-=Wage*Owed; T.Upkeep+=Shift*Owed; return;}
-        T.Treasury=0; ++T.Wave; T.Dead=0; T.Claimed=false;
-        Say(TEXT("The watch went unpaid. Zombies have broken into the district."));
+        if(T.Treasury>=Wage*Owed) {T.Treasury-=Wage*Owed; T.Upkeep+=Shift*Owed; if(T.Defenses>0) TownFortifications(Cell,T.Defenses,true); return;}
+        T.Treasury=0; T.Upkeep=State->Elapsed+Shift; return;
     }
     const int Quota=TownPopulation(Cell,T.Wave);
     const FVector2D Refuge=ETNav::Refuge(Cell);
@@ -140,8 +139,8 @@ void AETCharacter::TownPanel(FIntPoint Cell)
     BoardCell=Cell; const auto* T=World->State->Towns.Find(Cell);
     FString Info=World->TownStatus(Cell)+TEXT("\n\n");
     if(Cell==FIntPoint::ZeroValue) Info+=TEXT("The shelter watch is on duty. Mark the hill cistern or track an infested town on your field atlas.");
-    else if(T&&T->Claimed) Info+=FString::Printf(TEXT("Watch fund  %d wrappers     /     Next shift in %.0f min\nThe watch costs 8 wrappers every 12 minutes. An unpaid shift lets the infection return.\nDefenses  %s"),T->Treasury,FMath::CeilToFloat(FMath::Max(0.f,T->Upkeep-World->State->Elapsed)/60.f),T->Defenses==2?TEXT("walls, relay and two sentries"):T->Defenses==1?TEXT("gated stone walls"):TEXT("open quarter"));
-    else if(World->TownRemaining(Cell)) Info+=TEXT("Clear the zombies on the avenues around the refuge. The last kill reopens trade. Fund the watch here to keep the district.");
+    else if(T&&T->Claimed) Info+=FString::Printf(TEXT("Watch fund  %d wrappers     /     Next shift in %.0f min\nThe watch costs 8 wrappers every 12 minutes. A paid watch repairs fortifications. Reclaimed streets stay settled.\nDefenses  %s"),T->Treasury,FMath::CeilToFloat(FMath::Max(0.f,T->Upkeep-World->State->Elapsed)/60.f),T->Defenses==2?TEXT("walls, relay and two sentries"):T->Defenses==1?TEXT("gated stone walls"):TEXT("open quarter"));
+    else if(World->TownRemaining(Cell)) Info+=TEXT("Clear the zombies on the avenues around the refuge. The last kill reopens trade. Return to this board to build walls and sentries.");
     else Info+=TEXT("This town has its own watch. The refuge keeper trades supplies here.");
     OpenPanel(TEXT("town"),TEXT("SETTLEMENT BOARD"),Info);
 }

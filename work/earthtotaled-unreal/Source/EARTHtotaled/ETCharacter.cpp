@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "ETGeology.h"
 #include "Engine/World.h"
 #include "Camera/CameraComponent.h"
@@ -64,12 +65,13 @@ void AETCharacter::BeginPlay()
     for(TActorIterator<AETWorld> It(GetWorld());It;++It) {World=*It; break;}
     if(!World) return;
     ApplyGraphics();
-    SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
+    if(World->State->Relics.IsValidIndex(World->State->EquippedRelic)) EquipRelic(World->State->EquippedRelic); else SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
     InputAudit=FParse::Param(FCommandLine::Get(),TEXT("ETInputAudit")); SetMouseMode(false); CaptureRetry=.3f;
     if(!World->Review&&!GetWorld()->URL.HasOption(TEXT("ETContinue"))) {Title(); return;}
     if(World->HadSave&&World->State->Elapsed>0&&GetWorld()->URL.HasOption(TEXT("ETContinue")))
         EnemyReacquireTime=8.f;
-    if(!World->State->IntroRead&&World->State->Elapsed<1&&World->Recordings.Num()) {OpenPanel(TEXT("story"),TEXT("EARTHtotaled / THE LAST SIGNAL"),World->Recordings[0]); World->Speak(TEXT("archive0"));}
+    if(World->State->ArrivalStage==0) StartArrival();
+    else if(!World->State->IntroRead&&World->State->Elapsed<1&&World->Recordings.Num()) {OpenPanel(TEXT("story"),TEXT("EARTHtotaled / THE LAST SIGNAL"),World->Recordings[0]); World->Speak(TEXT("archive0"));}
     FString ReviewScene; FParse::Value(FCommandLine::Get(),TEXT("ETReview="),ReviewScene);
     if(ReviewScene==TEXT("bench")) OpenPanel(TEXT("bench"),TEXT("SHELTER WORKBENCH"),TEXT("Patch your suit or improve your kit. Candybar wrappers are currency. Machines carry wrappers; water comes from people and relief supplies."));
     if(ReviewScene==TEXT("voice")) ContactPanel(TEXT("SALT-7"));
@@ -178,7 +180,7 @@ void AETCharacter::Tick(float D)
     {
         ReloadTime-=D; if(ReloadTime<=0)
         {
-            const int32 W=S->Weapon; S->Ammo[W]=World->Weapons[W].Mag;
+            CurrentMagazine()=CurrentGun().Mag;
         }
     }
     if(Climbing)
@@ -243,13 +245,13 @@ void AETCharacter::Die(const FString& Cause)
 void AETCharacter::Shoot()
 {
     if(Borer) {FireBorer(); return;}
-    auto S=World->State; int32 I=S->Weapon; const auto& W=World->Weapons[I];
-    if(S->Ammo[I]<=0) {Reload(); ShotTime=.15f; return;} --S->Ammo[I]; S->ShieldDelay=10; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
+    auto S=World->State; int32 I=S->Weapon; const auto W=CurrentGun();
+    if(CurrentMagazine()<=0) {Reload(); ShotTime=.15f; return;} --CurrentMagazine(); S->ShieldDelay=10; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
     const FString SoundPath=FString::Printf(TEXT("/Game/EARTHtotaled/Art/S_Fire%d.S_Fire%d"),I,I);
     if(auto Sound=LoadObject<USoundBase>(nullptr,*SoundPath)) UGameplayStatics::PlaySound2D(this,Sound,.65f,FMath::FRandRange(.96f,1.04f));
     FVector Start=Camera->GetComponentLocation(), Direction=Camera->GetForwardVector(); FCollisionQueryParams Params; Params.AddIgnoredActor(this);
     Direction=AssistedDirection(Start,Direction,W.Range);
-    const int32 Rank=GunRank(I);
+    const int32 Rank=CurrentRank();
     float Earned=0; bool Killed=false;
     for(int32 P=0;P<W.Pellets;++P)
     {
@@ -260,7 +262,7 @@ void AETCharacter::Shoot()
             End=Hit.ImpactPoint;
             if(auto Agent=Cast<AETAgent>(Hit.GetActor())) {
                 const bool Hostile=Agent->Kind!=TEXT("deer");
-                const float Power=W.Damage*(1+.15f*(Rank-1))*(1+(Has(TEXT("marksman"))?.15f:0)+(Has(TEXT("steady"))?.15f:0));
+                const float Power=W.Damage*(S->EquippedRelic==INDEX_NONE?1+.15f*(Rank-1):1.f)*(1+(Has(TEXT("marksman"))?.15f:0)+(Has(TEXT("steady"))?.15f:0));
                 const float Dealt=UGameplayStatics::ApplyPointDamage(Agent,Power,Ray,Hit,GetController(),this,nullptr);
                 if(Hostile) Earned+=Dealt;
                 Killed|=Agent->Health<=0;
@@ -269,18 +271,18 @@ void AETCharacter::Shoot()
         }
         DrawDebugLine(GetWorld(),Start+Direction*70,End,FColor(245,185,90),false,.045f,0,.8f);
     }
-    S->WeaponDamage[I]+=Earned;
-    if(GunRank(I)>Rank) {
+    CurrentGunDamage()+=Earned;
+    if(CurrentRank()>Rank) {
         World->Sound(TEXT("OreChime"),.4f,1.25f);
-        World->Say(FString::Printf(TEXT("%s upgraded to Mk %d / damage increased"),*W.Name,GunRank(I)));
+        World->Say(FString::Printf(TEXT("%s upgraded to Mk %d"),*W.Name,CurrentRank()));
     }
-    if(Killed||GunRank(I)>Rank) World->Save();
+    if(Killed||CurrentRank()>Rank) World->Save();
     AddControllerPitchInput(-.1f*(I==1?3:1));
 }
 void AETCharacter::Reload()
 {
-    if(!World||Borer||ReloadTime>0||!Panel.IsEmpty()) return; auto S=World->State; auto W=World->Weapons[S->Weapon];
-    if(S->Ammo[S->Weapon]>=W.Mag) return;
+    if(!World||Borer||ReloadTime>0||!Panel.IsEmpty()) return; const auto W=CurrentGun();
+    if(CurrentMagazine()>=W.Mag) return;
     ReloadTime=W.Reload*(Has(TEXT("reload"))?.8f:1)*(Has(TEXT("pressure"))?.9f:1)*(Has(TEXT("quartermaster"))?.9f:1); Firing=false;
     World->Sound(TEXT("Reload"),.5f,1.8f/W.Reload);
 }
@@ -298,6 +300,10 @@ void AETCharacter::Heal()
 void AETCharacter::SelectWeapon(int32 I)
 {
     if(!World||!World->Weapons.IsValidIndex(I)||!World->State->Unlocked.Contains(I)) return;
+    World->State->EquippedRelic=INDEX_NONE; EquipFrame(I);
+}
+void AETCharacter::EquipFrame(int32 I)
+{
     StopBuilding();
     if(Borer) {Borer=false; Firing=Aiming=false; Flashlight->SetVisibility(LampBeforeBorer);}
     World->State->Weapon=I; ReloadTime=0;
@@ -334,6 +340,9 @@ void AETCharacter::OpenPanel(const FString& Kind,const FString& Title,const FStr
 }
 void AETCharacter::ClosePanel()
 {
+    if(Panel==TEXT("arrival")) {FinishArrival();return;}
+    if(Panel==TEXT("updates")) {UpdateAction(TEXT("later"));return;}
+    if(Panel==TEXT("relics")) {Panel.Empty();Inventory();return;}
     if(Panel==TEXT("mods")) {const auto From=WorkshopOrigin;WorkshopOrigin.Empty();ProposedMod.Empty();Panel.Empty();if(From==TEXT("title")) {Title();return;} if(From==TEXT("pause")) {Pause();return;}}
     if(Panel==TEXT("map")) CloseMapInput();
     if(Panel==TEXT("controls")) {
@@ -364,7 +373,8 @@ void AETCharacter::Skills()
 void AETCharacter::Journal()
 {
     if(!Panel.IsEmpty()) {ClosePanel(); return;} FString Body;
-    if(!World->State->Ending.IsEmpty()) Body=World->StoryTitle()+TEXT("\n")+World->StoryObjective()+TEXT("\n\n");
+    if(World->State->ArrivalStage>=1) Body=World->State->ArrivalStage==1?World->StoryObjective()+TEXT("\nBlast each of the four marked banks around Shelter 09. Ground Bugs cannot enter the trench.\n\n"):TEXT("FIRST WATCH  /  complete\nWith the banks cut, Nora tunes your flight radio. Eli came through the same warp thirty years before you. His recording names three cores: transit, botanical, observatory.\n\n");
+    if(!World->State->Ending.IsEmpty()) Body+=World->StoryTitle()+TEXT("\n")+World->StoryObjective()+TEXT("\n\n");
     for(auto Q:World->Quests) Body+=Q.Title+FString::Printf(TEXT(" / %s\n"),World->State->Quests.FindRef(Q.Id)==2?TEXT("complete"):World->State->Quests.FindRef(Q.Id)==1?TEXT("active"):TEXT("available"))+Q.Description+TEXT("\n\n");
     OpenPanel(TEXT("journal"),TEXT("THE LAST SIGNAL / JOURNAL"),Body);
 }
@@ -400,6 +410,7 @@ void AETCharacter::Interact()
     }
     auto I=Focus; auto S=World->State;
     const FString K=I->Kind;
+    if(K==TEXT("stake")) {World->Say(TEXT("Equip your survey borer with G and fire at this marked bank."));return;}
     if(K==TEXT("townboard")) {TownPanel(ETNav::District(FVector2D(I->GetActorLocation())));return;}
     if(K==TEXT("tower")) {ReclamationAction(TEXT("draw-water"));return;}
     if(S->DropPositions.Contains(I->Id)) {World->Say(TEXT("Stand by the salvage and hold Ctrl to sweep it up."));return;}
@@ -420,6 +431,7 @@ void AETCharacter::Interact()
     }
     if(K==TEXT("core"))
     {
+        if(S->ArrivalStage==1) {World->Say(World->StoryObjective());return;}
         if(I->Amount!=S->Cores) {World->Say(TEXT("Follow the archive sequence: transit, botanical, observatory.")); return;}
         ++S->Cores; S->Unlocked.AddUnique(FMath::Min(S->Cores,2)); AddXP(100);
         OpenPanel(TEXT("story"),TEXT("ARCHIVE RECOVERED"),World->Recordings.IsValidIndex(S->Cores)?World->Recordings[S->Cores]:TEXT("Archive restored."));
@@ -459,6 +471,14 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Panel==TEXT("arrival")) {if(Id==TEXT("skip")) FinishArrival();return;}
+    if(Panel==TEXT("updates")) {UpdateAction(Id);return;}
+    if(Id==TEXT("updates")&&(Panel==TEXT("title")||Panel==TEXT("pause"))) {UpdateOrigin=Panel;ShowVersions();CheckVersions(false);return;}
+    if(Id==TEXT("relics")&&Panel==TEXT("inventory")) {RackIndex=FMath::Max(0,S->EquippedRelic);RelicRack();return;}
+    if(Panel==TEXT("relics")) {
+        if(Id==TEXT("back")) {ClosePanel();return;} if(Id==TEXT("prev")) --RackIndex;else if(Id==TEXT("next")) ++RackIndex;
+        else if(Id==TEXT("equip")) {EquipRelic(RackIndex);World->Save();} RelicRack();return;
+    }
     if(Id==TEXT("mods")) {Workshop();return;}
     if(Panel==TEXT("mods")) {WorkshopAction(Id);return;}
     if(Panel==TEXT("town")||Panel==TEXT("devtools")) {ReclamationAction(Id);return;}

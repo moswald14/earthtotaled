@@ -5,6 +5,6 @@ public class EARTHtotaled : ModuleRules
     {
         if (Target.Platform == UnrealTargetPlatform.Win64) PublicSystemLibraries.AddRange(new[] { "ole32.lib", "shell32.lib", "uuid.lib" });
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "ApplicationCore", "ProceduralMeshComponent", "Json", "JsonUtilities", "Slate", "SlateCore" });
+        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "ApplicationCore", "HTTP", "ProceduralMeshComponent", "Json", "JsonUtilities", "Slate", "SlateCore" });
     }
 }

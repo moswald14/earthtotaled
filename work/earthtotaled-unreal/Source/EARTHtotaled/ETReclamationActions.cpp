@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETLandfall.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -46,6 +47,11 @@ void AETCharacter::ReclamationAction(const FString& Id)
             World->TownTick=0;World->TickTowns(this,1);TArray<TWeakObjectPtr<AETAgent>> Targets;World->TownUnits.GenerateValueArray(Targets);
             for(auto Target:Targets) if(Target.IsValid()&&Target->TownCell==Here) Target->TakeDamage(10000,FDamageEvent(),Controller,this);
             PanelBody=World->TownStatus(Here);
+        } else if(Id==TEXT("cheat-relic")) {
+            FVector Land=GetActorLocation()+GetActorForwardVector()*140;Land.Z=World->SurfaceHeight(Land.X,Land.Y)+16;
+            const auto Kind=FString::Printf(TEXT("relic.%d"),FMath::RandRange(1,MAX_int32-1));
+            World->LooseItem(FGuid::NewGuid().ToString(),Kind,1,Land+FVector(0,0,100),Land,true);
+            PanelBody=TEXT("Unique gun scattered. Return to play and hold Ctrl beside it.");World->Save();
         } else if(Id==TEXT("cheat-loot")) {
             const auto P=GetActorLocation();const FString Batch=TEXT("test-loot-")+FGuid::NewGuid().ToString();
             for(int I=0;I<6;++I) {auto Land=P+GetActorForwardVector()*(130.+I*440.);Land.Z=World->SurfaceHeight(Land.X,Land.Y)+12;World->LooseItem(Batch+FString::FromInt(I),TEXT("gold"),1,Land+FVector(0,0,100),Land,true);}

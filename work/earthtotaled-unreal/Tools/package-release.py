@@ -11,19 +11,29 @@ game=options.game_root.resolve()
 outputs=options.output_dir.resolve()
 outputs.mkdir(parents=True,exist_ok=True)
 assert (game/'EARTHtotaled.exe').is_file(), 'Package the native game first'
+setup=game/'EARTHtotaled/Content/UpdateTools/EARTHtotaled-Setup.exe'
+assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').is_file(), 'Installer or opening dialogue is missing'
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions='''EARTHtotaled 1.12.0 / Unreal Windows edition
+instructions='''EARTHtotaled 1.13.0 / Landfall
 
 Double-click EARTHtotaled.exe. Keep this entire folder together.
 Install or update from https://github.com/moswald14/earthtotaled/releases/latest
-Choose the Windows ZIP under Assets and extract it in full. For an update, close
-the game, replace the old game folder with the extracted folder at the same path,
-then launch EARTHtotaled.exe and choose Continue. Windows stores saves separately.
+Run EARTHtotaled-Setup.exe and choose a version. Setup installs missing Microsoft
+prerequisites, backs up all ten slots and keeps older versions on separate save
+copies. Inside the game choose Game updates from the title or pause menu. Pin
+EARTHtotaled from the Windows Start menu for a shortcut that follows updates.
 You can back up any slot under Survivor saves > Export.
 The game opens fullscreen. F11 switches between fullscreen and a window.
 To pin it: start the game, right-click its taskbar icon, and choose Pin to taskbar.
+
+LANDFALL
+A fraudCORP flight from 1986 crash-lands at SHELTER 09 in 2253. New survivors
+receive the Drifter .44 and a survey borer. Press G and fire at each of the four
+trench stakes. Ground Bugs cannot cross the cut banks. Settled cities stay clear.
+Hostiles have a 1-in-400 chance to drop a unique gun with two perks, rolled stats
+and an upgrade path. Collect it with Ctrl. Inspect it in Tab > Unique gun rack.
 
 RECLAMATION
 Shelter 09 is safe. Most other towns have zombies. Clear the streets, then use
@@ -96,7 +106,7 @@ Left mouse fire / right mouse aim / R reload / 1-0 or wheel to select a gun
 E interact / H drink / Q medkit / F flashlight
 Tab pack and arsenal / K skill web / J journal / Escape pause
 
-Find the Drifter .44 at Ranger Supply beside the starting shelter.
+Visit Ranger Supply beside the starting shelter for another weapon.
 Search clinics, grocery shops, salvage depots, civil defense offices and forest camps.
 Find drinking water in houses and relief supplies, or finish quests for people.
 Supertech hulls drop candybar wrappers. A human supply run trades 12 scrap for two
@@ -130,7 +140,7 @@ Enter runs a command, Up recalls it, and Escape returns to mouse look.
 Escape > Display / native shows the new 2K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.12.0.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.13.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -138,6 +148,9 @@ with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=
 with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
     assert 'EARTHtotaled-Unreal/EARTHtotaled.exe' in z.namelist()
-record={'version':'1.12.0-unreal','engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+import shutil
+installer=outputs/'EARTHtotaled-Setup.exe'
+shutil.copy2(setup,installer)
+record={'version':'1.13.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

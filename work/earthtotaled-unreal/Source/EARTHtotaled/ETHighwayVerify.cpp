@@ -42,7 +42,7 @@ void AETWorld::RunHighwayChecks(AETCharacter* P,TFunctionRef<void(bool,const FSt
             FString(S.Name())+TEXT(" can be selected directly on the M map"));
     }
     P->Command(TEXT("time day")); AtRefuge=false;
-    const FVector Pad(10000,23000,18000);
+    const FVector Pad(33000,23000,18000);
     AETAgent* Bug=FrontFighter(TEXT("front/verify/bug"),TEXT("spitter"),Pad);
     AETAgent* Tech=FrontFighter(TEXT("front/verify/tech"),TEXT("robot"),Pad+FVector(1050,0,0));
     if(!Bug||!Tech) {Check(false,TEXT("Both highway companies spawn"));return;}

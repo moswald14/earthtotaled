@@ -1,5 +1,15 @@
 # EARTHtotaled release record
 
+## Unreal 1.13.0 — Landfall
+
+A new survivor begins aboard a fraudCORP flight in 1986 and crash-lands at SHELTER 09 in 2253. The opening can be skipped. The pilot receives the Drifter .44 and a survey borer. Four marked banks form the first quest. Boring each one cuts a connected trench into the terrain. Finishing the perimeter pays 30 candybar wrappers and three water bottles. Ground Bugs avoid surface holes. Returning survivors retain their terrain and current story.
+
+Settled human cities suppress hostile spawns across the entire district. Cleared cities stay settled after a missed watch payment. A funded watch repairs town defenses. Hostile deaths have a one-in-400 chance to scatter a unique gun. Each has two distinct perks, rolled base stats and one of three damage-driven upgrade paths. The pack's **Unique gun rack** displays the actual stats, perks and progress.
+
+The Windows installer includes the engine's Microsoft Visual C++ x64 and GameInput prerequisites. The game checks GitHub at the title screen and offers a release browser in the pause menu. Confirming installs the selected release and relaunches. Setup verifies the ZIP before activation, backs up all ten slots and mods and keeps the main survivor separate from older-version play. An existing portable shortcut follows the managed launcher after an in-game update.
+
+The packaged build passed 456 native checks and both story endings (38 checks each). A fresh survivor watched the crash, played the spoken line, cut all four banks with four actual borer shots and reloaded with the pistol, trench and mouse capture intact. The in-game picker fetched public GitHub releases and returned to pause when the player declined. The installer preserved all ten test slots on version switches. Using a copy of a real survivor, it installed the real 1.12.0 ZIP, switched to 1.13.0, back to 1.12.0 and forward again. The original and the downgraded copy matched byte for byte. A separate copied survivor loaded successfully through the installed Windows launcher. All 42 archived files matched the tested build and installed game. Both Microsoft prerequisites were already installed on the test PC. A clean-machine prerequisite install was not exercised.
+
 ## Unreal 1.12.0 — Reclamation
 
 Daylight lasts 52 real minutes, followed by 22 minutes of night. Older saves retain the time of day at which they were last played. Shelter 09 stays safe. Most other towns start with zombies. Clear the streets to reopen trade, then spend candybar wrappers at the settlement board to fund the watch or build gated walls and powered turrets. The board marks the hill water tower on the atlas. Its tap refills at dawn.

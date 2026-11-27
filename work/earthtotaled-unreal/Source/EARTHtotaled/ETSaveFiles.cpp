@@ -50,6 +50,8 @@ namespace
            !Number(S.RaidWait,-300,1.e7f)||!Number(S.RaidTime,-1,180)||!Number(S.NextPatrol,-1,1.e6f)||!Number(S.MaxDepth,0,1.e8f)||
            (S.RaidStage&&!S.Builds.Contains(S.RaidCore))||
            S.BoreCuts.Num()+S.SquareCuts.Num()>600000||S.SealedGalleries.Num()>600000||S.FallenRock.Num()>2000000||S.Builds.Num()>25000||S.Threats.Num()>4096) return false;
+        if(S.ArrivalStage< -1||S.ArrivalStage>2||S.TrenchSides<0||S.TrenchSides>15||S.Relics.Num()>32768||(S.EquippedRelic!=INDEX_NONE&&!S.Relics.IsValidIndex(S.EquippedRelic))) return false;
+        for(const auto& G:S.Relics) if(G.Seed<=0||G.Loaded<0||G.Loaded>5000||!Number(G.DamageDealt,0,1.e12f)) return false;
         for(int32 W:S.Unlocked) if(W<0||W>=Guns) return false;
         for(float XP:S.WeaponDamage) if(!Number(XP,0,1.e12f)) return false;
         for(int32 A:S.Ammo) if(A<0||A>5000) return false;

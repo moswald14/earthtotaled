@@ -123,7 +123,7 @@ void AETCharacter::ToggleBuild()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
     if(Building) {StopBuilding(); return;}
-    if(Borer) SelectWeapon(World->State->Weapon);
+    if(Borer) EquipFrame(World->State->Weapon);
     Firing=Aiming=false; ReloadTime=0; Building=true; Gun->SetVisibility(false);
     BuildFacing=(FMath::RoundToInt(GetControlRotation().Yaw/90)+4)%4;
     Preview=GetWorld()->SpawnActor<AETConstruction>(); RefreshBuild();
