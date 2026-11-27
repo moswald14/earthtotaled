@@ -331,6 +331,8 @@ public:
     void AddDetails();
     void AddTownLandmarks();
     void AddRailQuarter();
+    bool DeerMeadow(int Group,FVector& Center) const;
+    void AddDeerHerd(int Group);
     bool BearDen(FVector& Site) const;
     void AddBearDen();
     bool BuildTerrainSlice();

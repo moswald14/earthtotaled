@@ -144,14 +144,19 @@ void AETAgent::Tick(float D)
     const bool CanEngage=Target!=Player||Player->EnemyReacquireTime<=0;
     UpdateAlert(!Flee&&CanEngage&&(Pursuing||(Bear&&BearWindup>0)),Target==Player,D);
     if(Bear&&BearSwipe(*Player,D,Clear))return;
+    if(Flee&&Parts.Num()) {
+        const bool Browsing=!Pursuing&&FMath::Fmod(Phase,15.f)<7.f;
+        Parts[0]->SetRelativeRotation(FRotator(Browsing?-3.-2.*FMath::Sin(Phase*1.4):0.,0.,0.));
+        if(Browsing)return;
+    }
     FVector Direction;
     if(Pursuing) Direction=To.GetSafeNormal()*(Flee?-1:1);
     else Direction=(Home+FVector(FMath::Cos(Phase*.15f)*800,FMath::Sin(Phase*.15f)*800,0)-P).GetSafeNormal2D();
     if(Brood&&!Spitter&&Distance>460) Direction=(Direction+FVector(-Direction.Y,Direction.X,0)*.29*FMath::Sin(Phase+double(GetTypeHash(Id)%9))).GetSafeNormal2D();
-    const float Speed=Bear?(Clear&&Distance<Engage?510:132):Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
+    const float Speed=Bear?(Clear&&Distance<Engage?510:132):Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?(Pursuing?475:95):Spitter?230:Brood?395:260;
     if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
-        FVector Next=P+Direction*Speed*D; Next.Z=World->Height(Next.X,Next.Y)+8;
+        FVector Next=P+Direction*Speed*D; Next.Z=(Flee?World->SurfaceHeight(Next.X,Next.Y):World->Height(Next.X,Next.Y))+8;
         if(Brood&&!World->Geology->BugCanStep(P,Next)) {Home=P-Direction*650;return;}
         const auto Rock=ETRock::Chunk(Next);
         if(FrontUnit||World->Geology->ReplacesSurface({Rock.X,Rock.Y})) {

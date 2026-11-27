@@ -24,6 +24,7 @@ void ETWake::Trial(AETWorld& W,AETCharacter& P) {
     static bool Ran=false;if(Ran||W.WakeLayout==INDEX_NONE||!P.Controller)return;
     FString Route;FParse::Value(FCommandLine::Get(),TEXT("ETWakeTest="),Route);
     if(Route=="combat"||Route=="combat-view"){ETCombat::Trial(W,P,Route=="combat-view");return;}
+    if(Route=="deer-view"){ETFlora::DeerView(W,P);return;}
     if(Route=="woodland-view"){
         static int Scene=0;static double Since=0;static bool Captured=false;
         static TWeakObjectPtr<AETAgent> Subject;static FVector Home,Eye,Look;
@@ -106,6 +107,10 @@ void ETWake::Trial(AETWorld& W,AETCharacter& P) {
     auto Check=[&](bool Ok,FString Label){Failures+=!Ok;Results+=(Ok?TEXT("PASS "):TEXT("FAIL "))+Label+TEXT("\n");FFileHelper::SaveStringToFile(Results,*Report);};
     auto Finish=[&](){Results+=FString::Printf(TEXT("TOTAL %d failures\n"),Failures);FFileHelper::SaveStringToFile(Results,*Report);FPlatformMisc::RequestExitWithStatus(false,Failures?2:0);};
     auto& S=W.State->Wake;
+    if(Route=="deer"||Route=="deer-legacy"){
+        if(Route=="deer-legacy")Check(W.HadSave,TEXT("Opened the existing survivor before streaming wildlife"));
+        ETFlora::DeerTrial(W,P,Check);Finish();return;
+    }
     if(Route==TEXT("legacy")){
         Check(W.HadSave&&S.Chapter==Missing&&S.Body==Human&&!S.HasCar()&&S.Restored()==0&&S.Valid(),TEXT("Previous release survivor opened with an unstarted MegaWAKE campaign"));
         Check(W.WakeObjects.FindRef("thrum")&&W.Weapons.Num()>0&&W.State->Skills.Contains(TEXT("survivor")),TEXT("Existing skills, arsenal, and new story contact loaded together"));

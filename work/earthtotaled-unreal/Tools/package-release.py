@@ -18,7 +18,9 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions=f'''EARTHtotaled {version} / Combat Signals - Windows update repair
+instructions=f'''EARTHtotaled {version} / Woodland deer and Windows updater repair
+Look for grazing herds in Blackpine Forest. From Shelter 09, follow the highway west
+and look into the woods south of the road. They graze until you get close.
 Enemy calls now come from their position. Esc changes alert volume, captions and damage flash.
 Health and shield bracket the reticle. The upper bar tracks one opponent.
 Look for folded candy wrappers, bent ferns and repeating hoofprints along the shelter road.

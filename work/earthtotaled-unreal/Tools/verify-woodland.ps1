@@ -14,7 +14,7 @@ function Invoke-WoodlandTrial([string]$route,[string]$profile,[string[]]$options
     if(!$process.WaitForExit(240000)){$process.Kill();throw "Timed out on $route"}
     $report=Join-Path $profile 'Saved/megawake-journey.txt'
     if($process.ExitCode -ne 0){if(Test-Path -LiteralPath $report){Get-Content $report};throw "$route failed with exit $($process.ExitCode)"}
-    if($route -ne 'woodland-view'){
+    if(!$route.EndsWith('-view')){
         $lines=Get-Content -LiteralPath $report
         if($lines[-1] -ne 'TOTAL 0 failures'){throw "$route has incomplete checks"}
         $lines
@@ -24,18 +24,24 @@ $wild=Join-Path $root 'woodland'
 if(Test-Path -LiteralPath (Join-Path $wild 'Saved/SaveGames')){throw 'Use a fresh test folder for wildlife and loot persistence.'}
 $result=Invoke-WoodlandTrial 'woodland' $wild @('-nullrhi','-nosound')
 $result
+Invoke-WoodlandTrial 'deer' (Join-Path $root 'deer') @('-nullrhi','-nosound')
 if($LegacySlot){
     $profile=Join-Path $root 'old-survivor'
     $saves=Join-Path $profile 'Saved/SaveGames';[IO.Directory]::CreateDirectory($saves) | Out-Null
     [IO.File]::Copy((Resolve-Path $LegacySlot).Path,(Join-Path $saves 'EARTHtotaled-Unreal-01.sav'),$false)
     Invoke-WoodlandTrial 'trail-legacy' $profile @('-nullrhi','-nosound')
+    $deerProfile=Join-Path $root 'deer-legacy'
+    $deerSaves=Join-Path $deerProfile 'Saved/SaveGames';[IO.Directory]::CreateDirectory($deerSaves) | Out-Null
+    [IO.File]::Copy((Resolve-Path $LegacySlot).Path,(Join-Path $deerSaves 'EARTHtotaled-Unreal-01.sav'),$false)
+    Invoke-WoodlandTrial 'deer-legacy' $deerProfile @('-nullrhi','-nosound')
 }
 if($Render){
     $location=$result | Where-Object {$_ -match 'closest -?\d+,-?\d+'} | Select-Object -First 1
     if($location -notmatch 'closest (-?\d+),(-?\d+)'){throw 'Missing surveyed den'}
     $profile=Join-Path $root 'render'
     Invoke-WoodlandTrial 'woodland-view' $profile @(('-DenX='+$Matches[1]),('-DenY='+$Matches[2]),'-windowed','-ResX=1280','-ResY=800','-ForceRes')
-    foreach($name in 'woodland-bear.png','forest-floor.png','woodland-voice.txt'){
+    Invoke-WoodlandTrial 'deer-view' $profile @('-windowed','-ResX=1280','-ResY=800','-ForceRes','-nosound')
+    foreach($name in 'blackpine-deer.png','woodland-bear.png','forest-floor.png','woodland-voice.txt'){
         $file=Get-Item -LiteralPath (Join-Path $profile ('Saved/'+$name))
         if(!$file.Length){throw "Empty capture $name"}
         $file.FullName

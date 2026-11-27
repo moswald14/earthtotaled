@@ -642,9 +642,12 @@ bool AETRegion::AdvanceGenerate()
     AddBearDen();
     for(int32 I=0;I<5;++I)
     {
-        FVector P=Origin+FVector(R.FRandRange(3000,29000),R.FRandRange(3000,29000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+30;
-        FString Id=FString::Printf(TEXT("r%d,%d-agent%d"),C.X,C.Y,I); if(W->State->Consumed.Contains(Id)||(I<3&&W->SettledCity(P))) continue;
-        auto A=GetWorld()->SpawnActor<AETAgent>(P,FRotator::ZeroRotator); A->SetOwner(this); A->Configure(W,Id,I==0?TEXT("robot"):I==1?TEXT("wolf"):I==2?TEXT("boar"):TEXT("deer")); Residents.Add(A);
+        FVector P=Origin+FVector(R.FRandRange(3000,29000),R.FRandRange(3000,29000),0);
+        // Keep the two legacy random draws so existing traps and other residents keep their sites.
+        if(I>=3){AddDeerHerd(I-3);continue;}
+        if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+30;
+        FString Id=FString::Printf(TEXT("r%d,%d-agent%d"),C.X,C.Y,I); if(W->State->Consumed.Contains(Id)||W->SettledCity(P)) continue;
+        auto A=GetWorld()->SpawnActor<AETAgent>(P,FRotator::ZeroRotator); A->SetOwner(this); A->Configure(W,Id,I==0?TEXT("robot"):I==1?TEXT("wolf"):TEXT("boar")); Residents.Add(A);
     }
     for(int32 I=0;I<3;++I)
     {
