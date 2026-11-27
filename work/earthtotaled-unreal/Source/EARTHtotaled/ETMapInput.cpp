@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETRing.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
@@ -131,15 +132,22 @@ void AETCharacter::UseMapPoint(FVector2D Pixel,const ETNav::FChart& Chart,bool P
     }
     const auto WorldPoint=Chart.WorldAt(Pixel); const auto SelectedCity=ETNav::District(WorldPoint);
     const auto Refuge=ETNav::Refuge(SelectedCity);
-    const bool AtRefuge=FVector2D::Distance(Pixel,Chart.Plot(Refuge))<Best;
-    TOptional<FVector2D> Colony;
+    const double RefugeDistance=FVector2D::Distance(Pixel,Chart.Plot(Refuge));
+    bool AtRefuge=RefugeDistance<Best;
+    TOptional<FVector2D> Landmark;
+    double Nearest=FMath::Min(RefugeDistance,Best);
+    auto Consider=[&](FVector2D At) {
+        const double D=FVector2D::Distance(Pixel,Chart.Plot(At));
+        if(D<Nearest) {Nearest=D;Landmark=At;AtRefuge=false;}
+    };
     const FVector2D Reach(Best/Chart.Scale());
     ETNav::Sites(FBox2D(WorldPoint-Reach,WorldPoint+Reach),[&](const ETNav::FSite& S){
-        if(FVector2D::Distance(Pixel,Chart.Plot(S.Center))<Best) Colony=S.Center;});
+        Consider(S.Center);});
+    for(int I=0;I<ETRing::Stops;++I) Consider(ETRing::Station(I));
     if(Found!=INDEX_NONE) S->TrackedPin=Found;
     else if(AtRefuge&&SelectedCity==ETNav::District(FVector2D(GetActorLocation()))) S->TrackedPin=INDEX_NONE;
-    else if(!Place&&!AtRefuge&&!Colony.IsSet()) return;
-    else if(S->MapPins.Num()<ETNav::MaxPins) S->TrackedPin=S->MapPins.Add(InWorld(AtRefuge?Refuge:Colony.Get(WorldPoint)));
+    else if(!Place&&!AtRefuge&&!Landmark.IsSet()) return;
+    else if(S->MapPins.Num()<ETNav::MaxPins) S->TrackedPin=S->MapPins.Add(InWorld(AtRefuge?Refuge:Landmark.Get(WorldPoint)));
     else {MapMessage=TEXT("Pin list is full. Select a pin and press Delete to make room."); return;}
     MapMessage.Empty(); World->Save();
 }
@@ -150,6 +158,10 @@ void AETCharacter::MapCommand(FKey Key,FVector2D Viewport)
     const FVector2D Here(GetActorLocation()); auto* S=World->State;
     if(Key==EKeys::M||Key==EKeys::Escape) {ClosePanel(); return;}
     if(Key==EKeys::Home) MapCenter=Here;
+    else if(Key==EKeys::R) {
+        MapCenter=ETRing::Center;
+        MapSpan=FMath::Min(ETNav::MaxSpan,2.22*ETRing::Radius*FMath::Max(1.,Chart.Size.Y/Chart.Size.X));
+    }
     else if(Key==EKeys::C) {
         const auto City=ETNav::Refuge(ETNav::District(Here)),Gap=(Here-City).GetAbs();
         MapCenter=(City+Here)*.5; MapSpan=FMath::Clamp(FMath::Max3(24000.,Gap.Y*1.45,Gap.X*1.45*Chart.Size.Y/Chart.Size.X),ETNav::MinSpan,ETNav::MaxSpan);

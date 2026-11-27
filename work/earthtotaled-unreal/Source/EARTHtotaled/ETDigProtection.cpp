@@ -1,5 +1,6 @@
 #include "ETGeology.h"
 #include "ETGame.h"
+#include "ETRing.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/StaticMesh.h"
@@ -10,6 +11,15 @@ const TCHAR* UETGeology::DigRestriction(const FBox2D& Area) const
     const FVector2D Town(World->CityCenter(Center.X,Center.Y));
     const FVector2D Nearest(FMath::Clamp(Town.X,Area.Min.X,Area.Max.X),FMath::Clamp(Town.Y,Area.Min.Y,Area.Max.Y));
     if(FVector2D::DistSquared(Town,Nearest)<=FMath::Square(27000.)) return TEXT("Protected city ground / mine outside the district");
+
+    // Keep the ground under each concrete pier, including piers in unloaded districts.
+    constexpr double PierFoot=94.;
+    if(FMath::Abs(FVector2D::Distance(Center,ETRing::Center)-ETRing::Radius)<=Area.GetExtent().Size()+PierFoot) {
+        for(int I=0;I<ETRing::Spans;I+=2) {
+            const auto Pier=ETRing::Position(I*UE_TWO_PI/ETRing::Spans);
+            if(Area.ComputeSquaredDistanceToPoint(Pier)<=FMath::Square(PierFoot)) return TEXT("Protected Ringline pier / mine between the supports");
+        }
+    }
 
     if(FVector2D::Distance(Center,Town)<43500.+Area.GetExtent().Size()) {
         const FVector2D Tank(World->TowerLocation(ETNav::District(Center)));

@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETLandfall.h"
+#include "ETRingLine.h"
 #include "ETSaveDisk.h"
 #include "ETGeology.h"
 #include "ETTerrainMath.h"
@@ -7,6 +8,7 @@
 #include "ETSpawnSafety.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
+#include "Engine/GameViewportClient.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -79,6 +81,11 @@ void AETWorld::LoadDesign()
     if((!Review||JourneyResume||MineResume)&&UGameplayStatics::DoesSaveGameExist(SaveSlot,0)) State=Cast<UETSave>(UGameplayStatics::LoadGameFromSlot(SaveSlot,0));
     HadSave=State&&State->Schema==1;
     if(!HadSave) {State=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass())); State->BuildStock=0; if(!Review&&!FrontierQA&&!BorerRecoveryQA) State->ArrivalStage=0;}
+    if(!State->HasRingDisplay) {
+        if(State->RenderScale==100) State->RenderScale=125;
+        State->HasRingDisplay=true;
+    }
+    if(Review&&FParse::Param(FCommandLine::Get(),TEXT("ETPerfTest"))) FParse::Value(FCommandLine::Get(),TEXT("ETRenderScale="),State->RenderScale);
     if(!State->ModernDay) {
         if(HadSave) {State->ClockOffset=ETDay::FromOld(State->Elapsed); State->Shield=State->Health<25?0.f:60.f; State->ShieldDelay=10;}
         else {State->ClockOffset=ETDay::At(9);State->RetroDisplay=false;}
@@ -150,6 +157,7 @@ void AETWorld::BeginPlay()
             auto* Component=Prop->GetStaticMeshComponent();
             if(const auto* Mesh=Component->GetStaticMesh().Get()) {
                 const FName Name=Mesh->GetFName();
+                if(Name==TEXT("SM_House")||Name==TEXT("SM_Tenement")) Component->EmptyOverrideMaterials();
                 if(Name==TEXT("SM_House")||Name==TEXT("SM_Warehouse")||Name==TEXT("SM_Tenement")||Name==TEXT("SM_Canopy")||Name==TEXT("SM_Shop")) {
                     const FBox Bounds=Component->Bounds.GetBox();
                     ShelterBuildings.Emplace(FVector2D(Bounds.Min),FVector2D(Bounds.Max));
@@ -352,6 +360,8 @@ void AETWorld::Tick(float Delta)
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!P||P->Panel==TEXT("travel")) return;
     static const bool ArrivalQA=FParse::Param(FCommandLine::Get(),TEXT("ETLandfallQA"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
     if(ArrivalQA) ETLandfall::DriveTest(*this,*P);
+    static const bool RingQA=FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="));
+    if(RingQA&&RingTrain) RingTrain->TestRide(*P);
     if(P->Panel==TEXT("arrival")) {P->TickArrival();return;}
     if(SlotQA&&!SelfTest) TickSlotJourney(P);
     if(FrontierQA) TickFrontierJourney(P,Delta);
@@ -379,8 +389,11 @@ void AETWorld::Tick(float Delta)
         if(Now-PerfStart>30&&FrameTimes.Num()>30) {
             PerfFinished=true; FrameTimes.Sort(); double Total=0; for(double T:FrameTimes) Total+=T;
             const double Average=Total/FrameTimes.Num(),P95=FrameTimes[FMath::FloorToInt((FrameTimes.Num()-1)*.95)];
-            const FString Report=FString::Printf(TEXT("{\"samples\":%d,\"average_ms\":%.3f,\"p95_ms\":%.3f,\"average_fps\":%.2f,\"render_scale\":%d,\"loaded_regions\":%d,\"scope\":\"25 second stationary view after 5 second warmup\"}"),FrameTimes.Num(),Average,P95,1000/Average,State->RenderScale,Regions.Num());
+            const auto* Client=GetWorld()->GetGameViewport();
+            const FIntPoint Size=Client&&Client->Viewport?Client->Viewport->GetSizeXY():FIntPoint::ZeroValue;
+            const FString Report=FString::Printf(TEXT("{\"samples\":%d,\"average_ms\":%.3f,\"p95_ms\":%.3f,\"average_fps\":%.2f,\"render_scale\":%d,\"output_width\":%d,\"output_height\":%d,\"loaded_regions\":%d,\"scope\":\"25 second stationary view after 5 second warmup\"}"),FrameTimes.Num(),Average,P95,1000/Average,State->RenderScale,Size.X,Size.Y,Regions.Num());
             FFileHelper::SaveStringToFile(Report,*(FPaths::ProjectSavedDir()/TEXT("graphics-performance.json")));
+            if(FParse::Param(FCommandLine::Get(),TEXT("ETPerfExit"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="))) FPlatformMisc::RequestExit(false);
             P->OpenPanel(TEXT("pause"),TEXT("GRAPHICS CHECK COMPLETE"),TEXT("Temporary test session / your saved survivor is untouched."));
         }
     }
@@ -401,6 +414,7 @@ bool AETWorld::Save()
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0));
     if(!State||!P||P->Panel==TEXT("travel")||State->Health<=0||(Review&&JourneyEnding.IsEmpty())) return false;
     State->Position=P->Climbing?P->ClimbStart:P->GetActorLocation(); State->View=P->GetControlRotation();
+    if(RingTrain) RingTrain->Capture(*P);
     for(auto It:LiveThreats) if(IsValid(It.Value)) if(auto* R=State->Threats.Find(It.Key)) It.Value->Snapshot(*R);
     if(!ETSaveDisk::Write(State,SaveSlot)) {Say(TEXT("Save failed. Check available storage.")); return false;}
     HadSave=true; return true;
@@ -698,16 +712,18 @@ AETGameMode::AETGameMode() {DefaultPawnClass=AETCharacter::StaticClass(); HUDCla
 void AETGameMode::InitGame(const FString& MapName,const FString& Options,FString& Error)
 {
     Super::InitGame(MapName,Options,Error); World=GetWorld()->SpawnActor<AETWorld>(); World->LoadDesign();
+    World->RingTrain=GetWorld()->SpawnActor<AETRingLine>();
+    World->RingTrain->Initialize(World);
     FVector P=World->State->Position;
     if(World->Review&&!World->JourneyResume&&!World->MineResume) P.Z=World->Height(P.X,P.Y)+110;
-    else P=World->ResolveStart(P);
+    else P=World->State->OnRing?World->RingTrain->SavedPosition():World->ResolveStart(P);
     if(World->HadSave&&UGameplayStatics::HasOption(Options,TEXT("ETRecoverShelter"))) {
         World->StreamAround(GetDefault<UETSave>()->Position,true);
         if(World->FindShelterLanding(P)) {
             World->State->Position=P; World->State->WinchAnchor=P; World->State->View=GetDefault<UETSave>()->View;
             World->State->Health=FMath::Max(50.f,World->State->Health);
             World->State->Hydration=FMath::Max(50.f,World->State->Hydration);
-            World->AtRecoveryShelter=true;
+            World->AtRecoveryShelter=true; World->State->OnRing=false;
         } else World->Say(TEXT("Shelter landing obstructed / resuming at your last save"));
     }
     World->StreamAround(P,true);

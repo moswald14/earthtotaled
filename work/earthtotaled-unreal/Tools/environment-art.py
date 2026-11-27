@@ -44,14 +44,14 @@ def leaf(m,p,d,length,width,twist=0,flat=False):
 def pine(seed,name,height=1580):
     r=random.Random(seed); m=Mesh(); m.paint('Bark')
     spine=[(20*math.sin(j*.46),15*math.sin(j*.7),j*height/16) for j in range(17)]
-    tube(m,spine,[max(1,32*(1-j/17)**1.1) for j in range(17)],16)
+    tube(m,spine,[max(1,32*(1-j/17)**1.1) for j in range(17)],28)
     for a in [0,.8,2.1,3.2,4.7]:
         tube(m,[(0,0,45),(math.cos(a)*55,math.sin(a)*55,12),(math.cos(a)*105,math.sin(a)*105,0)],[18,10,1],8)
-    for tier in range(11):
-        z=310+tier*(height-390)/11; spread=(height-z)*.255+r.uniform(-18,20)
-        for b in range(5):
+    for tier in range(14):
+        z=310+tier*(height-390)/14; spread=(height-z)*.255+r.uniform(-18,20)
+        for b in range(6):
             if r.random()<.11: continue
-            a=b*TAU/5+tier*2.399+r.uniform(-.32,.32); direction=(math.cos(a),math.sin(a),0)
+            a=b*TAU/6+tier*2.399+r.uniform(-.32,.32); direction=(math.cos(a),math.sin(a),0)
             start=(20*math.sin(z/height*7.36),15*math.sin(z/height*11.2),z)
             end=add(start,add(mul(direction,spread), (0,0,r.uniform(-70,20))))
             mid=add(mix(start,end,.55),(0,0,-22))
@@ -65,11 +65,11 @@ def pine(seed,name,height=1580):
                     twig_end=add(origin,mul(direction2,size))
                     m.paint('Bark'); tube(m,[origin,twig_end],[1.7,.2],5)
                     m.paint('Pine' if (tier+b+t)%3 else 'Leaf')
-                    for q in range(6):
-                        p=mix(origin,twig_end,.12+q*.14)
+                    for q in range(8):
+                        p=mix(origin,twig_end,.10+q*.115)
                         for s in [-1,1]:
                             aa=twig_angle+s*.55
-                            leaf(m,p,(math.cos(aa),math.sin(aa),.15+r.uniform(-.35,.35)),r.uniform(20,32),r.uniform(2.8,4.2),r.uniform(-.6,.6),flat=True)
+                            leaf(m,p,(math.cos(aa),math.sin(aa),.15+r.uniform(-.35,.35)),r.uniform(17,30),r.uniform(2.1,3.7),r.uniform(-.6,.6))
     m.save(name)
 
 def birch(seed,name,bare=False):
@@ -146,6 +146,19 @@ def facade(m,half,back,height,seed):
     for x in [-half-18,half+18]:
         tube(m,[(x,back-80,18),(x,back-80,height-25),(x-10,back-80,height)],[6,6,6],12)
         for z in [70,height-50]: m.box((x,back-80,z),(20,20,4),bevel=1)
+        # Brackets, couplings and the worn ribs of a cast-iron downpipe.
+        for z in range(48,int(height)-20,62):
+            m.paint('Rust').torus((x,back-80,z),6.6,1.6,'z',20,6)
+        for z in (78,height-64):
+            m.paint('Steel').box((x,back-80,z),(26,22,5),bevel=1)
+            for offset in (-8,8):
+                m.paint('Rust').beam((x+offset,back-87,z+2),(x+offset,back-87,z+5),2.5,8,1)
+    for side in (-1,1):
+        for row in range(3):
+            # A fractured outer course exposes the brick returns at the corner.
+            for j in range(5-row):
+                m.paint('Brick').box((side*(half+11),back-46-j*36+(row%2)*13,53+row*15),
+                                     (11,32,13),yaw=r.uniform(-2,2),bevel=2.2)
 
 def house():
     m=Mesh(); m.paint('Concrete'); m.box((0,0,0),(1240,1040,32))
@@ -177,7 +190,7 @@ def house():
     m.paint('DarkMetal'); m.box((-84,-519,140),(10,16,248),bevel=2); m.box((84,-519,140),(10,16,248),bevel=2)
     m.save('SM_House'); return m
 
-def architecture():
+def architecture(tenement_only=False):
     h=house(); m=Mesh()
     for floor in range(3):
         m.copy_from(h,(0,0,floor*380))
@@ -203,6 +216,7 @@ def architecture():
         m.paint('DarkMetal'); m.box((615,220,z),(65,120,65),bevel=5)
         for y in range(175,270,14): m.box((651,y,z),(4,5,50),bevel=.5)
     m.save('SM_Tenement')
+    if tenement_only: return
     roof=Mesh(); roof.paint('Wood'); roof.box((0,0,370),(1290,1090,24))
     # Surviving front roof section leaves the ladder landing and relay route open.
     for y in range(-480,-119,120):

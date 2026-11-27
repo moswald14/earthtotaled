@@ -16,6 +16,7 @@ class UHierarchicalInstancedStaticMeshComponent;
 class UProceduralMeshComponent;
 class UMaterialInterface;
 class AETWorld;
+class AETRingLine;
 class AETCharacter;
 class ADirectionalLight;
 class ASkyLight;
@@ -172,6 +173,10 @@ public:
     UPROPERTY() float StimTime=0;
     UPROPERTY() int32 ViewDistance=500;
     UPROPERTY() int32 RenderScale=100;
+    UPROPERTY() bool HasRingDisplay=false;
+    UPROPERTY() double RingClock=0;
+    UPROPERTY() bool OnRing=false;
+    UPROPERTY() FVector RingOffset=FVector::ZeroVector;
     UPROPERTY() int32 MusicVolume=50;
     UPROPERTY() int32 WeatherVolume=75;
     // New optional fields keep the original slot and wrapper balance compatible.
@@ -334,6 +339,7 @@ class EARTHTOTALED_API AETWorld : public AActor
     GENERATED_BODY()
 public:
     AETWorld();
+    UPROPERTY() AETRingLine* RingTrain=nullptr;
     virtual void BeginPlay() override;
     virtual void Tick(float Delta) override;
     void LoadDesign();
@@ -565,6 +571,7 @@ public:
     virtual void Tick(float Delta) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     virtual void PawnClientRestart() override;
+    virtual void BaseChange() override;
     virtual void Landed(const FHitResult& Hit) override;
     virtual float TakeDamage(float Damage, const FDamageEvent& Event, AController* Instigator, AActor* Causer) override;
     UPROPERTY() UCameraComponent* Camera;

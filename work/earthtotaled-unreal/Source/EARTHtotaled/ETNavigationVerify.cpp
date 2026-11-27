@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETRing.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
@@ -140,4 +141,10 @@ void AETWorld::CheckAtlasInput(AETCharacter* P,TFunctionRef<void(bool,const FStr
     Check(P->MapCenter.Equals(Here,.01),TEXT("Home recenters the large chart on the player"));
     if(State->MapPins.Num()) Click(EKeys::LeftMouseButton,Chart().Plot(State->MapPins[0]));
     Check(State->TrackedPin==0&&State->MapPins.Num()==1,TEXT("Clicking a saved marker restores its compass bearing"));
+    Key(EKeys::R);
+    bool AllVisible=P->MapCenter.Equals(ETRing::Center,1.);
+    for(int I=0;I<ETRing::Stops;++I) AllVisible&=Chart().Inside(Chart().Plot(ETRing::Station(I)));
+    Check(AllVisible,TEXT("R frames all eight Ringline station markers from the actual atlas"));
+    Click(EKeys::LeftMouseButton,Chart().Plot(ETRing::Station(4)));
+    Check(State->MapPins.IsValidIndex(State->TrackedPin)&&State->MapPins[State->TrackedPin].Equals(ETRing::Station(4),1.),TEXT("Clicking a rail stop tracks its boarding platform"));
 }

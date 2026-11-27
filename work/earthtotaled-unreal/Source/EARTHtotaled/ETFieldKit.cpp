@@ -90,7 +90,7 @@ void AETCharacter::StartFresh()
     auto* Fresh=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass()));
     Fresh->RetroDisplay=false; Fresh->ModernDay=true; Fresh->ClockOffset=ETDay::At(9); Fresh->Seed=World->FrontierQA?84371:FMath::RandRange(1,MAX_int32-1);
     Fresh->ArrivalStage=World->Review?-1:0; Fresh->LandscapeEdition=1; Fresh->BuildStock=0;
-    Fresh->RetroDisplay=World->State->RetroDisplay; Fresh->RenderScale=World->State->RenderScale;
+    Fresh->RetroDisplay=World->State->RetroDisplay; Fresh->RenderScale=World->State->RenderScale; Fresh->HasRingDisplay=true;
     Fresh->ViewDistance=World->State->ViewDistance; Fresh->MusicVolume=World->State->MusicVolume; Fresh->WeatherVolume=World->State->WeatherVolume;
     if(!ETSaveDisk::Write(Fresh,World->SaveSlot,true)) {PanelBody=TEXT("Could not start the new save. Check free disk space and try again."); return;}
     ContinueSurvivor();

@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETRingLine.h"
 #include "ETWarClock.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
@@ -137,6 +138,30 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         RoadLabels.Emplace(Label,FString(Road.Name));
     };
     for(const auto& Road:Roads) DrawRoad(Road);
+    const FLinearColor Rail(.27,.91,.80);
+    if(W.RingTrain) {
+        static const TArray<FVector2D> Path=[] {
+            TArray<FVector2D> Points;
+            for(int I=0;I<=512;++I) Points.Add(ETRing::Position(I*UE_TWO_PI/512.));
+            return Points;
+        }();
+        for(int I=1;I<Path.Num();++I) Stroke(Path[I-1],Path[I],Rail,Small?1.5f:2.f);
+        const FBox2D Inset(Screen.Min+FVector2D(10*U),Screen.Max-FVector2D(10*U));
+        for(int I=0;I<ETRing::Stops;++I) {
+            const auto Pixel=Chart.Plot(ETRing::Station(I));
+            if(!Inset.IsInsideOrOn(Pixel)) continue;
+            const double R=4*U;
+            DrawRect(Panel,Pixel.X-R-1,Pixel.Y-R-1,2*R+2,2*R+2);
+            DrawRect(Rail,Pixel.X-R,Pixel.Y-R,2*R,2*R);
+            if(!Small&&Pixel.X+130*U<Screen.Max.X&&Pixel.Y+24*U<Screen.Max.Y)
+                Text(FString::Printf(TEXT("R%d  %s"),I+1,ETRing::Name(I)),Pixel.X+7*U,Pixel.Y+6*U,Rail,.82*U);
+        }
+        const auto Train=Chart.Plot(ETRing::Position(W.RingTrain->Phase.Angle));
+        if(Inset.IsInsideOrOn(Train)) {
+            auto D=ETRing::Radial(W.RingTrain->Phase.Angle);
+            Arrow(*this,Train,{-D.Y,D.X},8*U,Rail);
+        }
+    }
     for(const auto& Label:RoadLabels) Text(Label.Value,Label.Key.X,Label.Key.Y,Sage,.82*U);
     // Clip first, so a waypoint on the other side of the world can never create an unbounded dotted line.
     FVector2D A=Here,B=Tracked;
@@ -293,8 +318,8 @@ void AETHUD::DrawAtlas(AETCharacter* P)
         FillBox(*this,B,FLinearColor(.10,.15,.119));
         TickText(*this,Labels[I],{B.GetCenter().X,B.Min.Y+6*U},I==4&&!Pinned?Sage:Ink,1.02*U);
     }
-    Text(P->MapMessage.IsEmpty()?TEXT("Drag to pan    ·    Scroll to zoom    ·    Right-click to mark    ·    Click a marker to track"):P->MapMessage,
+    Text(P->MapMessage.IsEmpty()?TEXT("Drag to pan    ·    Scroll to zoom    ·    Right-click to mark    ·    R to show Ringline"):P->MapMessage,
         X,End.Y+56*U,Ink,.99*U);
-    const FString Legend=TEXT("City / amber     Pin / blue"); GetTextSize(Legend,TW,TH,GEngine->GetSmallFont(),.92*U);
+    const FString Legend=TEXT("City / amber     Pin / blue     Rail / teal"); GetTextSize(Legend,TW,TH,GEngine->GetSmallFont(),.92*U);
     if(View.X>1050*U) Text(Legend,End.X-TW,End.Y+57*U,Sage,.92*U);
 }

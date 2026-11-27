@@ -1,19 +1,7 @@
 {
   "SM_House": {
-    "triangles": 10568,
-    "vertices": 23004,
-    "materials": [
-      "Brick",
-      "Concrete",
-      "DarkMetal",
-      "Glass",
-      "Plaster",
-      "Wood"
-    ]
-  },
-  "SM_Tenement": {
-    "triangles": 35820,
-    "vertices": 77652,
+    "triangles": 14680,
+    "vertices": 31260,
     "materials": [
       "Brick",
       "Concrete",
@@ -21,6 +9,21 @@
       "Glass",
       "Plaster",
       "Rust",
+      "Steel",
+      "Wood"
+    ]
+  },
+  "SM_Tenement": {
+    "triangles": 48156,
+    "vertices": 102420,
+    "materials": [
+      "Brick",
+      "Concrete",
+      "DarkMetal",
+      "Glass",
+      "Plaster",
+      "Rust",
+      "Steel",
       "Wood"
     ]
   },
@@ -84,8 +87,8 @@
     ]
   },
   "SM_Pine": {
-    "triangles": 23404,
-    "vertices": 57556,
+    "triangles": 60248,
+    "vertices": 163248,
     "materials": [
       "Bark",
       "Leaf",
@@ -385,8 +388,8 @@
     ]
   },
   "SM_PineB": {
-    "triangles": 21184,
-    "vertices": 52056,
+    "triangles": 63624,
+    "vertices": 172448,
     "materials": [
       "Bark",
       "Leaf",
@@ -600,6 +603,49 @@
       "DarkMetal",
       "Rubber",
       "Signal",
+      "Steel"
+    ]
+  },
+  "SM_RingSled": {
+    "triangles": 14928,
+    "vertices": 27776,
+    "materials": [
+      "Canvas",
+      "CircuitLight",
+      "DarkMetal",
+      "Rubber",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_RingGuide": {
+    "triangles": 1540,
+    "vertices": 3360,
+    "materials": [
+      "Concrete",
+      "DarkMetal",
+      "Rust",
+      "Steel"
+    ]
+  },
+  "SM_RingPier": {
+    "triangles": 208,
+    "vertices": 384,
+    "materials": [
+      "Concrete",
+      "Rust"
+    ]
+  },
+  "SM_RingStation": {
+    "triangles": 11304,
+    "vertices": 23616,
+    "materials": [
+      "Canvas",
+      "CircuitLight",
+      "Concrete",
+      "DarkMetal",
+      "Greenline",
+      "Rust",
       "Steel"
     ]
   }

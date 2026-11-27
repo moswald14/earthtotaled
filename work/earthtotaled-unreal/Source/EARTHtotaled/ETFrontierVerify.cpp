@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETRing.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -270,9 +271,9 @@ void AETWorld::TickFrontierJourney(AETCharacter* P,float Delta)
         Finish(); return;
     }
     if(Step==1) {
-        if(P->Panel!=TEXT("story")) return;
+        if(!P->Panel.IsEmpty()||State->ArrivalStage!=1) return;
         Check(State->BuildStock==0&&State->Inventory.FindRef(TEXT("wood"))==0,TEXT("Fresh survivor starts ready to harvest their first wooden frame"));
-        P->Action(TEXT("resume")); Check(Capture(),TEXT("Leaving the opening restores permanent mouse capture"));
+        Check(Capture(),TEXT("Leaving the opening restores permanent mouse capture"));
         const FVector Birch(-1320,-1950,0);
         AimAt(P,Birch+FVector(0,-165,82),Birch+FVector(0,0,82)); P->Tick(.01f); P->Interact();
         Check(State->Inventory.FindRef(TEXT("wood"))==8,TEXT("Use on the starter birch supplies two wooden pieces"));
@@ -392,7 +393,8 @@ void AETWorld::TickFrontierJourney(AETCharacter* P,float Delta)
     if(Step==3||Step==6) {
         if(!P->Panel.IsEmpty()||!GetWorld()->URL.HasOption(TEXT("ETContinue"))) return;
         Check(Capture(),TEXT("Continue restores game-only mouse look"));
-        Check(State->MapPins.Num()==1&&State->TrackedPin==0&&!State->LightAimAssist,TEXT("Continue restores the selected atlas pin and aim assist preference"));
+        Check(State->MapPins.Num()==2&&State->TrackedPin==1&&State->MapPins[1].Equals(ETRing::Station(4),1.)&&!State->LightAimAssist,
+            TEXT("Continue restores the hand-placed pin, tracked Ringline station and aim assist preference"));
         Check(State->Builds.Num()==1&&LiveBuilds.Num()>0&&State->SquareCuts.Num()>=5&&State->SquareBorer,TEXT("Saved wall and square excavations reload into the world"));
         Check(State->Ammo[0]==3&&P->GunRank(0)==3&&State->Threats.Contains(TEXT("field-test/shard0")),TEXT("Partial magazine, gun upgrades and surviving drone reload"));
         if(!Cold) {Finish(); return;}
@@ -401,11 +403,11 @@ void AETWorld::TickFrontierJourney(AETCharacter* P,float Delta)
         Step=7; SaveTime=21; P->Action(TEXT("confirm"));
         Check(!Save(),TEXT("A pending autosave from the departing world cannot overwrite the fresh survivor")); return;
     }
-    if(Step==7&&P->Panel==TEXT("story")) {
+    if(Step==7&&P->Panel.IsEmpty()&&State->ArrivalStage==1) {
         const auto* Old=Cast<UETSave>(UGameplayStatics::LoadGameFromSlot(SaveSlot+TEXT("-previous"),0));
         Check(Old&&Old->Builds.Num()==1&&Old->SquareCuts.Num()>=5&&Old->WeaponDamage[0]==479,TEXT("Previous survivor retained in an intact backup slot"));
         Check(State->SquareCuts.IsEmpty()&&State->Builds.IsEmpty()&&State->Threats.IsEmpty()&&P->GunRank(0)==1&&State->JetFuel==100&&State->Ammo[0]==Weapons[0].Mag,TEXT("Confirmed restart returns to the opening with fresh terrain, gear and enemies"));
-        P->Action(TEXT("resume")); P->Die(); P->Action(TEXT("main-menu"));
+        P->Die(); P->Action(TEXT("main-menu"));
         Check(P->Panel==TEXT("title")&&PC->bShowMouseCursor,TEXT("Death screen also returns to the main menu"));
         Finish();
     }

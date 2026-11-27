@@ -87,6 +87,28 @@ for p in art.glob('*.png'):
         check(zlib.crc32(kind+content)&0xffffffff==crc,'Texture CRC: '+p.name); pos+=n+12
 check(len({(art/f'SM_Weapon{i}.obj').read_bytes() for i in range(10)})==10,'Ten distinct weapon meshes')
 details=json.loads((art/'mesh-detail.json').read_text())
+for name in ('Ground','Concrete','Bark','Asphalt','Steel','Carapace','AlloyHull'):
+    for layer in ('BaseColor','Normal','Roughness'):
+        texture=(art/('T_Relief'+name+'_'+layer+'.png')).read_bytes()
+        width,height=struct.unpack('>II',texture[16:24])
+        check((width,height)==(4096,4096),'Ringline 4K '+name+' '+layer)
+        chunks=[]
+        pos=8
+        while pos<len(texture):
+            count,kind=struct.unpack_from('>I4s',texture,pos)
+            if kind==b'IDAT': chunks.append(texture[pos+8:pos+8+count])
+            pos+=count+12
+        raw=zlib.decompress(b''.join(chunks))
+        stride=width*3+1
+        check(texture[24:26]==bytes((8,2)) and len(raw)==stride*height and
+              all(raw[y*stride]==0 for y in range(height)),'Authored RGB texels decode: '+name+' '+layer)
+        samples=[raw[y*stride+1+x*3:y*stride+4+x*3] for y in range(17,height,79) for x in range(13,width,73)]
+        check(len(set(samples))>16 and all(max(pixel[c] for pixel in samples)>20 for c in range(3)),
+              'Color and surface relief vary across the tile: '+name+' '+layer)
+        if layer=='Normal':
+            check(all(pixel[2]>=128 for pixel in samples),'Surface normals face outward: '+name)
+for name in ('RingGuide','RingSled','RingPier','RingStation'):
+    check(details['SM_'+name]['triangles']>100,'Authored railway geometry '+name)
 for name in ['SM_Pine','SM_PineB','SM_Birch','SM_Fern','SM_Shrub','SM_FallenLog','SM_Stump','SM_Rubble','SM_WallRuin','SM_Rebar']:
     check(name in details and details[name]['triangles']>100,'New environmental mesh has geometry: '+name)
 for name in ['SM_Pine','SM_PineB']:

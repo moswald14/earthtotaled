@@ -1,0 +1,8 @@
+newmtl Concrete
+Kd 0.5 0.5 0.5
+newmtl DarkMetal
+Kd 0.5 0.5 0.5
+newmtl Rust
+Kd 0.5 0.5 0.5
+newmtl Steel
+Kd 0.5 0.5 0.5

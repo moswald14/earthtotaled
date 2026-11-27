@@ -111,7 +111,8 @@ void AETWorld::RunOutpostChecks(AETCharacter* P,TFunctionRef<void(bool,const FSt
     for(const TCHAR* Name:{TEXT("Ground"),TEXT("Bark"),TEXT("Concrete"),TEXT("FaultShale"),TEXT("FaultIron"),TEXT("FaultGold")}) {
         const FString Tex=FString(TEXT("T_Relief"))+Name+TEXT("_Normal");
         auto* T=LoadObject<UTexture2D>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Tex+TEXT(".")+Tex));
-        Check(T&&T->GetSizeX()==2048&&T->CompressionSettings==TC_Normalmap&&!T->SRGB,FString(TEXT("Cooked 2K tangent-space relief / "))+Name);
+        const int Size=FCString::Strncmp(Name,TEXT("Fault"),5)==0?2048:4096;
+        Check(T&&T->GetSizeX()==Size&&T->CompressionSettings==TC_Normalmap&&!T->SRGB,FString(TEXT("Cooked tangent-space relief / "))+Name);
     }
     // A distinct full data profile, including map keys and excavations, exercises portable decoding.
     auto* Profile=NewObject<UETSave>(); Profile->ArmorTier=2; Profile->Armor=159; Profile->Hydration=97; Profile->Gold=149;

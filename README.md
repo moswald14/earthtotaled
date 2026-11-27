@@ -8,6 +8,10 @@ Run **EARTHtotaled-Setup.exe**, choose a version, and select **Install and play*
 
 Open **Game updates** from the title or pause menu to select a GitHub release. Confirm to save, install and relaunch, or keep playing. Setup preserves all ten slots and mods. Older versions use a separate copy of your progress. Return to the latest to resume your main survivor. You can also open **Manage EARTHtotaled versions** from Start. [All releases and portable ZIPs](https://github.com/moswald14/earthtotaled/releases)
 
+**Ride the Ringline.** Open **M**, press **R** to frame the loop, and click a teal station to track it. Follow the line to the station about 95 m north of the Shelter 09 landing site. Take the stairs or press **E** under the platform for the lift. Press **E** on the platform to wait for the next train, then jump across the striped edge. The open flatbed reaches 396 km/h on its 22.5 km circuit through eight cities. It stops for 12 seconds at each station. You can walk around the deck, jump off, or save aboard and resume the ride.
+
+The 4K surfaces cover forest ground, bark, concrete, asphalt, steel, Bug carapaces and Supertech hulls. Pause and select **Render detail** to cycle through 100%, 125%, 150%, 175% and 200%. At 200%, a 1920 × 1080 display renders the scene at 3840 × 2160.
+
 Start a new survivor for the crash landing and the Drifter .44. Press **G** and fire at the four marked trench stakes to defend Shelter 09. Ground Bugs stop at the holes. Reclaimed cities stay settled. Hostile kills have a 1-in-400 chance to spill a gun with rolled stats, two perks and a damage-based upgrade path. Hold **Ctrl** near it to collect it and use **Tab → Unique gun rack** to inspect and equip it.
 
 Daylight lasts 52 real minutes and night lasts 22. Shelter 09 is safe. Clear infected towns, then use their settlement boards to fund the watch, build walls and place powered sentries. Track the hill cistern for drinking water. Your shield recharges after combat. Medkits restore health. Approach spilled loot and hold **Ctrl** to sweep it into your pack.

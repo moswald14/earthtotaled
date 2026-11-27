@@ -1,4 +1,6 @@
 #include "ETGame.h"
+#include "ETRingLine.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -17,11 +19,20 @@ void AETWorld::StreamAround(FVector P,bool Preload)
     const FIntPoint Center(FMath::FloorToInt(P.X/RegionSize),FMath::FloorToInt(P.Y/RegionSize));
     const int32 Radius=FMath::CeilToInt(Load/RegionSize)+1;
     TArray<FIntPoint> Wanted;
+    const auto* Player=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0));
+    const bool Aboard=RingTrain&&Player&&RingTrain->Riding(*Player);
+    FVector Lead=P;
+    if(Aboard) {
+        const auto D=ETRing::Radial(RingTrain->Phase.Angle);
+        Lead+=FVector(-D.Y,D.X,0)*20000.;
+    }
     for(int32 Y=-Radius;Y<=Radius;++Y) for(int32 X=-Radius;X<=Radius;++X) {
-        const FIntPoint C=Center+FIntPoint(X,Y); if(RegionDistance(C,P)<=Load) Wanted.Add(C);
+        const FIntPoint C=Center+FIntPoint(X,Y);
+        if(RegionDistance(C,P)<=Load||(Aboard&&RegionDistance(C,Lead)<Load-4000)) Wanted.Add(C);
     }
     Wanted.Sort([&](const FIntPoint& A,const FIntPoint& B) {
-        const double DA=RegionDistance(A,P),DB=RegionDistance(B,P);
+        const auto Priority=[&](FIntPoint C){return FMath::Min(RegionDistance(C,P),RegionDistance(C,Lead)+6000.);};
+        const double DA=Priority(A),DB=Priority(B);
         if(!FMath::IsNearlyEqual(DA,DB)) return DA<DB;
         return FVector::DistSquared2D(FVector((A.X+.5)*RegionSize,(A.Y+.5)*RegionSize,0),P)<FVector::DistSquared2D(FVector((B.X+.5)*RegionSize,(B.Y+.5)*RegionSize,0),P);
     });
@@ -30,12 +41,12 @@ void AETWorld::StreamAround(FVector P,bool Preload)
         return;
     }
     // Complete nearby collision first. Buildings/foliage are generated in separate slices.
-    const double Deadline=FPlatformTime::Seconds()+.006;
+    const double Deadline=FPlatformTime::Seconds()+(Aboard?.009:.006);
     for(auto C:Wanted) {
         AETRegion* Region=Regions.FindRef(C);
         if(!Region) {Region=GetWorld()->SpawnActor<AETRegion>(); Region->BeginGenerate(this,C); Regions.Add(C,Region);}
         const double D=RegionDistance(C,P);
-        if(D<16000) Region->WantedTerrainGrid=160;
+        if(D<16000&&!Aboard) Region->WantedTerrainGrid=160;
         else if(D>24000) Region->WantedTerrainGrid=80;
         if(Region->Stage<6) {
             bool Done=Region->AdvanceGenerate(); if(Done) RestoreDrops(Region);
@@ -50,6 +61,7 @@ void AETWorld::StreamAround(FVector P,bool Preload)
 }
 void AETWorld::UpdateVisibility(FVector P)
 {
+    if(RingTrain) RingTrain->MatchViewDistance(State->ViewDistance);
     const float Distance=State->ViewDistance*100.f;
     auto Apply=[&](AActor* A) {
         if(!IsValid(A)) return;

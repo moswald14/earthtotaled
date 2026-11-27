@@ -42,10 +42,19 @@ void AETWorld::RunSelfTest()
     Check(Speak(TEXT("salt"))&&DialogueAudio==VoiceComponent&&DialogueAudio&&DialogueAudio->bIsUISound&&!DialogueAudio->bAutoDestroy,TEXT("Robot reply reuses one audio channel that works during paused conversations"));
     bool Prepared=true; for(auto It:Regions) Prepared&=It.Value->Stage==6;
     Check(Prepared&&Regions.Num()>9,TEXT("Starting view is fully populated before player control"));
-    Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"))->GetFloat()==100,TEXT("Default rendering uses full native resolution"));
-    P->OpenPanel(TEXT("pause"),TEXT("test"),TEXT("test")); P->Action(TEXT("render"));
-    Check(State->RenderScale==125&&IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"))->GetFloat()==125,TEXT("Sharper rendering selects 125 percent resolution"));
-    P->Action(TEXT("render")); Check(State->RenderScale==150,TEXT("Ultra rendering selects 150 percent resolution")); P->Action(TEXT("render")); P->ClosePanel();
+    auto* Scale=IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"));
+    Check(Scale->GetFloat()==125,TEXT("New survivors start at 125 percent resolution"));
+    P->OpenPanel(TEXT("pause"),TEXT("test"),TEXT("test"));
+    for(int Value:{150,175,200,100,125}) {
+        P->Action(TEXT("render"));
+        Check(State->RenderScale==Value&&Scale->GetFloat()==Value,FString::Printf(TEXT("Pause applies %d percent rendering"),Value));
+    }
+    P->ClosePanel();
+    for(const TCHAR* Surface:{TEXT("Ground"),TEXT("Concrete"),TEXT("Bark"),TEXT("Asphalt"),TEXT("Steel"),TEXT("Carapace"),TEXT("AlloyHull")})
+        for(const TCHAR* Channel:{TEXT("Normal"),TEXT("BaseColor"),TEXT("Roughness")}) {
+            auto* T=LoadObject<UTexture2D>(nullptr,*FString::Printf(TEXT("/Game/EARTHtotaled/Art/T_Relief%s_%s"),Surface,Channel));
+            Check(T&&T->GetSizeX()==4096&&T->GetSizeY()==4096,FString::Printf(TEXT("Cooked 4K surface / %s %s"),Surface,Channel));
+        }
     auto Fine=Regions.FindRef(FIntPoint(-1,-1)); auto Coarse=Regions.FindRef(FIntPoint(-2,-1));
     Check(Fine&&Fine->TerrainGrid==160&&Fine->Terrain->GetProcMeshSection(0)->ProcIndexBuffer.Num()==153600,TEXT("Nearby terrain has 51200 triangles per tile, sixteen times original detail"));
     Check(Coarse&&Coarse->TerrainGrid==80,TEXT("Distant terrain retains four times original detail with lower cost"));

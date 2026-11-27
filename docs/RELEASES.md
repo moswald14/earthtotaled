@@ -1,5 +1,15 @@
 # EARTHtotaled release record
 
+## Unreal 1.14.0 — Ringline
+
+An open freight platform runs a 22.5 km circle through eight city districts. It reaches 396 km/h between 12-second stops. Each station has walkable stairs, a freight lift and a way to wait for the next train. The timetable and the passenger's position on the deck travel with the survivor save. On the atlas, R frames the entire line and clicking a stop tracks its platform.
+
+Seven surfaces have native 4096 × 4096 base color, normal and roughness maps. Asphalt keeps the same four-metre texture scale on old city blocks and newer highway sections. The two conifers grew from 23,404 and 21,184 source triangles to 60,248 and 63,624. The ruined house has 14,680 triangles and the three-storey tenement has 48,156. The new default render scale is 125%. The pause menu ranges from 100% to 200%.
+
+A new survivor boarded from Shelter 09, jumped at 396 km/h and landed back on the open deck. The packaged game loaded the surrounding terrain at all eight stops. The survivor returned to Shelter 09 and jumped onto the station, then reopened a mid-ride checkpoint through Continue and travelled with the train again. The fullscreen atlas test tracked a station by clicking it, restored mouse look on close and kept that station selected after reloading.
+
+On a GeForce GTX 1080 at 1920 × 1080, a stationary forest view with 18 regions loaded averaged 42.1 FPS at 100%, 32.0 FPS at 125% and 16.1 FPS at 200%. The previous release averaged 43.3 FPS at 100% in the same view. Each run sampled 25 seconds after a five-second warmup. At 200%, the GPU reached 100% utilization and 58 °C.
+
 ## Unreal 1.13.0 — Landfall
 
 A new survivor begins aboard a fraudCORP flight in 1986 and crash-lands at SHELTER 09 in 2253. The opening can be skipped. The pilot receives the Drifter .44 and a survey borer. Four marked banks form the first quest. Boring each one cuts a connected trench into the terrain. Finishing the perimeter pays 30 candybar wrappers and three water bottles. Ground Bugs avoid surface holes. Returning survivors retain their terrain and current story.

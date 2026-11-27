@@ -16,7 +16,11 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions='''EARTHtotaled 1.13.0 / Landfall
+instructions='''EARTHtotaled 1.14.0 / Ringline
+
+Ride the teal Ringline from Shelter 09 across eight cities. Use E at the station lift,
+wait with E on the platform, and jump across the yellow edge. The 22.5 km loop
+reaches 396 km/h. Press R on the atlas to frame the loop and click a station to track it.
 
 Double-click EARTHtotaled.exe. Keep this entire folder together.
 Install or update from https://github.com/moswald14/earthtotaled/releases/latest
@@ -117,7 +121,7 @@ exploring afterward and return to HELIOS to reread your chosen epilogue.
 Daylight lasts 52 minutes and night lasts 22 minutes. Roofs provide cover in thunderstorms.
 
 Escape opens the display and audio settings. View distance ranges from 350 to
-700 m. Render detail ranges from 100% to 150%. The music and weather sounds
+700 m. Render detail ranges from 100% to 200%. The music and weather sounds
 have separate volume controls. Moving the mouse turns the view when a menu closes.
 Progress saves automatically and when you return to the main menu.
 
@@ -137,10 +141,10 @@ from another PC. Pause also offers Copy this run here. Occupied slots require
 confirmation before replacement. Slot 01 retains the original survivor.
 Press F1 in the world to open the field console. Type help for commands.
 Enter runs a command, Up recalls it, and Escape returns to mouse look.
-Escape > Display / native shows the new 2K material detail at full resolution.
+Escape > Display / native shows the new 4K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.13.0.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.14.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -151,6 +155,6 @@ with zipfile.ZipFile(archive) as z:
 import shutil
 installer=outputs/'EARTHtotaled-Setup.exe'
 shutil.copy2(setup,installer)
-record={'version':'1.13.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+record={'version':'1.14.0-unreal','installer':str(installer),'installer_sha256':hashlib.sha256(installer.read_bytes()).hexdigest(),'engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

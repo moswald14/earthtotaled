@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETGeology.h"
+#include "ETRing.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/World.h"
@@ -9,6 +10,15 @@
 void AETWorld::RunSurvivorChecks(AETCharacter* P,TFunctionRef<void(bool,const FString&)> Check)
 {
     auto& S=*State;
+    bool RailSupportProtected=false,OpenSpanMinable=false;
+    for(int I=0;I<ETRing::Spans&&(!RailSupportProtected||!OpenSpanMinable);I+=2) {
+        const auto Pier=ETRing::Position(I*UE_TWO_PI/ETRing::Spans);
+        const auto Span=ETRing::Position((I+1)*UE_TWO_PI/ETRing::Spans);
+        const TCHAR* Reason=Geology->DigRestriction(FBox2D(Pier-FVector2D(120),Pier+FVector2D(120)));
+        RailSupportProtected|=Reason&&FCString::Strstr(Reason,TEXT("Ringline"));
+        OpenSpanMinable|=!Geology->DigRestriction(FBox2D(Span-FVector2D(400),Span+FVector2D(400)));
+    }
+    Check(RailSupportProtected&&OpenSpanMinable,TEXT("Concrete railway footings reject excavation while open spans allow mining"));
     EnsureRegion({1,0});
     auto* Tile=Regions.FindChecked({1,0});
     auto Pulse=[&](FVector At,bool Square,FString& Why) {

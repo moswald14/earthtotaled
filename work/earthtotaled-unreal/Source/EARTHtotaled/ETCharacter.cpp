@@ -1,4 +1,6 @@
 #include "ETGame.h"
+#include "ETRingLine.h"
+#include "Components/BoxComponent.h"
 #include "ETLandfall.h"
 #include "ETGeology.h"
 #include "Engine/World.h"
@@ -64,6 +66,9 @@ void AETCharacter::BeginPlay()
     Super::BeginPlay();
     for(TActorIterator<AETWorld> It(GetWorld());It;++It) {World=*It; break;}
     if(!World) return;
+    if(World->RingTrain) World->RingTrain->Restore(*this);
+    if(FParse::Param(FCommandLine::Get(),TEXT("ETRingRide"))&&FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir=")))
+        World->AddTickPrerequisiteComponent(GetCharacterMovement());
     ApplyGraphics();
     if(World->State->Relics.IsValidIndex(World->State->EquippedRelic)) EquipRelic(World->State->EquippedRelic); else SelectWeapon(World->State->Weapon); if(Controller) Controller->SetControlRotation(World->State->View);
     InputAudit=FParse::Param(FCommandLine::Get(),TEXT("ETInputAudit")); SetMouseMode(false); CaptureRetry=.3f;
@@ -213,8 +218,23 @@ void AETCharacter::Tick(float D)
     if(Position.Z<Ground-3000&&!World->Geology->IsOpen(Position))
         SetActorLocation(FVector(Position.X,Position.Y,Ground+250));
 }
+void AETCharacter::BaseChange()
+{
+    Super::BaseChange();
+    // The viaduct has its own right of way. Carry a grounded passenger through each
+    // frame's full track displacement, including frames spent streaming a city.
+    GetCharacterMovement()->bFastAttachedMove=World&&World->RingTrain&&World->RingTrain->Riding(*this);
+}
 void AETCharacter::Landed(const FHitResult& Hit)
 {
+    if(World&&World->RingTrain&&Hit.GetComponent()==World->RingTrain->Deck) {
+        // Walking is relative to a movement base. Keep the landing impulse in the deck's frame.
+        auto* Move=GetCharacterMovement();
+        const FVector Relative=Move->Velocity-Hit.GetComponent()->GetComponentVelocity();
+        const FVector Tangent=FVector(Relative.X,Relative.Y,0).GetClampedToMaxSize(Move->MaxWalkSpeed);
+        Move->Velocity.X=Tangent.X; Move->Velocity.Y=Tangent.Y;
+        FallSpeed=FMath::Min(0.f,float(Relative.Z));
+    }
     Super::Landed(Hit); if(World&&FallSpeed<-850) Hurt((-FallSpeed-850)*.05f*(Has(TEXT("parkour"))?.75f:1)*(Has(TEXT("hardy"))?.8f:1),TEXT("Fall impact")); FallSpeed=0; JetUsed=AirJumpSpent=ThrustArmed=Jetting=false;
 }
 float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AController*,AActor* Causer)
@@ -388,19 +408,21 @@ void AETCharacter::ApplyGraphics()
 {
     if(!World) return;
     int32& Scale=World->State->RenderScale;
-    if(Scale!=100&&Scale!=125&&Scale!=150) Scale=100;
+    if(Scale<100||Scale>200||Scale%25!=0) Scale=125;
     if(!World->SelfTest) if(auto Settings=UGameUserSettings::GetGameUserSettings()) {
         Settings->SetDynamicResolutionEnabled(false); Settings->SetResolutionScaleValueEx(100);
         Settings->ApplyNonResolutionSettings();
     }
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.DynamicRes.OperationMode"))) C->Set(0,ECVF_SetByCode);
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"))) C->Set(float(Scale),ECVF_SetByCode);
+    if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxPixelsPerEdge"))) C->Set(Scale>=150?.75f:1.f,ECVF_SetByCode);
     if(auto C=IConsoleManager::Get().FindConsoleVariable(TEXT("r.MaxAnisotropy"))) C->Set(16,ECVF_SetByCode);
     ApplyFieldDisplay();
 }
 void AETCharacter::Interact()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
+    if(World->RingTrain&&World->RingTrain->UseStation(*this)) return;
     if(auto* Device=FocusBuild.Get();Device&&Device->Design.Piece>=AETConstruction::Core) {OpenDevice(Device); return;}
     if(!IsValid(Focus)) {
         const FVector Eye=Camera->GetComponentLocation();
@@ -512,7 +534,7 @@ void AETCharacter::Action(const FString& Id)
     if(Id.StartsWith(TEXT("equip:"))&&Panel==TEXT("inventory")) {SelectWeapon(FCString::Atoi(*Id.Mid(6))); World->Save(); return;}
     if(Id.StartsWith(TEXT("craft:"))) {Craft(Id.Mid(6)); return;}
     if(Id==TEXT("view")&&Panel==TEXT("pause")) {S->ViewDistance=S->ViewDistance<500?500:S->ViewDistance<700?700:350; World->UpdateVisibility(GetActorLocation()); World->Save(); return;}
-    if(Id==TEXT("render")&&Panel==TEXT("pause")) {S->RenderScale=S->RenderScale==100?125:S->RenderScale==125?150:100; ApplyGraphics(); World->Save(); return;}
+    if(Id==TEXT("render")&&Panel==TEXT("pause")) {S->RenderScale=S->RenderScale>=200?100:S->RenderScale+25; ApplyGraphics(); World->Save(); return;}
     if(Id==TEXT("field-display")&&Panel==TEXT("pause")) {S->RetroDisplay=!S->RetroDisplay; ApplyFieldDisplay(); World->Save(); return;}
     if(Id==TEXT("aim-assist")&&Panel==TEXT("pause")) {S->LightAimAssist=!S->LightAimAssist; World->Save(); return;}
     if(Id==TEXT("sell-ore")&&Panel==TEXT("contact")&&Contact==TEXT("SALT-7")) {

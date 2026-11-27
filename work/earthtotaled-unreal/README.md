@@ -2,6 +2,14 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Ringline / 1.14
+
+The freight sled runs a 22.5 km elevated loop through eight city districts. Its Shelter 09 stop is about 95 m north of the crash site. The teal line, eight station markers and moving train arrow appear on the atlas and minimap. Press **R** in the atlas to see the full circle and click a station to track it. Walk up the switchback stairs or press **E** below the station to ride the lift. On the platform, **E** waits until the train arrives. Jump aboard the open deck and walk or jump off at any stop. The train spends 12 seconds at each station and reaches 396 km/h between them. Saving aboard restores the deck, timetable and rider together.
+
+Forest soil, bark, concrete, asphalt, steel, Bug carapaces and Supertech hulls have 4096 × 4096 color, normal and roughness maps. The two conifers contain 60,248 and 63,624 source triangles. Damaged houses and tenements have new cast-iron pipework, fittings and exposed brick. Render detail starts at 125% and cycles through 150%, 175%, 200% and native 100% in Pause.
+
+Run `Tools/verify-ringline.ps1 -GameRoot <Windows folder> -QaRoot <new test folder>` for a rendered full lap and a separate moving-checkpoint restart.
+
 ## Landfall / 1.13
 
 A 1986 fraudCORP pilot crash-lands at SHELTER 09 in 2253. New survivors receive the Drifter .44, then open four defensive banks with the borer. Previously cleared cities stay free of hostile spawns. One in 400 hostile deaths drops a rolled weapon with two perks and an individual upgrade path. Inspect these guns in the pack. Existing survivors keep their checkpoint and terrain.
