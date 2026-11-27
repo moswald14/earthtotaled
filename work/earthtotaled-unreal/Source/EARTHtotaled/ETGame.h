@@ -187,6 +187,9 @@ public:
     UPROPERTY() FVector RingOffset=FVector::ZeroVector;
     UPROPERTY() int32 MusicVolume=50;
     UPROPERTY() int32 WeatherVolume=75;
+    UPROPERTY() int32 AlertVolume=75;
+    UPROPERTY() int32 HitFlashIntensity=75;
+    UPROPERTY() bool AlertCaptions=true;
     // New optional fields keep the original slot and wrapper balance compatible.
     UPROPERTY() TArray<FIntVector> BoreCuts;
     UPROPERTY() TSet<FIntVector> MinedVeins;
@@ -297,6 +300,8 @@ public:
     bool WakeTruce() const;
     FIntPoint TownCell=FIntPoint::ZeroValue;
     float RivalScan=0,PlayerAggro=0;
+    float FullHealth=100, AlertHold=0;
+    UAudioComponent* UpdateAlert(bool Engaging,bool AgainstPlayer,float Delta);
     float FlinchTime=0,ImpactCooldown=0;
     FVector FlinchVelocity=FVector::ZeroVector;
     FVector2D FlinchLean=FVector2D::ZeroVector;
@@ -487,6 +492,8 @@ public:
     void UpdateVisibility(FVector Position);
     void Sound(const FString& Name, float Volume=.5f, float Pitch=1.f);
     void ImpactSound(FVector Position,bool Metal,bool FirstPerson);
+    UAudioComponent* EnemyAlert(AETAgent& Agent,bool AgainstPlayer);
+    UPROPERTY() USoundAttenuation* AlertAttenuation=nullptr;
     UPROPERTY() USoundAttenuation* ImpactAttenuation=nullptr;
     void Loot(AETCharacter* Player, const FString& Id, const FString& Table);
     FVector CityCenter(double X, double Y) const;
@@ -705,6 +712,13 @@ public:
     int32 GuidePage=0;
     FString BuildHint;
     TWeakObjectPtr<AETAgent> Sighted;
+    TWeakObjectPtr<AETAgent> RecentEnemy;
+    float CombatTime=0, DamageFlash=0, ShieldBreakTime=0, AlertCaptionTime=0;
+    bool HealthWasHit=false, CaptionThreat=false;
+    FVector HitBearing=FVector::ZeroVector, CaptionOrigin=FVector::ZeroVector;
+    FString AlertCaption;
+    void RememberEnemy(AETAgent* Enemy);
+    AETAgent* CombatTarget() const;
     UPROPERTY() AETConstruction* Preview=nullptr;
     void JumpPress(); void JumpRelease(); void TickJet(float Delta);
     void ToggleBuild(); void StopBuilding(); void RefreshBuild();
@@ -773,6 +787,7 @@ public:
     void DrawWake(AETCharacter* Player);
     void DrawWakeTrail(AETCharacter* Player);
     void DrawNavigation(AETCharacter* Player);
+    void DrawCombat(AETCharacter& Player);
     void DrawAtlas(AETCharacter* Player);
     void DrawChart(AETCharacter* Player,const ETNav::FChart& Chart,bool Small);
     ETNav::FContours Contours[2];

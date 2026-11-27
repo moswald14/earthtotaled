@@ -82,7 +82,7 @@ void AETHUD::DrawHUD()
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
-        if(Title) Text(FString::Printf(TEXT("1.17.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
+        if(Title) Text(FString::Printf(TEXT("%s     SURVIVOR %02d"),ETLandfall::Version+1,W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
         if(Title) {
@@ -124,9 +124,9 @@ void AETHUD::DrawHUD()
     if(P->SweepHeld) Text(P->SweepArmed?FString::Printf(TEXT("SALVAGE SWEEP  /  %.1f m"),2.5f+6.7f*P->SweepHold):TEXT("Crouch within 2.5 m of loose loot to start a sweep"),32,SH-159,Mint,.92f);
     if(S->StimTime>0) Text(FString::Printf(TEXT("ENDURANCE / %ds"),FMath::CeilToInt(S->StimTime)),32,SH-189,Mint,.85f);
     if(W->Review) Text(TEXT("TEST SESSION / PROGRESS IS NOT SAVED"),32,176,Amber,.85f);
-    FString Vitals=FString::Printf(TEXT("HEALTH %d  /  SHIELD %d  /  SUIT %d"),FMath::CeilToInt(S->Health),FMath::CeilToInt(S->Shield),FMath::CeilToInt(S->Armor));
-    if(S->Health<=25&&S->Health>0) Vitals+=S->Meds>0?TEXT("   CRITICAL / Q MEDKIT"):TEXT("   CRITICAL / TAKE COVER");
-    Text(Vitals,32,SH-94,S->Health<=25?Amber:Bone,1.15f);
+    Text(FString::Printf(TEXT("LEVEL %d    %d / %d XP    /    K  Skills (%d)"),S->Level,S->XP,S->NextLevelXP(),S->Points),32,SH-96,Mint,1.06f);
+    DrawRect(Muted.CopyWithNewOpacity(.55f),32,SH-74,350,4);
+    DrawRect(Amber,32,SH-74,350.f*FMath::Clamp(float(S->XP)/S->NextLevelXP(),0.f,1.f),4);
     if(S->Wake.Body)Text(S->Wake.Body==ETWake::Bug?TEXT("MOLT   /   WATER INDEPENDENT"):TEXT("OVERRIDE   /   CLOSED-CYCLE FRAME"),32,SH-65,Mint,1.12f);
     else Text(FString::Printf(TEXT("WATER %d%%    %d bottles [H]"),FMath::CeilToInt(S->Hydration),S->Water),32,SH-65,S->Hydration<25?Amber:Mint,1.2f);
     Text(S->Wake.Body==ETWake::Bug?TEXT("Survivor pack sealed   /   Tab to inspect"):FString::Printf(TEXT("WRAPPERS %d / SCRAP %d / MEDS %d [Q]"),S->Gold,S->Scrap,S->Meds),32,SH-36,Muted,1);
@@ -134,20 +134,13 @@ void AETHUD::DrawHUD()
     Text(FString::Printf(TEXT("JET %d%%"),FMath::RoundToInt(S->JetFuel)),30,SH-130,P->Jetting?Amber:Mint,.85f);
     DrawRect(Muted.CopyWithNewOpacity(.4f),104,SH-121,105,4);
     DrawRect(P->Jetting?Amber:Mint,104,SH-121,1.05f*S->JetFuel,4);
-    DrawRect(FLinearColor(.012,.019,.015,.83),230,SH-135,350,29);
-    Text(FString::Printf(TEXT("LV %d    %d / %d XP     K  Skills (%d)"),S->Level,S->XP,S->NextLevelXP(),S->Points),240,SH-133,Mint,.9f);
-    DrawRect(Muted.CopyWithNewOpacity(.55f),240,SH-113,327,3);
-    DrawRect(Amber,240,SH-113,327.f*FMath::Clamp(float(S->XP)/S->NextLevelXP(),0.f,1.f),3);
+    DrawRect(FLinearColor(.012,.019,.015,.83),230,SH-135,130,29);
+    Text(FString::Printf(TEXT("SUIT  %d"),FMath::CeilToInt(S->Armor)),240,SH-130,Muted,.88f);
     if(P->LevelNoticeTime>0||P->XPNoticeTime>0) {
         const FString Earned=P->LevelNoticeTime>0?FString::Printf(TEXT("LEVEL %d    /    K  Spend skill points"),S->Level):FString::Printf(TEXT("+%d survivor XP"),P->LastXPGain);
         Text(Earned,240,SH-161,Amber,1.05f);
     }
-    if(P->SuitFlinch>0&&P->Panel.IsEmpty()) {
-        const auto Edge=FLinearColor(.85f,.20f,.10f,.6f*P->SuitFlinch/.24f);
-        DrawRect(Edge,0,0,SW,5); DrawRect(Edge,0,SH-5,SW,5);
-        DrawRect(Edge,0,0,5,SH); DrawRect(Edge,SW-5,0,5,SH);
-    }
-    if(P->GetCharacterMovement()->IsFalling()&&!P->Climbing)
+    if(!P->Ride()&&P->GetCharacterMovement()->IsFalling()&&!P->Climbing)
         Text(!P->AirJumpSpent?TEXT("SPACE  /  FREE AIR JUMP"):S->JetFuel<=0?TEXT("LAND TO REFUEL"):TEXT("HOLD SPACE  /  THRUST"),30,SH-155,Mint,.85f);
     if(P->Building) {
         const bool Frame=P->BuildPiece<AETConstruction::Core;
@@ -185,8 +178,10 @@ void AETHUD::DrawHUD()
     }
     if(P->Panel.IsEmpty())
     {
-        DrawNavigation(P);DrawWakeTrail(P);
-        DrawLine(SW/2-6,SH/2,SW/2+6,SH/2,Mint,1); DrawLine(SW/2,SH/2-6,SW/2,SH/2+6,Mint,1);
+        DrawNavigation(P);DrawWakeTrail(P);DrawCombat(*P);
+        const FLinearColor ReticleOutline(.015f,.025f,.022f,.9f);
+        DrawLine(SW/2-7,SH/2,SW/2+7,SH/2,ReticleOutline,3); DrawLine(SW/2,SH/2-7,SW/2,SH/2+7,ReticleOutline,3);
+        DrawLine(SW/2-6,SH/2,SW/2+6,SH/2,Mint,1.35f); DrawLine(SW/2,SH/2-6,SW/2,SH/2+6,Mint,1.35f);
         if(P->HitTime>0) {DrawLine(SW/2-10,SH/2-10,SW/2-4,SH/2-4,Amber,2); DrawLine(SW/2+10,SH/2+10,SW/2+4,SH/2+4,Amber,2); DrawLine(SW/2+10,SH/2-10,SW/2+4,SH/2-4,Amber,2); DrawLine(SW/2-10,SH/2+10,SW/2-4,SH/2+4,Amber,2);}
         if(auto* Site=P->FocusBuild.Get();Site&&Site->Design.Piece>=AETConstruction::Core) Text(FString(TEXT("[E] "))+Site->Name(Site->Design.Piece),SW*.5f-100,SH*.5f+48,Mint,1.12f);
         if(S->RaidStage) Text(W->IsNight()?FString::Printf(TEXT("RELAY  /  %s   %ds"),S->RaidStage==1?TEXT("Bug raiders forming"):TEXT("Under attack"),FMath::CeilToInt(S->RaidTime)):TEXT("RELAY  /  Raid resumes at nightfall"),32,151,Amber,1.15f);
@@ -197,10 +192,6 @@ void AETHUD::DrawHUD()
         }
         if(IsValid(P->Focus)) Text((S->DropPositions.Contains(P->Focus->Id)?FString(TEXT("[Hold Ctrl] Sweep  /  ")):FString(TEXT("[E] ")))+P->Focus->Label,SW/2-180,SH/2+51,Bone,1.15f);
         else if(P->TreeInReach) Text(TEXT("[E] Fell tree   +8 wood"),SW/2-106,SH/2+51,Mint,1.05f);
-        if(auto* A=P->Sighted.Get();A&&!P->Building&&!P->Borer) {
-            const FString Name=A->Kind==TEXT("drone")?TEXT("SUPERTECH / SHARD DRONE"):A->Kind==TEXT("robot")?TEXT("SUPERTECH / PATROL"):A->IsBrood()?TEXT("BUG / ")+A->Kind.ToUpper():A->Kind.ToUpper();
-            Text(FString::Printf(TEXT("%s   %.0f HP"),*Name,A->Health),SW*.5f-92,SH*.5f+25,Amber,.85f);
-        }
         if(P->EnemyReacquireTime>0&&!W->AtRefuge&&W->IsNight())
             Text(FString::Printf(TEXT("Enemies can attack again in %ds"),FMath::CeilToInt(P->EnemyReacquireTime)),32,SH-163,Amber,1.05f);
         for(auto* RailLine:W->RailLines) {
@@ -285,7 +276,9 @@ void AETHUD::DrawHUD()
             Button(TEXT("view"),FString::Printf(TEXT("View distance / %d m"),S->ViewDistance),X,BY,ControlWidth);
             Button(TEXT("render"),FString::Printf(TEXT("Render detail / %d%%"),S->RenderScale),X+ControlWidth+12,BY,ControlWidth);
             Button(TEXT("field-display"),S->RetroDisplay?TEXT("Display / PS1"):TEXT("Display / native"),X+2*(ControlWidth+12),BY,ControlWidth);
-            Text(FString::Printf(TEXT("%d x %d internal picture / higher detail costs performance"),FMath::RoundToInt(SW*S->RenderScale/100),FMath::RoundToInt(SH*S->RenderScale/100)),X,BY+47,Muted,.95f);
+            Button(TEXT("alert-volume"),FString::Printf(TEXT("Enemy alerts   %d%%"),S->AlertVolume),X,BY+40,ControlWidth);
+            Button(TEXT("alert-captions"),S->AlertCaptions?TEXT("Alert captions   On"):TEXT("Alert captions   Off"),X+ControlWidth+12,BY+40,ControlWidth);
+            Button(TEXT("hit-intensity"),FString::Printf(TEXT("Damage flash   %d%%"),S->HitFlashIntensity),X+2*(ControlWidth+12),BY+40,ControlWidth);
             Button(TEXT("music-volume"),FString::Printf(TEXT("Music volume   %d%%"),S->MusicVolume),X,BY+80,ControlWidth);
             Button(TEXT("weather-volume"),FString::Printf(TEXT("Weather volume   %d%%"),S->WeatherVolume),X+ControlWidth+12,BY+80,ControlWidth);
             Button(TEXT("slots"),TEXT("Survivor saves"),X+2*(ControlWidth+12),BY+80,ControlWidth);

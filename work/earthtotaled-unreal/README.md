@@ -2,6 +2,12 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Combat Signals / 1.18
+
+HP and shield bracket the reticle. A single named health bar follows your aim or the opponent you last exchanged damage with. The lower-left panel shows your level and progress to the next level. A blue edge shows incoming shield damage and a coral edge shows health damage. The lit edge points toward the source. A shield break and low health each have a text cue.
+
+Each hostile species or machine has its own positional alert. In **Esc**, adjust **Enemy alerts**, **Alert captions**, or **Damage flash**. Captions work with the alerts muted. To update from 1.16.0, open **Game updates**, select **v1.18.0**, then choose **Install**. Setup keeps your survivor slots and backs them up before switching versions.
+
 ## Kit's Trail / 1.17
 
 Ask Thrum about Kit at Shelter 09 and inspect the red medical case. Watch for a square of folded foil, a patch of bent ferns and hoofprints that leave the leaves untouched. Aim at a sign and press **E**. Open **J → Kit's trail / field recordings** to hear a discovery again or check your next landmark. Following the signs is optional on both faction routes.

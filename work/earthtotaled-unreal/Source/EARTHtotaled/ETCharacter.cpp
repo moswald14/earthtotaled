@@ -163,6 +163,10 @@ void AETCharacter::Tick(float D)
     if(!Panel.IsEmpty()||S->Health<=0) return;
     auto* Vehicle=Ride();
     TickImpact(D); TickShield(D); TickSweep(D);
+    DamageFlash=FMath::Max(0.f,DamageFlash-D);
+    ShieldBreakTime=FMath::Max(0.f,ShieldBreakTime-D);
+    AlertCaptionTime=FMath::Max(0.f,AlertCaptionTime-D);
+    CombatTime=FMath::Max(0.f,CombatTime-D);
     if(S->Wake.Body==ETWake::Bug&&WakeCuff)WakeCuff->SetRelativeLocation({49+FMath::Sin(FMath::Clamp(ShotTime/.33f,0.f,1.f)*PI)*22.,30,-27});
     XPNoticeTime=FMath::Max(0.f,XPNoticeTime-D); LevelNoticeTime=FMath::Max(0.f,LevelNoticeTime-D);
     EnemyReacquireTime=FMath::Max(0.f,EnemyReacquireTime-D);
@@ -186,7 +190,16 @@ void AETCharacter::Tick(float D)
     if(!S->Wake.Body)S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
     // Dehydration bypasses armor; menus pause all survival time.
     if(!S->Wake.Body&&S->Hydration<=0&&!TestInvincible) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
-    if(Vehicle){Focus=nullptr;FocusBuild.Reset();TreeInReach=false;Sighted.Reset();Vehicle->Drive(*this,D);return;}
+    if(Vehicle) {
+        Focus=nullptr; FocusBuild.Reset(); TreeInReach=false;
+        Vehicle->Drive(*this,D);
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(ETVehicleSight),false,this);
+        Query.AddIgnoredActor(Vehicle);
+        const FVector Eye=Camera->GetComponentLocation(); FHitResult Hit;
+        GetWorld()->LineTraceSingleByChannel(Hit,Eye,Eye+Camera->GetForwardVector()*9500,ECC_Visibility,Query);
+        Sighted=Cast<AETAgent>(Hit.GetActor());
+        return;
+    }
     if(ReloadTime>0)
     {
         ReloadTime-=D; if(ReloadTime<=0)
@@ -245,13 +258,13 @@ void AETCharacter::Landed(const FHitResult& Hit)
 }
 float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AController*,AActor* Causer)
 {
-    const auto* Source=Cast<AETAgent>(Causer);
+    auto* Source=Cast<AETAgent>(Causer);
     if(!Source&&Causer) Source=Cast<AETAgent>(Causer->GetOwner());
     if(Source&&Source->WakeTruce())return 0;
     FString Cause=Source ? (Source->Kind==TEXT("robot")?FString(TEXT("Supertech patrol fire")):
         Source->IsBrood()?FString(TEXT("Bug "))+Source->Kind:Source->IsMachine()?FString(TEXT("Supertech shard drone")):Source->Kind) : TEXT("Hostile impact");
     const float Applied=Hurt(Damage,Cause);
-    if(Applied>0) ReceiveImpact(Applied,Event,Causer);
+    if(Applied>0) {RememberEnemy(Source); ReceiveImpact(Applied,Event,Causer);}
     return Applied;
 }
 float AETCharacter::Hurt(float Damage,const FString& Cause)
@@ -262,6 +275,10 @@ float AETCharacter::Hurt(float Damage,const FString& Cause)
     S->ShieldDelay=10.f;
     const float Intercept=FMath::Min(S->Shield,Damage); S->Shield-=Intercept;
     const float Passing=Damage-Intercept,Absorbed=FMath::Min(S->Armor,Passing*(.6f+.08f*S->ArmorTier)); S->Armor-=Absorbed; S->Health=FMath::Max(0.f,S->Health-Passing+Absorbed);
+    HealthWasHit=Passing>Absorbed;
+    DamageFlash=.32f;
+    HitBearing=FVector::ZeroVector;
+    if(Intercept>0&&S->Shield<=0) ShieldBreakTime=1.3f;
     if(S->Health<=0) Die(Cause); return Damage;
 }
 void AETCharacter::Die(const FString& Cause)
@@ -570,6 +587,14 @@ void AETCharacter::Action(const FString& Id)
         if(Ore>0) {--Ore; S->Gold+=12; PanelBody=FString::Printf(TEXT("One gold ore sold for 12 candybar wrappers. You have %d gold ore left."),Ore); World->Sound(TEXT("OreChime")); World->Save();}
         else PanelBody=TEXT("Bring gold ore from a seam. Greenline pays 12 candybar wrappers per ore.");
         return;
+    }
+    if(Panel==TEXT("pause")&&(Id==TEXT("alert-volume")||Id==TEXT("hit-intensity")||Id==TEXT("alert-captions"))) {
+        if(Id==TEXT("alert-captions")) {S->AlertCaptions=!S->AlertCaptions; AlertCaptionTime=0;}
+        else {
+            int32& Value=Id==TEXT("alert-volume")?S->AlertVolume:S->HitFlashIntensity;
+            Value=(FMath::Clamp(Value,0,100)+25)%125;
+        }
+        World->Save(); return;
     }
     if((Id==TEXT("music-volume")||Id==TEXT("weather-volume"))&&Panel==TEXT("pause")) {
         int32& Volume=Id==TEXT("music-volume")?S->MusicVolume:S->WeatherVolume;

@@ -79,6 +79,7 @@ void AETAgent::TickImpact(float D)
 void AETCharacter::ReceiveImpact(float Damage,const FDamageEvent& Event,AActor* Source)
 {
     const auto Direction=Incoming(Event,Source,*this);
+    if(Source||Event.IsOfType(FPointDamageEvent::ClassID)) HitBearing=-Direction.GetSafeNormal2D();
     SuitLean=Lean(Direction,GetControlRotation()); SuitFlinch=.24f;
     if(SuitImpactCooldown>0) return;
     World->ImpactSound(GetActorLocation(),false,true); SuitImpactCooldown=.105f;

@@ -238,6 +238,17 @@
     "T_Wood_Roughness.png"
   ],
   "sounds": [
+    "S_AlertBear.wav",
+    "S_AlertBoar.wav",
+    "S_AlertBulwark.wav",
+    "S_AlertHive.wav",
+    "S_AlertRunner.wav",
+    "S_AlertShard.wav",
+    "S_AlertSkimmer.wav",
+    "S_AlertSpitter.wav",
+    "S_AlertWalker.wav",
+    "S_AlertWarden.wav",
+    "S_AlertWolf.wav",
     "S_Animal.wav",
     "S_BearHuff.wav",
     "S_BorerPulse.wav",

@@ -59,16 +59,25 @@ namespace Earthtotaled.Setup {
         static async Task RealPackages(string root,string previous,string candidate,string donor,bool download) {
             var m=new Manager(Path.Combine(root,"Installed"),Path.Combine(root,"Actual","Saved"));
             string dir=Path.Combine(m.Saved,"SaveGames");Directory.CreateDirectory(dir);
+            // Use distinct real checkpoints when the test profile has them. A slot swap must fail.
+            var donors=new[]{donor}.Concat(Directory.GetFiles(Path.GetDirectoryName(donor),"EARTHtotaled-Unreal-*.sav")
+                .OrderBy(p=>p,StringComparer.OrdinalIgnoreCase)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            int next=0;
             for(int i=1;i<=10;i++)foreach(string suffix in new[]{"","-previous"})
-                File.Copy(donor,Path.Combine(dir,"EARTHtotaled-Unreal-"+i.ToString("00")+suffix+".sav"));
-            var bytes=File.ReadAllBytes(donor);
-            var originals=Directory.GetFiles(dir).Select(Path.GetFileName).ToArray();
-            Func<string,bool> intact=folder=>originals.All(n=>File.Exists(Path.Combine(folder,n))&&bytes.SequenceEqual(File.ReadAllBytes(Path.Combine(folder,n))));
+                File.Copy(donors[next++%donors.Length],Path.Combine(dir,"EARTHtotaled-Unreal-"+i.ToString("00")+suffix+".sav"));
+            var originals=Directory.GetFiles(dir).ToDictionary(p=>Path.GetFileName(p),p=>File.ReadAllBytes(p));
+            Func<string,bool> intact=folder=>originals.All(pair=>File.Exists(Path.Combine(folder,pair.Key))&&
+                pair.Value.SequenceEqual(File.ReadAllBytes(Path.Combine(folder,pair.Key))));
             var oldFile=PackageRecord(previous);var newFile=PackageRecord(candidate);
-            var list=await Catalog.Read();var old=list.First(r=>r.Tag==oldFile.Tag);var current=list.FirstOrDefault(r=>r.Tag==newFile.Tag);
-            if(download)Check(current!=null&&list[0].Tag==current.Tag,"The public updater offers "+newFile.Tag+" first");
-            if(current==null)current=newFile;
-            Check(old.Hash==oldFile.Hash&&current.Hash==newFile.Hash&&current.Size==newFile.Size&&old.Number<current.Number,"Release files match the intended upgrade versions and digests");
+            var old=oldFile;var current=newFile;
+            if(download){
+                var list=await Catalog.Read();
+                old=list.First(r=>r.Tag==oldFile.Tag);current=list.First(r=>r.Tag==newFile.Tag);
+                Check(list[0].Tag==current.Tag,"The public updater offers "+newFile.Tag+" first");
+                Check(old.Hash==oldFile.Hash&&old.Size==oldFile.Size&&current.Hash==newFile.Hash&&current.Size==newFile.Size,
+                    "Both public releases match the verified local archives");
+            }
+            Check(old.Number<current.Number,"The previous and new packages are in upgrade order");
             await m.Install(old,null,old.Number,previous,Console.WriteLine,Runtime.Ensure,false);
             Check(File.Exists(m.Game(old.Tag)),"The real previous GitHub ZIP installs");
             await m.Install(current,old.Tag,current.Number,download?null:candidate,Console.WriteLine,Runtime.Ensure,false);

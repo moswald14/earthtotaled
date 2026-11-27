@@ -95,6 +95,7 @@ void AETCharacter::StartFresh()
     Fresh->ArrivalStage=World->Review?-1:0; Fresh->LandscapeEdition=1; Fresh->BuildStock=0;
     Fresh->RetroDisplay=World->State->RetroDisplay; Fresh->RenderScale=World->State->RenderScale; Fresh->HasRingDisplay=true;
     Fresh->ViewDistance=World->State->ViewDistance; Fresh->MusicVolume=World->State->MusicVolume; Fresh->WeatherVolume=World->State->WeatherVolume;
+    Fresh->AlertVolume=World->State->AlertVolume; Fresh->AlertCaptions=World->State->AlertCaptions; Fresh->HitFlashIntensity=World->State->HitFlashIntensity;
     if(!ETSaveDisk::Write(Fresh,World->SaveSlot,true)) {PanelBody=TEXT("Could not start the new save. Check free disk space and try again."); return;}
     ContinueSurvivor();
 }

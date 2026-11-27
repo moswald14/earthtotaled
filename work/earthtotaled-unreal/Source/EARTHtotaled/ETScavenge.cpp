@@ -1,5 +1,6 @@
 #include "ETWake.h"
 #include "ETGame.h"
+#include "ETCombat.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
@@ -38,6 +39,10 @@ void AETWorld::LoadExpansion()
     }
     for(const FString& Id:TArray<FString>{TEXT("BorerPulse"),TEXT("OreChime"),TEXT("JetThrust"),TEXT("ShardChirp"),TEXT("BroodCall"),TEXT("FieldLatch"),TEXT("BearHuff")}) {
         Sounds.Add(Id,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id)));
+    }
+    for(const auto& Voice : ETCombat::Voices) {
+        const FString Asset=FString(TEXT("S_"))+Voice.Cue;
+        Sounds.Add(Voice.Cue,LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     }
     LoadDialogue();
 }

@@ -17,6 +17,7 @@ void AETAgent::UpdatePresence(FVector Viewer)
     const double Distance=FVector::DistSquared2D(GetActorLocation(),Viewer);
     const bool Present=Awake()&&Distance<FMath::Square(World->State->ViewDistance*100.+5000.);
     if(!Present)BearWindup=0;
+    if(!Present||Distance>=FMath::Square(14000.)) AlertHold=0;
     SetActorHiddenInGame(!Present);
     SetActorEnableCollision(Present);
     SetActorTickEnabled(Present&&Distance<FMath::Square(14000.));
@@ -41,6 +42,7 @@ void AETAgent::Configure(AETWorld* InWorld,const FString& InId,const FString& In
     else if(Kind==TEXT("runner")) Health=52;
     else if(Kind==TEXT("bear")) Health=360;
     else Health=Kind==TEXT("boar")?85:60;
+    FullHealth=Health;
     if(const float* Saved=World->State->AgentHealth.Find(Id)) Health=*Saved;
     FString Asset=Kind==TEXT("robot")?TEXT("SM_SupertechWarden"):Kind==TEXT("deer")?TEXT("SM_Deer"):Kind==TEXT("boar")?TEXT("SM_Boar"):TEXT("SM_Wolf");
     if(Kind==TEXT("walker")) Asset=TEXT("SM_HollowWalker");
@@ -65,7 +67,10 @@ void AETAgent::Fly(float D,AETCharacter* Player,AETAgent* Enemy)
     const auto* Relay=Siege?World->State->Builds.Find(World->State->RaidCore):nullptr;
     const FVector Here=GetActorLocation(),Target=Relay?Relay->Anchor+FVector(0,0,100):Enemy?Enemy->AimPoint():Player->GetActorLocation()+FVector(0,0,35);
     const FVector To=Target-Here;
-    if(To.SizeSquared()>FMath::Square(8500.)) return;
+    const bool InRange=To.SizeSquared()<=FMath::Square(8500.);
+    const bool CanEngage=Relay||Enemy||Player->EnemyReacquireTime<=0;
+    UpdateAlert(InRange&&CanEngage,!Relay&&!Enemy,D);
+    if(!InRange) return;
     const FVector Radial=To.GetSafeNormal2D();
     const double Hand=Id.EndsWith(TEXT("1"))?-1.:1.;
     const FVector Orbit(-Radial.Y*Hand,Radial.X*Hand,0);
@@ -96,7 +101,9 @@ void AETAgent::Tick(float D)
     Phase+=D; AttackTime-=D;
     if(TickWakeDeer(D,*Player))return;
     if(Kind==TEXT("hive")) {
-        if(AttackTime<=0&&FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.)) {
+        const bool Calling=FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.);
+        UpdateAlert(Calling&&!WakeTruce(),true,D);
+        if(AttackTime<=0&&Calling) {
             AttackTime=14;
             for(int32 I=0;I<3;++I) {
                 const FString Guard=Id+FString::Printf(TEXT("/guard%d"),I);
@@ -113,19 +120,18 @@ void AETAgent::Tick(float D)
     AETAgent* Enemy=Siege||Kind==TEXT("walker")?nullptr:FindRival(D);
     if((World->IsNight()||WakeEnemy())&&!WakeTruce()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
        (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
-    if(!Enemy&&WakeTruce())return;
-    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) {BearWindup=0;return;}
+    if(!Enemy&&WakeTruce()){AlertHold=0;return;}
+    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) {BearWindup=0;AlertHold=0;return;}
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
     AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
     if(Siege) {
         auto* Relay=World->LiveBuilds.FindRef(World->State->RaidCore).Get();
-        if(!Relay) return;
+        if(!Relay) {UpdateAlert(false,false,D);return;}
         if(World->State->RaidStage==1||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())>FMath::Square(470.)) Target=Relay;
     }
     FVector P=GetActorLocation(), To=Target->GetActorLocation()-P; To.Z=0; float Distance=To.Size();
     const bool Staging=Siege&&World->State->RaidStage==1;
-    if(Staging&&Distance<1750) return;
-    if(Distance>14000) return;
+    if((Staging&&Distance<1750)||Distance>14000) {UpdateAlert(false,false,D);return;}
     FCollisionQueryParams Params; Params.AddIgnoredActor(this); FHitResult Sight;
     const bool Robot=Kind==TEXT("robot"), Flee=Kind==TEXT("deer"), Brood=IsBrood(), Spitter=Kind==TEXT("spitter");
     const FVector Eye=P+FVector(0,0,Robot?120:65);
@@ -133,10 +139,13 @@ void AETAgent::Tick(float D)
     bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,Eye,Aim,ECC_Visibility,Params)||Sight.GetActor()==Target;
     auto* Cover=Cast<AETConstruction>(Sight.GetActor());
     const bool Bear=Kind==TEXT("bear");
-    if(Bear&&BearSwipe(*Player,D,Clear))return;
     const float Engage=Bear?(PlayerAggro>0?6500:2900):Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
+    const bool Pursuing=Distance<Engage&&(Clear||Managed||TownIndex!=INDEX_NONE||Cover||Enemy);
+    const bool CanEngage=Target!=Player||Player->EnemyReacquireTime<=0;
+    UpdateAlert(!Flee&&CanEngage&&(Pursuing||(Bear&&BearWindup>0)),Target==Player,D);
+    if(Bear&&BearSwipe(*Player,D,Clear))return;
     FVector Direction;
-    if(Distance<Engage&&(Clear||Managed||TownIndex!=INDEX_NONE||Cover||Enemy)) Direction=To.GetSafeNormal()*(Flee?-1:1);
+    if(Pursuing) Direction=To.GetSafeNormal()*(Flee?-1:1);
     else Direction=(Home+FVector(FMath::Cos(Phase*.15f)*800,FMath::Sin(Phase*.15f)*800,0)-P).GetSafeNormal2D();
     if(Brood&&!Spitter&&Distance>460) Direction=(Direction+FVector(-Direction.Y,Direction.X,0)*.29*FMath::Sin(Phase+double(GetTypeHash(Id)%9))).GetSafeNormal2D();
     const float Speed=Bear?(Clear&&Distance<Engage?510:132):Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
@@ -205,7 +214,7 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
         if(Bolt?Bolt->BugBolt:Fighter->IsBrood()) ++World->BugHits; else ++World->SupertechHits;
     }
     const bool Credited=Cast<AETCharacter>(Causer)||Cast<AETConstruction>(Causer);
-    if(Cast<AETCharacter>(Causer)) {PlayerAggro=3.5f; World->State->ShieldDelay=10.f;}
+    if(auto* InstigatorPawn=Cast<AETCharacter>(Causer)) {InstigatorPawn->RememberEnemy(this);PlayerAggro=3.5f; World->State->ShieldDelay=10.f;}
     if(Managed) {if(auto* R=World->State->Threats.Find(Id)) R->Health=Health;}
     else if(!FrontUnit) World->State->AgentHealth.Add(Id,Health);
     if(Health<=0)

@@ -5,6 +5,7 @@
 #include "ETSaveDisk.h"
 #include "ETWake.h"
 #include "ETUnderstory.h"
+#include "ETCombat.h"
 #include "ETWakeVehicle.h"
 #include "ETGame.h"
 #include "Components/StaticMeshComponent.h"
@@ -22,6 +23,7 @@
 void ETWake::Trial(AETWorld& W,AETCharacter& P) {
     static bool Ran=false;if(Ran||W.WakeLayout==INDEX_NONE||!P.Controller)return;
     FString Route;FParse::Value(FCommandLine::Get(),TEXT("ETWakeTest="),Route);
+    if(Route=="combat"||Route=="combat-view"){ETCombat::Trial(W,P,Route=="combat-view");return;}
     if(Route=="woodland-view"){
         static int Scene=0;static double Since=0;static bool Captured=false;
         static TWeakObjectPtr<AETAgent> Subject;static FVector Home,Eye,Look;
@@ -115,6 +117,8 @@ void ETWake::Trial(AETWorld& W,AETCharacter& P) {
     if(Route==TEXT("woodland")){
         ETFlora::Trial(W,P,Check);Finish();return;}
     if(Route==TEXT("trail-legacy")){
+        Check(W.State->AlertVolume==75&&W.State->HitFlashIntensity==75&&W.State->AlertCaptions,
+            TEXT("A 1.16 survivor receives readable combat defaults alongside existing settings"));
         const int Known=(1<<CaseFold)|(1<<DashFold)|(1<<Carrier);
         Check(W.HadSave&&S.Chapter==Home&&S.Rescued()&&S.EndingHerds>0&&S.Valid(),TEXT("An original 1.16 completed survivor opens with Kit safe and their chosen ending intact"));
         Check(S.TrailFound==Known&&S.TrailHeard==Known,TEXT("Previously visited case, car and relay enter the journal without ambushing the survivor with old audio"));
