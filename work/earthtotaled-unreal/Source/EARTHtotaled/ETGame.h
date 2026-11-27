@@ -7,6 +7,7 @@
 #include "GameFramework/SaveGame.h"
 #include "ETWeatherMath.h"
 #include "ETNavigation.h"
+#include "ETDayCycle.h"
 #include "ETGame.generated.h"
 
 class UCameraComponent;
@@ -41,6 +42,8 @@ struct FETRecipe
     TMap<FString,int32> Ingredients;
 };
 struct FETLootEntry { FString Id; int32 Min=1, Max=1; };
+struct FETModFind {FString Key,Name,Source,Use; int32 Chance=0,Yield=0;};
+struct FETModPack {FString Id,Name; TArray<FETModFind> Finds; bool Enabled=true;};
 struct FETVoiceLine { FString Speaker, Text; };
 
 USTRUCT()
@@ -97,6 +100,17 @@ struct FETThreat
     UPROPERTY() float AttackCooldown=-1;
 };
 
+USTRUCT()
+struct FETTown {
+    GENERATED_BODY()
+    UPROPERTY() bool Claimed=false;
+    UPROPERTY() int32 Wave=0;
+    UPROPERTY() int32 Dead=0;
+    UPROPERTY() int32 Treasury=0;
+    UPROPERTY() int32 Defenses=0;
+    UPROPERTY() float Upkeep=0;
+};
+
 UCLASS()
 class EARTHTOTALED_API UETSave : public USaveGame
 {
@@ -108,6 +122,13 @@ public:
     UPROPERTY() FRotator View=FRotator(0,90,0);
     UPROPERTY() float Health=100;
     UPROPERTY() float Armor=40;
+    UPROPERTY() float Shield=60;
+    UPROPERTY() float ShieldDelay=0;
+    UPROPERTY() bool ModernDay=false;
+    UPROPERTY() double ClockOffset=1440;
+    UPROPERTY() TMap<FIntPoint,FETTown> Towns;
+    UPROPERTY() TMap<FIntPoint,float> TowerRefills;
+    float MaxShield() const {return 60.f+15.f*ArmorTier;}
     UPROPERTY() float Hydration=100;
     UPROPERTY() float Elapsed=0;
     UPROPERTY() int32 Water=3;
@@ -169,6 +190,8 @@ public:
     UPROPERTY() float MaxDepth=0;
     UPROPERTY() int32 LandscapeEdition=0;
     UPROPERTY() TSet<FIntPoint> LegacyGround;
+    UPROPERTY() bool HasGradedRoads=false;
+    UPROPERTY() TSet<FIntPoint> OriginalRoadTerrain;
     UPROPERTY() int32 Waves=0;
     UPROPERTY() int32 RaidSerial=0;
     UPROPERTY() int32 RaidStage=0;
@@ -214,6 +237,10 @@ public:
     FString Id, Kind, Label, Value;
     int32 Amount=0;
     FVector Destination=FVector::ZeroVector;
+    FVector SpillOrigin=FVector::ZeroVector;
+    float SpillAge=1;
+    void Toss(FVector Start,FVector Finish);
+    virtual void Tick(float Delta) override;
 };
 
 UCLASS()
@@ -232,6 +259,8 @@ public:
     float Health=100, AttackTime=0, Phase=0;
     FVector Home=FVector::ZeroVector;
     bool Managed=false, FrontUnit=false;
+    int32 TownIndex=INDEX_NONE;
+    FIntPoint TownCell=FIntPoint::ZeroValue;
     float RivalScan=0,PlayerAggro=0;
     float FlinchTime=0,ImpactCooldown=0;
     FVector FlinchVelocity=FVector::ZeroVector;
@@ -260,6 +289,7 @@ public:
     void BeginGenerate(AETWorld* InWorld, FIntPoint InCoord);
     bool AdvanceGenerate();
     void AddDetails();
+    void AddTownLandmarks();
     bool BuildTerrainSlice();
     void RefreshSurfaceCollision();
     void BuildRoadSurface();
@@ -322,6 +352,8 @@ public:
     float OutpostClock=0;
     double Landscape(double X,double Y) const;
     void PrepareLandscape();
+    void PrepareHighwayGrades();
+    double GradeHighway(double X,double Y,double Natural) const;
     FString SlotName(int32 Number) const;
     void RememberSlot(int32 Number);
     int32 ActiveSlot=1;
@@ -359,6 +391,31 @@ public:
     FString WeatherName() const;
     int32 MusicFor(FVector Position) const;
     void RunSelfTest();
+    void TickReclamationPhoto(AETCharacter* Player);
+    FString PhotoScene; int PhotoStage=0; double PhotoTime=0;
+    void RunReclamationChecks(AETCharacter* Player,TFunctionRef<void(bool,const FString&)> Check);
+    void TickTowns(AETCharacter* Player,float Delta);
+    int32 TownPopulation(FIntPoint Cell,int32 Wave=0) const;
+    int32 TownRemaining(FIntPoint Cell) const;
+    void WalkerFell(AETAgent* Walker);
+    FVector TowerLocation(FIntPoint Cell) const;
+    void TownFortifications(FIntPoint Cell,int32 Tier,bool Repair);
+    FString TownStatus(FIntPoint Cell) const;
+    TMap<FString,TWeakObjectPtr<AETAgent>> TownUnits;
+    mutable TMap<FIntPoint,FVector> TowerCache;
+    float TownTick=0;
+    TMap<FString,TWeakObjectPtr<AETItem>> LooseActors;
+    void SpillLoot(AETAgent* Victim,bool Credited);
+    AETItem* LooseItem(const FString& Id,const FString& Kind,int32 Count,FVector Origin,FVector Landing,bool Toss);
+    FString DropLabel(const FString& Kind) const;
+    void LoadMods();
+    static FString ModFolder();
+    static bool ParseMod(const FString& Json,FETModPack& Pack,FString& Error);
+    bool InstallMod(const FString& Json,FString& Message);
+    TArray<FETModPack> Mods;
+    TArray<FString> ModErrors;
+    const FETModFind* ModFind(const FString& Key) const;
+    void ModCache(const FString& SeedId,FString& Summary);
     void RunGeologyChecks(AETCharacter* Player,TFunctionRef<void(bool,const FString&)> Check);
     void CheckMineRestart(AETCharacter* Player);
     void WalkMineCheck(AETCharacter* Player);
@@ -532,6 +589,16 @@ public:
     FVector2D SuitLean=FVector2D::ZeroVector;
     int32 LastXPGain=0;
     FString SelectedPerk;
+    bool SweepHeld=false,SweepArmed=false,TestInvincible=false;
+    float SweepHold=0,SweepClock=0;
+    void CrouchLoot(); void ReleaseLoot(); void TickSweep(float Delta);
+    bool TakeLoose(AETItem* Item);
+    void TickShield(float Delta);
+    void WorkshopAction(const FString& Id); void HiddenTools(); void ReclamationAction(const FString& Id);
+    void TownPanel(FIntPoint Cell); void Workshop(); void RefreshWorkshop();
+    FIntPoint BoardCell=FIntPoint::ZeroValue;
+    FString WorkshopOrigin,WorkshopNote,ProposedMod;
+    int32 ModPage=0;
     void ReceiveImpact(float Damage,const FDamageEvent& Event,AActor* Source);
     void TickImpact(float Delta);
     bool InputAudit=false;
@@ -607,6 +674,7 @@ public:
     void Button(const FString& Id, const FString& Label, float X, float Y, float Width=260);
     void DialogueSubtitle();
     void DrawControls(AETCharacter* Player);
+    void DrawReclamation(AETCharacter* Player);
     void DrawSkillWeb(AETCharacter* Player);
     void DrawNavigation(AETCharacter* Player);
     void DrawAtlas(AETCharacter* Player);

@@ -99,7 +99,7 @@ FString AETCharacter::Command(const FString& Line)
     if(Op==TEXT("help")) return TEXT("status | pos | base | war | heal | give wood/stone/iron/gold/water 1..500 | time day/night | spawn bug/supertech/spitter/bulwark/skimmer | raid start/end | weather auto/clear/rain/storm | save");
     if(Op==TEXT("time")&&Args.Num()==2&&(Args[1]==TEXT("day")||Args[1]==TEXT("night"))) {
         const float Target=Args[1]==TEXT("day")?6.f:19.f;
-        S->Elapsed+=FMath::Fmod(Target-World->Hour()+24.f,24.f)*120.f;
+        S->Elapsed+=ETDay::Phase(ETDay::At(Target)-ETDay::Phase(S->Elapsed+S->ClockOffset));
         World->UpdateDaylight(); World->UpdateNightWatch(GetActorLocation());
         return World->IsNight()?TEXT("Nightfall at 19:00."):TEXT("Daybreak at 06:00.");
     }
@@ -109,7 +109,7 @@ FString AETCharacter::Command(const FString& Line)
     if(Op==TEXT("pos")) return FString::Printf(TEXT("Seed %d  X %.0f m  Y %.0f m  depth %.1f m  deepest %.1f m  %d active regions"),S->Seed,P.X/100,P.Y/100,FMath::Max(0.,(World->SurfaceHeight(P.X,P.Y)-P.Z)/100),S->MaxDepth,World->Regions.Num());
     const FGuid Core=World->NearestCore(P,10500);
     if(Op==TEXT("base")) return FString::Printf(TEXT("Local value %d  raid stage %d  raids held %d  enemy tier %d  next muster %.0f s"),World->BaseValue(Core),S->RaidStage,S->Waves,World->ThreatTier(),S->RaidWait);
-    if(Op==TEXT("heal")) {S->Health=MaxHealth(); S->Armor=S->ArmorLimit(); S->Hydration=100; return TEXT("Restored health, suit and hydration.");}
+    if(Op==TEXT("heal")) {S->Health=MaxHealth(); S->Armor=S->ArmorLimit(); S->Hydration=100; S->Shield=S->MaxShield(); S->ShieldDelay=0; return TEXT("Restored health, shield, suit and hydration.");}
     if(Op==TEXT("save")) return World->Save()?TEXT("Survivor saved."):TEXT("Save unavailable in this session.");
     if(Op==TEXT("give")&&Args.Num()==3) {
         int32 N=0;

@@ -94,9 +94,9 @@ void AETWorld::RunSelfTest()
     P->Drink(); Check(State->Water==2&&FMath::IsNearlyEqual(State->Hydration,90.f),TEXT("Drinking consumes a bottle and restores hydration"));
     State->Hydration=0; State->Health=100; State->Armor=40; P->Tick(2);
     Check(State->Health<100&&State->Armor==40,TEXT("Dehydration threatens life and bypasses armor"));
-    State->Elapsed=0; float StartHour=Hour(); State->Elapsed=2880;
-    Check(FMath::IsNearlyEqual(StartHour,Hour(),.001f),TEXT("48 minute cycle returns to same daylight hour"));
-    State->Elapsed=780; Check(Hour()>=22&&Hour()<=24,TEXT("Night follows dusk"));
+    State->Elapsed=0; float StartHour=Hour(); State->Elapsed=ETDay::Period;
+    Check(FMath::IsNearlyEqual(StartHour,Hour(),.001f),TEXT("74 minute cycle returns to same daylight hour"));
+    State->ClockOffset=ETDay::At(16.5); State->Elapsed=1080; Check(Hour()>=22&&Hour()<=24,TEXT("Night follows dusk"));
     int32 WaterBefore=State->Water;
     auto Robot=GetWorld()->SpawnActor<AETAgent>(FVector(2500,500,40),FRotator::ZeroRotator); Robot->Configure(this,TEXT("verify-robot"),TEXT("robot")); Robot->TakeDamage(1000,FDamageEvent(),PC,P);
     Check(State->Water==WaterBefore&&State->DropKinds.FindRef(TEXT("verify-robot-drop"))==TEXT("gold"),TEXT("Robot kill drops candybar wrappers and never water"));
@@ -111,7 +111,12 @@ void AETWorld::RunSelfTest()
     for(TActorIterator<AETItem> It(GetWorld());It;++It) if(It->Id==TEXT("verify-robot-drop")) {++DropCopies; WrapperDrop=*It;}
     Check(DropCopies==1&&WrapperDrop&&WrapperDrop->GetOwner()==Regions.FindRef(FIntPoint(0,0)),TEXT("Uncollected story-guard wrappers return exactly once after unload, regeneration and repeated restore"));
     State->Gold=32;
-    if(WrapperDrop) {P->Focus=WrapperDrop; P->Interact();}
+    if(WrapperDrop) {
+        P->Focus=WrapperDrop;P->Interact();
+        Check(State->Gold==32&&IsValid(WrapperDrop),TEXT("Standing interaction leaves defeated-enemy loot on the ground"));
+        const FVector Last=P->GetActorLocation();P->SetActorLocation(WrapperDrop->GetActorLocation()+FVector(0,0,68));
+        P->CrouchLoot();P->bIsCrouched=true;P->TickSweep(.2f);P->ReleaseLoot();P->bIsCrouched=false;P->SetActorLocation(Last);
+    }
     Check(State->Gold==48&&State->Consumed.Contains(TEXT("verify-robot-drop"))&&State->Water==WaterBefore,TEXT("Robot wrappers add to an existing balance without adding water"));
     // A roaming encounter can cross the boundary of the region that spawned it.
     auto OldHome=Regions.FindRef(FIntPoint(0,0)); auto CurrentHome=Regions.FindRef(FIntPoint(1,0));
@@ -144,8 +149,9 @@ void AETWorld::RunSelfTest()
     P->OpenPanel(TEXT("bench"),TEXT("test"),TEXT("test")); P->Craft(TEXT("bandage"));
     Check(State->Inventory.FindRef(TEXT("bandage"))==1&&State->Inventory.FindRef(TEXT("cloth"))==2&&State->Inventory.FindRef(TEXT("chemicals"))==1,TEXT("Crafting consumes exact ingredients and produces usable item"));
     P->Craft(TEXT("armorplate")); Check(State->Inventory.FindRef(TEXT("armorplate"))==0&&State->Scrap==0,TEXT("Insufficient ingredients cannot produce free items"));
-    P->ClosePanel(); P->Inventory(); State->Health=40; P->Action(TEXT("use:bandage")); P->Action(TEXT("use:bandage"));
-    Check(State->Health==65&&State->Inventory.FindRef(TEXT("bandage"))==0,TEXT("Bandage heals once and cannot be used again from an empty stack"));
+    P->ClosePanel(); P->Inventory(); State->Health=40; const int OldMeds=State->Meds;
+    P->Action(TEXT("use:bandage")); ++State->Inventory[TEXT("bandage")]; P->Action(TEXT("use:bandage"));
+    Check(State->Health==40&&State->Meds==OldMeds+1&&State->Inventory.FindRef(TEXT("bandage"))==0,TEXT("Two bandages make one medkit and do not directly heal"));
     P->ClosePanel();
     const int32 LootWater=State->Water; Loot(P,TEXT("verify-v11-cache"),TEXT("relief")); const int32 LootScrap=State->Scrap;
     const int32 OnceWater=State->Water; Loot(P,TEXT("verify-v11-cache"),TEXT("relief"));
@@ -197,6 +203,7 @@ void AETWorld::RunSelfTest()
     RunNavigationChecks(P,Check);
     RunHighwayChecks(P,Check);
     RunSurvivorChecks(P,Check);
+    RunReclamationChecks(P,Check);
     FString Result=FString::Printf(TEXT("ET_VERIFY %d checks / %d failures\n"),Count,Failed);
     FFileHelper::SaveStringToFile(Result+Report,*(FPaths::ProjectSavedDir()/TEXT("native-verification.txt")));
     UE_LOG(LogTemp,Display,TEXT("%s%s"),*Result,*Report);

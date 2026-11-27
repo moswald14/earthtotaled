@@ -35,7 +35,9 @@ namespace
     bool Location(FVector V) {return !V.ContainsNaN()&&V.GetAbsMax()<2.e9;}
     bool Sensible(const UETSave& S,int32 Guns)
     {
-        if(S.FrontLosses.Num()>4096) return false;
+        if(S.FrontLosses.Num()>4096||!Number(S.Shield,0,S.MaxShield())||!Number(S.ShieldDelay,0,10)||!FMath::IsFinite(S.ClockOffset)) return false;
+        for(const auto& It:S.Towns) {const auto& T=It.Value;if(T.Wave<0||T.Wave>1000000||T.Dead<0||T.Dead>2047||T.Treasury<0||T.Defenses<0||T.Defenses>2||!Number(T.Upkeep,0,1.1e10)) return false;}
+        for(const auto& It:S.TowerRefills) if(!Number(It.Value,0,1.1e10)) return false;
         for(const auto& Loss:S.FrontLosses) if(!Loss.Key.StartsWith(TEXT("front/"))||!Number(Loss.Value,0,1.1e10f)) return false;
         if(S.MapPins.Num()>ETNav::MaxPins||(S.TrackedPin!=INDEX_NONE&&!S.MapPins.IsValidIndex(S.TrackedPin))) return false;
         for(FVector2D Pin:S.MapPins) if(!Location(FVector(Pin,0))) return false;

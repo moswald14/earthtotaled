@@ -133,6 +133,7 @@ void AETWorld::RunGeologyChecks(AETCharacter* P,TFunctionRef<void(bool,const FSt
         FMinimalViewInfo View; P->Camera->GetCameraView(0,View);
     };
     Prepare({1000,-2750,0}); Prepare({-2000,-4400,0});
+    State->RetroDisplay=true; P->ApplyFieldDisplay();
     Check(Material(TEXT("FieldDisplay"))&&State->RetroDisplay&&P->Camera->PostProcessSettings.WeightedBlendables.Array.Num()>0,TEXT("PS1 scene display is cooked and active on the player camera"));
     P->Pause(); P->Action(TEXT("field-display"));
     Check(!State->RetroDisplay&&P->Camera->PostProcessSettings.WeightedBlendables.Array.IsEmpty(),TEXT("Pause display control restores native scene rendering"));

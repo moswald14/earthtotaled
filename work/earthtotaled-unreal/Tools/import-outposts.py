@@ -7,6 +7,12 @@ editor = unreal.get_editor_subsystem(unreal.EditorAssetSubsystem)
 assets = unreal.AssetToolsHelpers.get_asset_tools()
 models = ['Relay','SentryStand','SentryHead','Turtle','TurtleBit','BroodSkimmer','BroodBulwark']
 surfaces = ['Ground','Bark','Concrete','FaultShale','FaultIron','FaultGold']
+reclamation = globals().get('reclamation', False)
+if reclamation:
+    models = ['BladePatch','RoadWeed','HollowWalker','HillCistern','MoltRunner','MoltSpitter','MoltBulwark','MoltSkimmer','SupertechWarden','SupertechScout']
+    surfaces = ['Ground','FaultShale','FaultIron','FaultGold','Carapace','AlloyHull','Pallor','RotCloth']
+    models=globals().get('reclamation_models',models)
+    surfaces=globals().get('reclamation_surfaces',surfaces)
 maps = [('BaseColor',unreal.MaterialProperty.MP_BASE_COLOR),('Normal',unreal.MaterialProperty.MP_NORMAL),('Roughness',unreal.MaterialProperty.MP_ROUGHNESS)]
 files = ['SM_'+m+'.obj' for m in models]+['T_Relief'+m+'_'+s+'.png' for m in surfaces for s,_ in maps]
 tasks = []
@@ -37,7 +43,9 @@ for name in models:
     editor.save_loaded_asset(mesh)
 lib=unreal.MaterialEditingLibrary
 for name in surfaces:
-    material=editor.load_asset('/Game/EARTHtotaled/Materials/M_'+name)
+    folder='/Game/EARTHtotaled/Materials'
+    path=folder+'/M_'+name
+    material=editor.load_asset(path) if editor.does_asset_exist(path) else assets.create_asset('M_'+name,folder,unreal.Material,unreal.MaterialFactoryNew())
     lib.delete_all_material_expressions(material)
     for suffix,prop in maps:
         tex=editor.load_asset(art+'/T_Relief'+name+'_'+suffix)
@@ -54,7 +62,29 @@ for name in surfaces:
             glow.set_editor_property('const_b',.09)
             lib.connect_material_expressions(sample,'RGB',glow,'A')
             lib.connect_material_property(glow,'',unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if name in ('AlloyHull','FaultGold'):
+        plate=lib.create_material_expression(material,unreal.MaterialExpressionConstant)
+        plate.set_editor_property('r',.74 if name=='AlloyHull' else .43)
+        lib.connect_material_property(plate,'',unreal.MaterialProperty.MP_METALLIC)
     lib.recompile_material(material)
     editor.save_loaded_asset(material)
-(root/'Saved/outposts-ready.txt').write_text('7 new meshes and 6 physically shaded 2048px material sets imported.\n')
+if reclamation:
+    for name,color in [('GreenBlade',(.085,.163,.044)),('DryBlade',(.24,.195,.092))]:
+        path=folder+'/M_'+name
+        m=editor.load_asset(path) if editor.does_asset_exist(path) else assets.create_asset('M_'+name,folder,unreal.Material,unreal.MaterialFactoryNew())
+        m.set_editor_property('two_sided',True)
+        lib.delete_all_material_expressions(m)
+        node=lib.create_material_expression(m,unreal.MaterialExpressionConstant3Vector)
+        node.set_editor_property('constant',unreal.LinearColor(*color,1))
+        lib.connect_material_property(node,'',unreal.MaterialProperty.MP_BASE_COLOR)
+        lib.recompile_material(m)
+        editor.save_loaded_asset(m)
+    for name in models:
+        mesh=editor.load_asset(art+'/SM_'+name)
+        for index,slot in enumerate(mesh.get_editor_property('static_materials')):
+            material=editor.load_asset(folder+'/M_'+str(slot.material_slot_name).rsplit('_',1)[-1])
+            if material is None: raise RuntimeError(str(slot.material_slot_name))
+            mesh.set_material(index,material)
+        editor.save_loaded_asset(mesh)
+(root/'Saved'/('reclamation-ready.txt' if reclamation else 'outposts-ready.txt')).write_text(f'{len(models)} meshes and {len(surfaces)} PBR surfaces imported.\n')
 

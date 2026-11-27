@@ -72,6 +72,7 @@ void AETCharacter::TurnTool()
 }
 void AETCharacter::Title()
 {
+    TestInvincible=false;
     OpenPanel(TEXT("title"),TEXT("EARTHtotaled"),TEXT("The Last Signal"));
 }
 void AETCharacter::ContinueSurvivor()
@@ -85,7 +86,7 @@ void AETCharacter::StartFresh()
 {
     if(World->Review&&World->JourneyEnding.IsEmpty()) {ContinueSurvivor(); return;}
     auto* Fresh=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass()));
-    Fresh->Seed=World->FrontierQA?84371:FMath::RandRange(1,MAX_int32-1);
+    Fresh->RetroDisplay=false; Fresh->ModernDay=true; Fresh->ClockOffset=ETDay::At(9); Fresh->Seed=World->FrontierQA?84371:FMath::RandRange(1,MAX_int32-1);
     Fresh->LandscapeEdition=1; Fresh->BuildStock=0;
     Fresh->RetroDisplay=World->State->RetroDisplay; Fresh->RenderScale=World->State->RenderScale;
     Fresh->ViewDistance=World->State->ViewDistance; Fresh->MusicVolume=World->State->MusicVolume; Fresh->WeatherVolume=World->State->WeatherVolume;

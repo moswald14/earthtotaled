@@ -2,6 +2,14 @@
 
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
+## Reclamation / 1.12
+
+Version 1.12 brings a 52-minute day, 22-minute night, persistent zombie clearances, gated town walls, powered sentries and refillable hill cisterns. Read a settlement board to track the next infestation or the town's water tower. Combat drains your shield first. Use medkits for wounds and hold Ctrl near spilled loot to expand the pickup radius.
+
+The title and pause menus include a Mod Workshop with personal ChatGPT authoring, a browser workflow, clipboard preview and local loot packs. [Modding guide](Content/ModWorkshop/README.md) · [Contribution guide](../../CONTRIBUTING.md)
+
+Bugs have articulated shells and jointed limbs. Supertechs have layered plates, lenses and rotors. The forest floor has individual folded grass blades and broadleaf weeds. Weather changes how much light reaches the surface. Gold, iron and shale have distinct 2048-pixel color, normal and roughness maps. Weathered highway slabs sometimes give way to exposed ground. Intercity roads cut through hills, with sloped embankments blending into the steeper wilderness. Regenerate the meshes with `python Tools/make-reclamation.py` and their surface maps with `node Tools/make-relief.mjs`.
+
 ## Survivor progression / 1.11
 
 Version 1.11 adds protected ground, combat hit reactions and a survivor XP display. Press **K** to inspect the skill web and learn connected perks. Every level grants one point. A wilderness cut earns 2 XP, an ore strike earns 12 XP and felling a tree earns 6 XP. The borer protects every depth beneath settlements, roads, homesteads and player structures.
@@ -20,7 +28,7 @@ Blackpine Road and Relay Road connect neighboring city grids through the forest.
 
 ## Night Watch / 1.8
 
-Press **F2** for the field guide, or open it from the title or pause menu. Hostile patrols, predators, and the Glass Brood emerge at **19:00** and withdraw at **06:00**. Deer and settlement traders stay out during the day. An unfinished raid resumes the next night.
+Press **F2** for the field guide, or open it from the title or pause menu. Roaming hostile patrols, predators and the Glass Brood emerge at **19:00** and withdraw at **06:00**. Zombies stay in infected towns during daylight as well. Deer and settlement traders stay out during the day. An unfinished raid resumes the next night.
 
 Aim at a tree and press **E** for eight wood. New survivors can harvest birches beside Shelter 09. With **B** equipped, the wheel chooses the piece, **C** selects the material and **R** rotates. Left-click places the preview, right-click salvages, and **T** upgrades an existing frame one tier. A piece costs four wood, four stone, or two iron ore, with 160, 320 and 600 integrity respectively. Every successful borer cut yields two stone. Salvage kits can pay for wooden frames.
 
@@ -80,13 +88,15 @@ To check a separate candidate build, run `./Tools/verify-packaged.ps1 -GameRoot 
 
 For an on-screen mouse check, launch the Shipping executable with `-ETReview=bench -ETInputAudit -UserDir="<temporary-QA-folder>"`. This opens a workbench in a temporary session that does not load or save the player's survivor. The opt-in `Saved/input-verification.txt` records capture state and mouse axes in Shipping builds, where ordinary diagnostic logging is stripped. Move the mouse without holding a button after returning from menus and compare the recorded camera yaw. The audit is off during normal play and bounded to 4,096 entries.
 
-For story and expedition checks, run `./Tools/verify-journey.ps1 -GameRoot <candidate-Windows-folder> -QaRoot <temporary-QA-folder> -Ending garden -Seconds 900`, then repeat with `-Ending signal` and a separate QA folder. The story scenario interacts with actual spawned cores, settlements and HELIOS through clear, in-range collision traces. It stages the player beside story sites, so it is not a manual playthrough between those sites. The expedition then uses normal character movement, collision, AI, ammunition and water while entering city houses, scavenging and returning through streamed regions. Its day/weather clock runs at 8x; movement and survival remain at 1x.
+For story and expedition checks, run `./Tools/verify-journey.ps1 -GameRoot <candidate-Windows-folder> -QaRoot <temporary-QA-folder> -Ending garden -Seconds 900`, then repeat with `-Ending signal` and a separate QA folder. The story scenario interacts with actual spawned cores, settlements and HELIOS through clear, in-range collision traces. It stages the player beside story sites, so it is not a manual playthrough between those sites. The expedition then uses normal character movement, collision, AI, ammunition and water while entering city houses, scavenging and returning through streamed regions. The expedition advances the day and weather clock at 13 times normal speed. Movement and survival run at normal speed.
 
 `-StoryOnly` skips the expedition. `-Resume -StoryOnly` loads that branch's test save in a new process and checks the saved epilogue and consumed story objects. Test saves use `EARTHtotaled-QA-garden` or `EARTHtotaled-QA-signal` inside the selected QA directory; the normal survivor slot is never read or written by these scenarios. Reports and five-second travel/memory samples are written under `Saved`. The runner keeps its window hidden and sound muted: these are runtime checks, not a listening test or a foreground frame-rate guarantee.
 
 ## Controls
 
-WASD move; mouse look; Shift sprint; Space jump; left mouse fire; right mouse aim; R reload; 1–0 or mouse wheel switch owned weapons; Tab pack/arsenal; E interact; H drink water; Q medkit; F flashlight; K skill web; J journal; Escape pause/resume; F11 fullscreen/windowed.
+Use **WASD** to move, the mouse to look, **Shift** to sprint and **Space** to jump. Left-click to fire, right-click to aim and press **R** to reload. Choose an owned weapon with **1–0** or the mouse wheel. **Tab** opens the pack and arsenal.
+
+Use **E** to interact. Hold **Ctrl** near spilled loot to crouch and collect it. **H** drinks water, **Q** uses a medkit and **F** toggles the flashlight. Open the skill web with **K**, the journal with **J** and the pause menu with **Esc**. **F11** switches between fullscreen and a window.
 
 ## Scavenger update / 1.1
 
@@ -138,7 +148,7 @@ Twenty spoken lines cover settlement greetings, water and supply rewards, quest 
 
 ## Endless expeditions
 
-A full day and night takes 48 real minutes. Sun, moon, sky and fog change as time passes; the flashlight is unlimited. Menus pause the clock. World time, position, inventory, quests and emptied caches are saved automatically and on exit.
+A full day and night takes 74 real minutes. The sun, moon, sky and fog change as time passes. The flashlight is unlimited. Menus pause the clock. World time, position, inventory, quests and emptied caches are saved automatically and on exit.
 
 The starting shelter lies in Exclusion City. Walk in any direction to reach pine forest, charred trees, wildlife, traps and abandoned homes. Beyond the forest, more ruined districts appear roughly every 1.6 km. Their apartments have three accessible storeys with exterior stairs. New regions keep generating while distant regions unload; there is no fence or designed end of the map.
 

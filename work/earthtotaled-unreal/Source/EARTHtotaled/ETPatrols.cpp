@@ -11,7 +11,10 @@ bool AETWorld::SafeSettlement(FVector P) const
     if(P.Z<SurfaceHeight(P.X,P.Y)-360) return false;
     if(P.SizeSquared2D()<FMath::Square(2350.)) return true;
     for(TActorIterator<AETItem> It(GetWorld());It;++It) {
-        if((It->Kind==TEXT("human")||It->Kind==TEXT("friend"))&&FVector::DistSquared(P,It->GetActorLocation())<FMath::Square(1450.)) return true;
+        if(It->Kind!=TEXT("human")&&It->Kind!=TEXT("friend")) continue;
+        const auto At=It->GetActorLocation();
+        if(FVector::DistSquared(P,At)>=FMath::Square(1450.)) continue;
+        if(!InCity(At)||!TownRemaining(ETNav::District(FVector2D(At)))) return true;
     }
     return false;
 }

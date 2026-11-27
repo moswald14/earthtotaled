@@ -17,9 +17,9 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Shift   /   Space"),TEXT("Shift sprints. Tap Space twice for two free jumps. Hold the second press to fly. Land to refuel.")},
          {TEXT("Left / right mouse"),TEXT("Fire or aim. Light aim assist helps near misses while aiming. Toggle it in Pause.")},
          {TEXT("R   /   1-0 or wheel"),TEXT("Reload your magazine or switch between guns. Reserve ammo is unlimited.")},
-         {TEXT("E"),TEXT("Talk, loot, use a workbench, or fell a tree within reach.")},
+         {TEXT("E"),TEXT("Talk, use, search, or fell a tree. Hold Ctrl by loose loot to sweep out to 36 m.")},
          {TEXT("E at a climb marker"),TEXT("Climb with Climbing Grip. Advanced routes need Over the Edge.")},
-         {TEXT("H   /   Q   /   F"),TEXT("Drink bottled water, use a medkit, or toggle your lamp.")},
+         {TEXT("H   /   Q   /   F"),TEXT("Drink, use a medkit, or toggle your lamp. Shield recharges after 10 seconds out of combat.")},
          {TEXT("Tab   /   K   /   J   /   M"),TEXT("Open your pack, skill web, journal, or field atlas. Right-click the map to drop a pin.")},
          {TEXT("Esc   /   F1   /   F11"),TEXT("Pause and manage saves, open the field console, or toggle fullscreen.")}},
         {{TEXT("E at a tree"),TEXT("Fell it for 8 wood. The birches beside Shelter 09 are a good place to start.")},
@@ -31,7 +31,7 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Stone   /   320 HP"),TEXT("Each piece costs 4 stone. Two successful borer cuts supply one piece.")},
          {TEXT("Metal   /   600 HP"),TEXT("Each piece costs 2 iron ore. Look for rust-red seams underground.")},
          {TEXT("Foundations"),TEXT("Frames and rock can span a gap. Removing the last support collapses the span.")}},
-        {{TEXT("06:00 to 19:00"),TEXT("Gather, trade and build. Bug and Supertech forces fight over highway exits throughout the 48-minute cycle.")},
+        {{TEXT("06:00 to 19:00"),TEXT("52 real minutes of daylight. Clear zombies in infested towns to reopen the refuge keeper.")},
          {TEXT("19:00 to 06:00"),TEXT("Roaming creatures and patrols emerge at night. Dawn pauses raids. Highway soldiers focus on their rivals in daylight.")},
          {TEXT("G   /   Left mouse"),TEXT("Mine open wilderness for stone and XP. City ground, streets and structure footprints are protected at every depth.")},
          {TEXT("Right mouse   /   R"),TEXT("Hold to survey for ore. Press R to switch between round and square cuts.")},
@@ -39,7 +39,7 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Relay   /   Turret"),TEXT("A relay costs 2 iron + 1 gold ore. A turret costs 3 + 1 and needs a relay within 75 m.")},
          {TEXT("Turtle miner   /   E"),TEXT("Build for 4 iron + 1 gold ore. Use E to collect the hopper or service a machine.")},
          {TEXT("E at a relay"),TEXT("Repair, upgrade your armor, or trace a nest after defending a valuable base.")},
-         {TEXT("Esc   /   Survivor saves"),TEXT("Use ten slots, copy your run, or import and export a save. The main menu offers restart.")}}
+         {TEXT("Esc   /   Survivor saves"),TEXT("Copy, import or export survivors here. Town boards fund watch shifts and mark water towers.")}}
     };
     const float SW=Canvas->SizeX,SH=Canvas->SizeY;
     const float U=FMath::Clamp(FMath::Min(SW/1366.f,SH/850.f),.60f,2.2f);

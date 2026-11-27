@@ -8,7 +8,15 @@ A solo survival shoot-and-loot game about Mara Venn following the last signal th
 
 **Update.** Close the game, extract the newest Windows ZIP, and replace the previous game folder at the same location. Launch the game and choose **Continue survivor**. Windows stores your saves separately. You can export a backup from **Survivor saves**.
 
+Daylight lasts 52 real minutes and night lasts 22. Shelter 09 is safe. Clear infected towns, then use their settlement boards to fund the watch, build walls and place powered sentries. Track the hill cistern for drinking water. Your shield recharges after combat. Medkits restore health. Approach spilled loot and hold **Ctrl** to sweep it into your pack.
+
 H7 Blackpine Highway and H2 Relay Highway link towns, Bug hives and Supertech cities. Press **M** to plot a route. Mine wilderness ground for resources. Cities, roadbeds and built foundations are protected against excavation at every depth. Earn survivor XP through quests, encounters, harvesting and mining. Press **K** to inspect the 18-node skill web and spend a point when you level up.
+
+## Mods and contributions
+
+Choose **Mod workshop** from the title or pause menu to try the starter pack, connect your own ChatGPT, or install a pack made by another player or AI. Create custom loot and decide where it drops and what it buys. Larger additions can be submitted to the game's main branch. [Modding how-to](work/earthtotaled-unreal/Content/ModWorkshop/README.md) · [Contributing to the game](CONTRIBUTING.md)
+
+![The in-game Mod Workshop with buttons for connecting ChatGPT, previewing the starter pack, and opening the author kit.](docs/mod-workshop.png)
 
 Mine iron and gold, build a relay, and defend your turtle miners with auto turrets. Valuable bases draw Bug raids. Repel one to trace its nest. Richer seams and armored creatures lie beneath the seeded hills and valleys. The fullscreen game includes ten survivor slots, portable save files, and an F1 field console.
 

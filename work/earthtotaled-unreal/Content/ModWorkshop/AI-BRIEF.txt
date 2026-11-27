@@ -1,0 +1,5 @@
+Make one EARTHtotaled schema 1 loot pack based on my idea. Ask what I want if I have not described it. Reply with a single plain JSON object. Use the example below as a shape and choose your own IDs and names.
+
+{"schema":1,"id":"siltworks","name":"Siltworks Salvage","finds":[{"id":"cistern-seal","name":"Stamped cistern seal","source":"cache","chance":100,"use":"wrappers","yield":6},{"id":"optic","name":"Surveyor optic","source":"supertech","chance":60,"use":"scrap","yield":3}]}
+
+Use 1 to 8 finds. IDs start with a lowercase letter and contain only lowercase letters, digits or hyphens (32 characters max). Names have 1 to 48 printable characters. Each find has a unique id within the pack. Source is cache, wildlife, supertech, bug or zombie. Chance is an integer percentage from 1 to 100. Use is wrappers, wood, stone, scrap, medkit or water. Yield is an integer from 1 to 25. Supertech cannot supply water. Give every source and value in lowercase. Use exactly the fields in the example. Players redeem finds in the workshop. For map art, quests or new mechanics, propose a separate source contribution on GitHub.

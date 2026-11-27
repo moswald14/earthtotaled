@@ -15,9 +15,9 @@
 void AETWorld::RunOutpostChecks(AETCharacter* P,TFunctionRef<void(bool,const FString&)> Check)
 {
     auto* S=State;
-    S->Elapsed=780; UpdateNightWatch(P->GetActorLocation());
+    S->ClockOffset=ETDay::At(16.5);S->Elapsed=1080; UpdateNightWatch(P->GetActorLocation());
     P->Panel.Empty(); UGameplayStatics::SetGamePaused(P,false);
-    S->Health=1; S->Armor=0; S->Hydration=97; S->Water=0;
+    S->Health=1; S->Shield=0; S->Armor=0; S->Hydration=97; S->Water=0;
     P->Drink(); Check(Notice.Contains(TEXT("0 sealed bottles"))&&Notice.Contains(TEXT("97%")),TEXT("Empty pack at 97% reports bottle count separately from hydration"));
     P->Hurt(10,TEXT("Fall impact"));
     Check(P->Panel==TEXT("death")&&P->PanelBody.Contains(TEXT("Fall impact"))&&P->PanelBody.Contains(TEXT("97%"))&&!P->PanelBody.Contains(TEXT("Dehydration")),TEXT("Lethal fall at 97% names the impact and correct hydration"));
@@ -102,7 +102,9 @@ void AETWorld::RunOutpostChecks(AETCharacter* P,TFunctionRef<void(bool,const FSt
         Check(IsValid(Nest),TEXT("Relay traces a real destructible brood nest after a successful defense"));
         if(IsValid(Nest)) {const FString Id=Nest->Id; const int32 Iron=S->Inventory.FindRef(TEXT("ironore"));
             Nest->TakeDamage(10000,FDamageEvent(),nullptr,P);
-            Check(S->Consumed.Contains(Id)&&S->Inventory.FindRef(TEXT("ironore"))==Iron+12,TEXT("Clearing nest awards finite bounty and permanently clears its trace"));}
+            const bool Spilled=S->DropKinds.FindRef(Id+TEXT("-drop"))==TEXT("ironore")&&S->DropKinds.FindRef(Id+TEXT("-drop-1"))==TEXT("goldore");
+            if(auto* Ore=LooseActors.FindRef(Id+TEXT("-drop")).Get()) P->TakeLoose(Ore);
+            Check(Spilled&&S->Consumed.Contains(Id)&&S->Inventory.FindRef(TEXT("ironore"))==Iron+12,TEXT("Clearing nest awards finite bounty and permanently clears its trace"));}
     }
     const double R1=ETMath::Relief(54200,63300,84371);
     Check(R1==ETMath::Relief(54200,63300,84371)&&R1!=ETMath::Relief(54200,63300,5124),TEXT("Landscape ridges and drainage reproduce by seed and vary between survivors"));

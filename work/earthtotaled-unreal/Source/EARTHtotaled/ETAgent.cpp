@@ -11,7 +11,7 @@ AETAgent::AETAgent()
     PrimaryActorTick.bCanEverTick=true; Pivot=CreateDefaultSubobject<USceneComponent>(TEXT("Body")); SetRootComponent(Pivot);
 }
 bool AETAgent::IsMachine() const {return Kind==TEXT("robot")||Kind==TEXT("drone");}
-bool AETAgent::Awake() const {return World&&(FrontUnit||Kind==TEXT("deer")||World->IsNight());}
+bool AETAgent::Awake() const {return World&&(FrontUnit||Kind==TEXT("walker")||Kind==TEXT("deer")||World->IsNight());}
 void AETAgent::UpdatePresence(FVector Viewer)
 {
     const double Distance=FVector::DistSquared2D(GetActorLocation(),Viewer);
@@ -40,13 +40,14 @@ void AETAgent::Configure(AETWorld* InWorld,const FString& InId,const FString& In
     else if(Kind==TEXT("runner")) Health=52;
     else Health=Kind==TEXT("boar")?85:60;
     if(const float* Saved=World->State->AgentHealth.Find(Id)) Health=*Saved;
-    FString Asset=Kind==TEXT("robot")?TEXT("SM_Robot"):Kind==TEXT("deer")?TEXT("SM_Deer"):Kind==TEXT("boar")?TEXT("SM_Boar"):TEXT("SM_Wolf");
-    if(Kind==TEXT("drone")) Asset=TEXT("SM_ShardDrone");
-    if(Kind==TEXT("hive")) {Asset=TEXT("SM_BroodBulwark"); SetActorScale3D(FVector(2.5,2.7,2.4));}
-    if(Kind==TEXT("bulwark")) Asset=TEXT("SM_BroodBulwark");
-    if(Kind==TEXT("skimmer")) Asset=TEXT("SM_BroodSkimmer");
-    if(Kind==TEXT("runner")) Asset=TEXT("SM_BroodRunner");
-    if(Kind==TEXT("spitter")) Asset=TEXT("SM_BroodSpitter");
+    FString Asset=Kind==TEXT("robot")?TEXT("SM_SupertechWarden"):Kind==TEXT("deer")?TEXT("SM_Deer"):Kind==TEXT("boar")?TEXT("SM_Boar"):TEXT("SM_Wolf");
+    if(Kind==TEXT("walker")) Asset=TEXT("SM_HollowWalker");
+    if(Kind==TEXT("drone")) Asset=TEXT("SM_SupertechScout");
+    if(Kind==TEXT("hive")) {Asset=TEXT("SM_MoltBulwark"); SetActorScale3D(FVector(2.5,2.7,2.4));}
+    if(Kind==TEXT("bulwark")) Asset=TEXT("SM_MoltBulwark");
+    if(Kind==TEXT("skimmer")) Asset=TEXT("SM_MoltSkimmer");
+    if(Kind==TEXT("runner")) Asset=TEXT("SM_MoltRunner");
+    if(Kind==TEXT("spitter")) Asset=TEXT("SM_MoltSpitter");
     auto M=NewObject<UStaticMeshComponent>(this); M->SetupAttachment(Pivot); M->RegisterComponent();
     M->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     World->DressMesh(M,Kind==TEXT("robot")?TEXT("Rust"):TEXT("Hide")); M->SetCollisionProfileName(TEXT("BlockAll")); Parts.Add(M);
@@ -100,10 +101,10 @@ void AETAgent::Tick(float D)
     }
     const bool Siege=World->RaidMember(Id);
     PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
-    AETAgent* Enemy=Siege?nullptr:FindRival(D);
+    AETAgent* Enemy=Siege||Kind==TEXT("walker")?nullptr:FindRival(D);
     if(World->IsNight()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
        (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
-    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&(World->AtRefuge||!World->IsNight())) return;
+    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||!World->IsNight())) return;
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
     AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
     if(Siege) {
@@ -121,12 +122,12 @@ void AETAgent::Tick(float D)
     const FVector Aim=Enemy?Enemy->AimPoint():Target->GetActorLocation();
     bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,Eye,Aim,ECC_Visibility,Params)||Sight.GetActor()==Target;
     auto* Cover=Cast<AETConstruction>(Sight.GetActor());
-    const float Engage=Robot?6000:Brood?5200:Flee?2200:1800;
+    const float Engage=Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
     FVector Direction;
-    if(Distance<Engage&&(Clear||Managed||Cover||Enemy)) Direction=To.GetSafeNormal()*(Flee?-1:1);
+    if(Distance<Engage&&(Clear||Managed||TownIndex!=INDEX_NONE||Cover||Enemy)) Direction=To.GetSafeNormal()*(Flee?-1:1);
     else Direction=(Home+FVector(FMath::Cos(Phase*.15f)*800,FMath::Sin(Phase*.15f)*800,0)-P).GetSafeNormal2D();
     if(Brood&&!Spitter&&Distance>460) Direction=(Direction+FVector(-Direction.Y,Direction.X,0)*.29*FMath::Sin(Phase+double(GetTypeHash(Id)%9))).GetSafeNormal2D();
-    const float Speed=Staging?55:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
+    const float Speed=Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?410:Spitter?230:Brood?395:260;
     if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
         FVector Next=P+Direction*Speed*D; Next.Z=World->Height(Next.X,Next.Y)+8;
@@ -186,7 +187,7 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
         if(Bolt?Bolt->BugBolt:Fighter->IsBrood()) ++World->BugHits; else ++World->SupertechHits;
     }
     const bool Credited=Cast<AETCharacter>(Causer)||Cast<AETConstruction>(Causer);
-    if(Cast<AETCharacter>(Causer)) PlayerAggro=3.5f;
+    if(Cast<AETCharacter>(Causer)) {PlayerAggro=3.5f; World->State->ShieldDelay=10.f;}
     if(Managed) {if(auto* R=World->State->Threats.Find(Id)) R->Health=Health;}
     else if(!FrontUnit) World->State->AgentHealth.Add(Id,Health);
     if(Health<=0)
@@ -195,27 +196,17 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
         if(FrontUnit) {
             World->FrontUnits.Remove(Id); World->State->FrontLosses.Add(Id,World->State->Elapsed+32.f+GetTypeHash(Id)%19);
         } else if(Managed) {World->State->Threats.Remove(Id); World->LiveThreats.Remove(Id);}
-        else {World->State->Consumed.Add(Id); World->State->AgentHealth.Remove(Id);}
-        if(Kind==TEXT("hive")) {
-            if(!Credited) {World->State->Consumed.Add(Id); Destroy(); return Applied;}
-            World->State->Consumed.Add(Id); World->State->Inventory.FindOrAdd(TEXT("goldore"))+=6; World->State->Inventory.FindOrAdd(TEXT("ironore"))+=12;
-            World->State->RaidWait+=90; if(P) P->AddXP(95);
-            World->Say(TEXT("Bug nest cleared / +12 iron, +6 gold ore, next raid delayed")); World->Save(); Destroy(); return Applied;
+        else {if(TownIndex==INDEX_NONE) World->State->Consumed.Add(Id); World->State->AgentHealth.Remove(Id);}
+        if(TownIndex!=INDEX_NONE) World->WalkerFell(this);
+        const bool Robot=Kind==TEXT("robot"),Hive=Kind==TEXT("hive");
+        if(Credited&&P) {
+            if(Robot) ++World->State->Kills;
+            P->AddXP(Hive?95:Robot?35:Kind==TEXT("drone")?8:20);
         }
-        bool Robot=Kind==TEXT("robot"); if(Robot&&Credited) ++World->State->Kills;
-        if(P&&Credited) P->AddXP(Robot?35:Kind==TEXT("drone")?8:20);
         if(Robot) World->SplitRobot(this);
-        if(!Credited) {Destroy(); return Applied;}
-        if(Kind==TEXT("drone")) {World->Save(); Destroy(); return Applied;}
-        const FString DropId=Id+TEXT("-drop")+(FrontUnit?FGuid::NewGuid().ToString():FString()); const FVector DropPosition=GetActorLocation()+FVector(0,0,20);
-        const FString DropKind=Robot?TEXT("gold"):IsBrood()?TEXT("chitin"):TEXT("harvest"); const int32 DropAmount=Robot?FMath::RoundToInt(16*(P?P->LootRate():1)):0;
-        World->State->DropPositions.Add(DropId,DropPosition); World->State->DropAmounts.Add(DropId,DropAmount); World->State->DropKinds.Add(DropId,DropKind);
-        auto Drop=World->Item(DropId,DropKind,Robot?TEXT("Collect candybar wrappers"):IsBrood()?TEXT("Salvage Bug shell"):TEXT("Salvage animal remains"),DropPosition,DropAmount);
-        // Story guards have no region owner, and roaming encounters can leave their
-        // spawning region. Stream the pickup with the place where it actually fell.
-        const FIntPoint DropCell(FMath::FloorToInt(DropPosition.X/AETWorld::RegionSize),FMath::FloorToInt(DropPosition.Y/AETWorld::RegionSize));
-        if(auto Region=World->Regions.FindRef(DropCell)) if(Drop) {Drop->SetOwner(Region); Region->Residents.Add(Drop);}
-        World->Save(); Destroy();
+        World->SpillLoot(this,Credited);
+        if(Hive) {World->State->Consumed.Add(Id); World->State->RaidWait+=90; World->Say(TEXT("Bug nest cleared / ore spilled from the chamber"));}
+        if(Credited||TownIndex!=INDEX_NONE) World->Save(); Destroy();
     }
     return Applied;
 }

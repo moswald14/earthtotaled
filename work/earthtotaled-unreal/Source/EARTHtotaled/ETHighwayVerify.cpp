@@ -57,8 +57,8 @@ void AETWorld::RunHighwayChecks(AETCharacter* P,TFunctionRef<void(bool,const FSt
     }
     const auto BugId=Bug->Id,TechId=Tech->Id;
     Tech->TakeDamage(1000,FDamageEvent(),nullptr,Bug);
-    Check(State->XP==BeforeXP&&State->Kills==BeforeKills&&State->DropPositions.Num()==BeforeDrops&&State->FrontLosses.Contains(TechId),
-        TEXT("A rival kill records a casualty without granting the survivor XP, kills or loot"));
+    Check(State->XP==BeforeXP&&State->Kills==BeforeKills&&State->DropPositions.Num()>BeforeDrops&&State->FrontLosses.Contains(TechId),
+        TEXT("A rival kill records a casualty and spills salvage without granting survivor XP or kills"));
     Check(FrontUnits.Contains(TechId+TEXT("/shard0"))&&FrontUnits.Contains(TechId+TEXT("/shard1")),
         TEXT("A destroyed Supertech front-line hull launches two fighting drones"));
     Check(!FrontFighter(TechId,TEXT("robot"),Pad),TEXT("Defeated highway soldier waits for reinforcements"));

@@ -1,5 +1,21 @@
 # EARTHtotaled release record
 
+## Unreal 1.12.0 — Reclamation
+
+Daylight lasts 52 real minutes, followed by 22 minutes of night. Older saves retain the time of day at which they were last played. Shelter 09 stays safe. Most other towns start with zombies. Clear the streets to reopen trade, then spend candybar wrappers at the settlement board to fund the watch or build gated walls and powered turrets. The board marks the hill water tower on the atlas. Its tap refills at dawn.
+
+A shield takes damage before armor and health. After ten seconds out of combat it recovers two points per second. Press **Q** to treat wounds with a medkit. Defeated enemies spill separate objects that persist when a region unloads. Start within 2.5 metres of one and hold **Ctrl**. The crouched sweep grows to 36 metres in five seconds and respects walls.
+
+Bugs have segmented shells and Supertechs have armored bodies, sensors and rotors. Forests stream grass blades and broadleaf weeds around the player. New color, surface-relief and roughness textures distinguish gold, iron, shale and forest soil. The two highways have broken shoulders and stretches of missing asphalt. Their roadbeds cut through steep ridges on gentler grades. Existing roadside structures and excavations keep their previous ground height when a survivor upgrades.
+
+The title and pause menus include a Mod Workshop for creating, sharing, installing and redeeming custom loot. The game ships with a starter pack and an author kit for people, ChatGPT and other AIs. During play, **Ctrl + Shift + F10** opens the hidden test menu. [Modding guide](../work/earthtotaled-unreal/Content/ModWorkshop/README.md) · [Contributing](../CONTRIBUTING.md)
+
+The Windows game passed 444 in-game checks, including the slope of the graded highways and protection for earlier excavations. A copy of an existing survivor passed eight upgrade checks. Both story endings passed 38 checks each. Fullscreen play and restart passed 45 checks. A separate input test pressed Ctrl to crouch, opened the hidden menu, granted supplies and returned to captured mouse look. Bugs and Supertechs dealt damage to each other on both highway fronts.
+
+A 15-minute scripted trip covered 5.96 km at normal movement speed across 12 streamed regions and two outlying towns. The survivor crossed nine city boundaries, looted four containers, traded for water three times and returned to previously searched streets. Consumed caches stayed empty. All 49 journey checks passed. Only the day and weather clock ran at 13 times normal speed, covering two full cycles and all five weather types.
+
+The ChatGPT companion produced and copied a pack in a test with a simulated signed-in response. No live model request was made. The in-game workshop separately imported, disabled and redeemed a pack. All 40 files in the Windows ZIP matched the packaged game byte for byte. ZIP SHA-256 `d2d8e606e96d852f5a3e0a09222ffc325d1c4803ecc20c01b728aa1d164094bb`.
+
 ## Unreal 1.11.0
 
 City districts, faction settlements, streets, highways and built foundations protect the ground beneath them from both round and square excavations. Existing tunnels remain accessible. Miners seek deposits outside protected footprints. Shallow iron and gold outcrops lie about 350 m northeast of Shelter 09.

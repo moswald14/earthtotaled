@@ -33,7 +33,7 @@ void AETWorld::RunHomesteadChecks(AETCharacter* P,TFunctionRef<void(bool,const F
     Check(P->Panel.IsEmpty()&&!PC->bShowMouseCursor&&!PC->IsLookInputIgnored()&&!UGameplayStatics::IsGamePaused(this),TEXT("Field guide returns to captured mouse look and live survival"));
 
     const FVector Pad(4000,-6400,0); EnsureRegion({0,-1}); P->SetActorLocation(Pad+FVector(0,0,110));
-    S->Elapsed=299; UpdateNightWatch(Pad);
+    S->ClockOffset=ETDay::At(16.5); S->Elapsed=599; UpdateNightWatch(Pad);
     auto* Beast=AddThreat(TEXT("verify-watch"),TEXT("spitter"),Pad+FVector(940,0,8));
     auto* Deer=GetWorld()->SpawnActor<AETAgent>(Pad+FVector(730,300,0),FRotator::ZeroRotator);
     Deer->Configure(this,TEXT("verify-day-deer"),TEXT("deer")); AtRefuge=false;
@@ -41,15 +41,15 @@ void AETWorld::RunHomesteadChecks(AETCharacter* P,TFunctionRef<void(bool,const F
     const float HP=Beast->Health; Beast->Tick(1);
     Check(!IsNight()&&Beast->IsHidden()&&!Beast->GetActorEnableCollision()&&!Beast->IsActorTickEnabled()&&
         Beast->TakeDamage(25,FDamageEvent(),PC,P)==0&&Beast->Health==HP&&!Deer->IsHidden()&&Patrol==S->PatrolNumber,TEXT("Before 19:00 hostiles have no collision, combat or new patrols and deer stay out"));
-    S->Elapsed=300; UpdateNightWatch(Pad);
+    S->Elapsed=600; UpdateNightWatch(Pad);
     Check(IsNight()&&Beast->Awake()&&Beast->GetActorEnableCollision()&&!Beast->IsHidden()&&Beast->IsActorTickEnabled(),TEXT("At exactly 19:00 the same hostile emerges and can attack"));
     Beast->TakeDamage(11,FDamageEvent(),PC,P);
     auto* Bolt=GetWorld()->SpawnActor<AETEnemyBolt>(Beast->GetActorLocation()+FVector(0,0,70),FRotator::ZeroRotator);
     Bolt->Launch(Beast,P->GetActorLocation(),true);
-    S->Elapsed=1619.9f; Check(IsNight(),TEXT("Hostiles remain active immediately before 06:00"));
-    S->Elapsed=1620; UpdateNightWatch(Pad); UpdateVisibility(Pad);
+    S->Elapsed=1919.9f; Check(IsNight(),TEXT("Hostiles remain active immediately before 06:00"));
+    S->Elapsed=1920; UpdateNightWatch(Pad); UpdateVisibility(Pad);
     Check(!IsNight()&&!IsValid(Bolt)&&Beast->IsHidden()&&!Beast->GetActorEnableCollision()&&!Deer->IsHidden(),TEXT("At 06:00 hostile shots clear and streaming cannot reveal sleeping enemies"));
-    S->Elapsed=3180; UpdateNightWatch(Pad);
+    S->Elapsed=5040; UpdateNightWatch(Pad);
     Check(Beast->Awake()&&Beast->Health==HP-11,TEXT("Next night restores the same wounded encounter without resetting health"));
     Deer->Destroy(); Beast->Destroy(); LiveThreats.Remove(TEXT("verify-watch")); S->Threats.Remove(TEXT("verify-watch"));
     P->Command(TEXT("time day"));

@@ -2,6 +2,7 @@
 #include "ETSaveDisk.h"
 #include "ETGeology.h"
 #include "ETTerrainMath.h"
+#include "ETUnderstory.h"
 #include "Engine/World.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -43,6 +44,7 @@ namespace
 
 AETItem::AETItem()
 {
+    PrimaryActorTick.bCanEverTick=true; PrimaryActorTick.bStartWithTickEnabled=false;
     Mesh=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh")); SetRootComponent(Mesh);
     Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 }
@@ -74,11 +76,17 @@ void AETWorld::LoadDesign()
     if((!Review||JourneyResume||MineResume)&&UGameplayStatics::DoesSaveGameExist(SaveSlot,0)) State=Cast<UETSave>(UGameplayStatics::LoadGameFromSlot(SaveSlot,0));
     HadSave=State&&State->Schema==1;
     if(!HadSave) {State=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass())); State->BuildStock=0;}
+    if(!State->ModernDay) {
+        if(HadSave) {State->ClockOffset=ETDay::FromOld(State->Elapsed); State->Shield=State->Health<25?0.f:60.f; State->ShieldDelay=10;}
+        else {State->ClockOffset=ETDay::At(9);State->RetroDisplay=false;}
+        State->ModernDay=true;
+    }
     if(Review&&JourneyEnding.IsEmpty()&&!MineResume) {
+        State->ClockOffset=ETDay::At(16.5);
         State->Elapsed=1;
         if(ReviewScene==TEXT("forest")) {State->Position=FVector(44000,4000,2000); State->View=FRotator(0,150,0);}
         if(ReviewScene==TEXT("city")) {State->Position=FVector(157800,-8050,2000); State->View=FRotator(0,68,0);}
-        if(ReviewScene==TEXT("night")) State->Elapsed=780;
+        if(ReviewScene==TEXT("night")) State->Elapsed=1080;
         if(ReviewScene==TEXT("bug")||ReviewScene==TEXT("supertech")) {
             const auto Site=ETNav::Site(ReviewScene==TEXT("bug")?FIntPoint(-1,0):FIntPoint::ZeroValue,0);
             State->Position=FVector(Site.At(0,-6700),0);
@@ -88,7 +96,9 @@ void AETWorld::LoadDesign()
         if(ReviewScene==TEXT("bench")) {State->Position=FVector(300,-40,110); State->View=FRotator(-10,90,0);}
         if(ReviewScene==TEXT("mine")) {State->Position=FVector(410,-2750,110); State->View=FRotator(-17,0,0);}
     }
+    if(Review&&FParse::Param(FCommandLine::Get(),TEXT("ETPhoto"))) {PhotoScene=ReviewScene;State->IntroRead=true;State->RetroDisplay=false;State->ClockOffset=ETDay::At(11);State->Elapsed=0;}
     PrepareLandscape();
+    PrepareHighwayGrades();
     Geology=NewObject<UETGeology>(this);
     Geology->Initialize(this);
     FString Source;
@@ -118,6 +128,7 @@ void AETWorld::LoadDesign()
     for(const auto& V:Root->GetArrayField(TEXT("story"))) { auto O=V->AsObject(); Recordings.Add(Str(O,TEXT("title"))+TEXT("\n")+Str(O,TEXT("speaker"))+TEXT("\n\n")+Str(O,TEXT("text"))); }
     for(const auto& V:Root->GetArrayField(TEXT("chapters"))) { auto O=V->AsObject(); ChapterNames.Add(Str(O,TEXT("title"))); Objectives.Add(Str(O,TEXT("objective"))); }
     LoadExpansion();
+    LoadMods();
     for(int32 I=State->Ammo.Num();I<Weapons.Num();++I) State->Ammo.Add(Weapons[I].Mag);
     State->WeaponDamage.SetNumZeroed(Weapons.Num());
     for(int32 I=0;I<Weapons.Num();++I) State->Ammo[I]=FMath::Clamp(State->Ammo[I],0,Weapons[I].Mag);
@@ -163,14 +174,14 @@ bool AETWorld::InCity(FVector P) const {return FVector::Dist2D(P,CityCenter(P.X,
 FString AETWorld::PlaceName(FVector P) const
 {
     auto C=CityCenter(P.X,P.Y); double D=FVector::Dist2D(P,C);
-    if(D<27000) return C.Size2D()<1?TEXT("EXCLUSION CITY / SHELTER DISTRICT"):TEXT("BURNT CITY / SCAVENGING DISTRICT");
+    if(D<27000) return TownStatus(ETNav::District(FVector2D(C)));
     if(const auto* R=Regions.FindRef({FMath::FloorToInt32(P.X/RegionSize),FMath::FloorToInt32(P.Y/RegionSize)}))
         for(const auto& S:R->HighwaySites) if(S.InGrounds(FVector2D(P),1700.))
             return FString(S.Bug?TEXT("BUG / "):TEXT("SUPERTECH / "))+FString(S.Name()).ToUpper();
     if(D<38000) return TEXT("THE OUTSKIRTS / ABANDONED HOMESTEADS");
     return TEXT("BLACKPINE FOREST / UNCHARTED WILDERNESS");
 }
-float AETWorld::Hour() const {return FMath::Fmod(16.5f+State->Elapsed/120.f,24.f);}
+float AETWorld::Hour() const {return ETDay::Hour(State->ClockOffset+State->Elapsed);}
 bool AETWorld::IsNight() const {const float H=Hour(); return H>=19||H<6;}
 void AETWorld::UpdateNightWatch(FVector Viewer)
 {
@@ -203,16 +214,20 @@ void AETWorld::UpdateDaylight()
     const float Day=FMath::SmoothStep(-.08f,.22f,Elevation);
     Sun->SetActorRotation(FRotator(-Elevation*75,Hour()*15-120,0));
     auto SL=Cast<UDirectionalLightComponent>(Sun->GetLightComponent());
-    SL->SetIntensity(7.f*Day*(1-Weather.Cloud*.83f)); SL->SetLightColor(FMath::Lerp(FLinearColor(1,.39f,.15f),FLinearColor(1,.88f,.72f),FMath::Clamp(Elevation*2,0.f,1.f)));
+    SL->SetIntensity(7.f*Day*(1-Weather.Cloud*.83f)); SL->SetLightColor(FMath::Lerp(FLinearColor(1,.53f,.30f),FLinearColor(1,.97f,.92f),FMath::Clamp(Elevation*2,0.f,1.f)));
     Moon->SetActorRotation(FRotator(Elevation*65,Hour()*15+60,0)); Moon->GetLightComponent()->SetIntensity(.23f*(1-Day));
-    Sky->GetLightComponent()->SetIntensity((.28f+Day*.65f)*(1-Weather.Cloud*.28f));
+    Sky->GetLightComponent()->SetIntensity((.32f+Day*.85f)*(1-Weather.Cloud*.28f));
     if(Fog) {
-        Fog->GetComponent()->SetFogDensity(.018f+(1-Day)*.012f+Weather.Haze*.065f);
-        const FLinearColor Fair=FMath::Lerp(FLinearColor(.09f,.13f,.21f),FLinearColor(.43f,.36f,.25f),Day);
+        Fog->GetComponent()->SetFogDensity(.009f+(1-Day)*.016f+Weather.Haze*.065f);
+        const FLinearColor Fair=FMath::Lerp(FLinearColor(.09f,.13f,.21f),FLinearColor(.30f,.39f,.50f),Day);
         const FLinearColor Wet=FMath::Lerp(FLinearColor(.07f,.10f,.16f),FLinearColor(.24f,.29f,.33f),Day);
         Fog->GetComponent()->SetFogInscatteringColor(FMath::Lerp(Fair,Wet,Weather.Cloud));
     }
-    if(Atmosphere) {Atmosphere->SetMieScatteringScale(2.8f+Weather.Haze*7+Weather.Cloud*3); Atmosphere->SetSkyLuminanceFactor(FLinearColor(1-Weather.Cloud*.45f,1-Weather.Cloud*.34f,1-Weather.Cloud*.24f));}
+    if(Atmosphere) {
+        // Unreal's scattering coefficients are measured per kilometre.
+        Atmosphere->SetMieScatteringScale(.003996f + Weather.Haze*.026f + Weather.Cloud*.01f);
+        Atmosphere->SetSkyLuminanceFactor(FMath::Lerp(FLinearColor::White,FLinearColor(.64f,.71f,.80f),Weather.Cloud));
+    }
     if(CloudMaterial) {
         CloudMaterial->SetScalarParameterValue(TEXT("Coverage"),Weather.Cloud);
         CloudMaterial->SetVectorParameterValue(TEXT("CloudTint"),FMath::Lerp(FLinearColor(.012f,.018f,.03f),FLinearColor(.32f,.36f,.39f),Day)*(1-Weather.Storminess*.42f));
@@ -235,7 +250,7 @@ double AETWorld::Height(double X,double Y) const
         double Blend=FMath::Clamp((D-1)/1.2,0.0,1.0); Blend=Blend*Blend*(3-2*Blend);
         if(Blend<1) H=FMath::Lerp(Landscape(P.X,P.Y),H,Blend);
     }
-    return H;
+    return GradeHighway(X,Y,H);
 }
 UMaterialInterface* AETWorld::Material(const FString& Name) const
 {
@@ -247,7 +262,7 @@ void AETWorld::DressMesh(UStaticMeshComponent* Component,const FString& BaseMate
     const auto& Slots=Component->GetStaticMesh()->GetStaticMaterials();
     for(int32 I=0;I<Slots.Num();++I) {
         FString Slot=Slots[I].MaterialSlotName.ToString(); FString Name=BaseMaterial;
-        for(const TCHAR* Known:{TEXT("Steel"),TEXT("DarkMetal"),TEXT("Rubber"),TEXT("Wood"),TEXT("Bark"),TEXT("Glass"),TEXT("Greenline"),TEXT("Skin"),TEXT("Signal"),TEXT("Gold"),TEXT("Leaf"),TEXT("Pine"),TEXT("Moss"),TEXT("BirchBark"),TEXT("Brick"),TEXT("Plaster"),TEXT("Concrete"),TEXT("Rust"),TEXT("Canvas"),TEXT("CircuitLight"),TEXT("ResinLight")})
+        for(const TCHAR* Known:{TEXT("Steel"),TEXT("DarkMetal"),TEXT("Rubber"),TEXT("Wood"),TEXT("Bark"),TEXT("Glass"),TEXT("Greenline"),TEXT("Skin"),TEXT("Signal"),TEXT("Gold"),TEXT("Leaf"),TEXT("Pine"),TEXT("Moss"),TEXT("BirchBark"),TEXT("Brick"),TEXT("Plaster"),TEXT("Concrete"),TEXT("Rust"),TEXT("Canvas"),TEXT("CircuitLight"),TEXT("ResinLight"),TEXT("AlloyHull"),TEXT("Carapace"),TEXT("Pallor"),TEXT("RotCloth"),TEXT("GreenBlade"),TEXT("DryBlade"),TEXT("Hide")})
             if(Slot==Known||Slot.EndsWith(FString(TEXT("_"))+Known)) {Name=Known; break;}
         Component->SetMaterial(I,Material(Name));
     }
@@ -273,18 +288,29 @@ AETItem* AETWorld::Item(const FString& Id,const FString& Kind,const FString& Lab
         Asset=Type==TEXT("medical")?TEXT("SM_MedCase"):Type==TEXT("armory")?TEXT("SM_WeaponCase"):Type==TEXT("tools")?TEXT("SM_Toolbox"):Type==TEXT("electronics")?TEXT("SM_ElectronicsCase"):TEXT("SM_PantryCase");
     }
     if(Kind==TEXT("weapon")) Asset=TEXT("SM_WeaponCase");
+    if(Kind==TEXT("tower")) Asset=TEXT("SM_HillCistern");
     if(Kind==TEXT("survey")) Asset=TEXT("SM_Sign");
     // "gold" is the legacy saved drop kind; new and previously dropped currency are wrappers.
     if(Kind==TEXT("gold")) Asset=TEXT("SM_Wrappers");
+    else if(Kind==TEXT("townboard")) Asset=TEXT("SM_Sign");
+    else if(Kind==TEXT("medkit")) {Asset=TEXT("SM_MedCase");A->SetActorScale3D(FVector(.38));}
+    else if(Kind==TEXT("gunparts")||Kind==TEXT("scrap")||Kind.StartsWith(TEXT("mod."))) {Asset=TEXT("SM_ElectronicsCase");A->SetActorScale3D(FVector(.30));}
+    else if(Kind==TEXT("ironore")||Kind==TEXT("goldore")||Kind==TEXT("chitin")) {Asset=TEXT("SM_Rock");A->SetActorScale3D(FVector(.25));}
+    else if(Kind==TEXT("cloth")||Kind==TEXT("harvest")) {Asset=TEXT("SM_PantryCase");A->SetActorScale3D(FVector(.24));}
     A->Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     DressMesh(A->Mesh,Kind==TEXT("friend")?TEXT("Greenline"):Kind==TEXT("core")?TEXT("Signal"):Kind==TEXT("human")?TEXT("Canvas"):TEXT("Steel"));
+    if(Kind==TEXT("goldore")||Kind==TEXT("ironore")||Kind==TEXT("chitin"))
+        A->Mesh->SetMaterial(0,Material(Kind==TEXT("goldore")?TEXT("FaultGold"):Kind==TEXT("ironore")?TEXT("FaultIron"):TEXT("Carapace")));
     A->Mesh->SetCullDistance(16000);
     if(Kind==TEXT("container")&&Value==TEXT("medical")) A->Mesh->SetMaterial(0,Material(TEXT("Canvas")));
     return A;
 }
 void AETWorld::EnsureRegion(FIntPoint C)
 {
-    if(Regions.Contains(C)) return;
+    if(auto* Existing=Regions.FindRef(C)) {
+        if(Existing->Stage<6) {while(!Existing->AdvanceGenerate()) {} RestoreDrops(Existing);}
+        return;
+    }
     auto R=GetWorld()->SpawnActor<AETRegion>(); Regions.Add(C,R); R->Generate(this,C); RestoreDrops(R);
 }
 void AETWorld::RestoreDrops(AETRegion* Region)
@@ -300,10 +326,10 @@ void AETWorld::RestoreDrops(AETRegion* Region)
         FString Kind=State->DropKinds.FindRef(It.Key);
         // Adopt an already-live drop if its tile was not ready when the encounter
         // died. Repeated restoration must never create a second reward for one ID.
-        AETItem* Drop=nullptr;
-        for(TActorIterator<AETItem> Actor(GetWorld());Actor;++Actor) if(Actor->Id==It.Key) {Drop=*Actor; break;}
-        if(!Drop) Drop=Item(It.Key,Kind,Kind==TEXT("gold")?TEXT("Collect candybar wrappers"):Kind==TEXT("chitin")?TEXT("Salvage Bug shell"):TEXT("Salvage animal remains"),It.Value,State->DropAmounts.FindRef(It.Key));
+        AETItem* Drop=LooseActors.FindRef(It.Key).Get();
+        if(!Drop) Drop=Item(It.Key,Kind,DropLabel(Kind),It.Value,State->DropAmounts.FindRef(It.Key));
         if(Drop) {
+            LooseActors.Add(It.Key,Drop); Drop->Mesh->SetCollisionResponseToChannel(ECC_Pawn,ECR_Ignore);
             if(auto Previous=Cast<AETRegion>(Drop->GetOwner())) if(Previous!=Region) Previous->Residents.Remove(Drop);
             Drop->SetOwner(Region); Region->Residents.AddUnique(Drop);
         }
@@ -322,6 +348,7 @@ void AETWorld::Tick(float Delta)
     if(MineWalk) {WalkMineCheck(P); return;}
     if(!JourneyEnding.IsEmpty()) TickJourneyVerification(Delta);
     if(HighwayTour) TickHighwayTour(P);
+    if(!PhotoScene.IsEmpty()) TickReclamationPhoto(P);
     TickAtmosphere(Delta);
     // Only the score/mix updates while menus pause survival, weather and streaming.
     if(UGameplayStatics::IsGamePaused(this)) return;
@@ -346,7 +373,7 @@ void AETWorld::Tick(float Delta)
     }
     LightTime-=Delta; if(LightTime<=0) {LightTime=.25f; UpdateDaylight();}
     auto Pos=P->GetActorLocation(); UpdateNightWatch(Pos); StreamAround(Pos);
-    TickPatrols(P,Delta); TickWarFronts(P,Delta); TickOutposts(P,Delta);
+    TickTowns(P,Delta); TickPatrols(P,Delta); TickWarFronts(P,Delta); TickOutposts(P,Delta);
     VisibilityTime-=Delta; if(VisibilityTime<=0) {VisibilityTime=.5f; UpdateVisibility(Pos);}
     if(Ambience.Num()==3) {
         const float CityMix=InCity(Pos)?1.f:0.f, Night=IsNight()?1.f:0.f;
@@ -372,13 +399,17 @@ void AETWorld::BuildStory()
     Sun=GetWorld()->SpawnActor<ADirectionalLight>(FVector(0,0,18000),FRotator(-21,-42,0));
     auto Light=Cast<UDirectionalLightComponent>(Sun->GetLightComponent()); Light->SetMobility(EComponentMobility::Movable);
     Light->SetIntensity(5.5f); Light->SetLightColor(FLinearColor(1,.79f,.55f)); Light->SetAtmosphereSunLight(true); Light->SetLightSourceAngle(1.1f);
-    Moon=GetWorld()->SpawnActor<ADirectionalLight>(); Moon->GetLightComponent()->SetMobility(EComponentMobility::Movable); Moon->GetLightComponent()->SetLightColor(FLinearColor(.43f,.58f,1.f));
-    auto AtmosphereActor=GetWorld()->SpawnActor<ASkyAtmosphere>(); Atmosphere=AtmosphereActor->GetComponent(); Atmosphere->SetMieScatteringScale(2.8f); Atmosphere->SetRayleighScatteringScale(.65f);
+    Moon=GetWorld()->SpawnActor<ADirectionalLight>();
+    auto Moonlight=Cast<UDirectionalLightComponent>(Moon->GetLightComponent());
+    Moonlight->SetMobility(EComponentMobility::Movable); Moonlight->SetAtmosphereSunLightIndex(1); Moonlight->SetLightColor(FLinearColor(.43f,.58f,1.f));
+    auto AtmosphereActor=GetWorld()->SpawnActor<ASkyAtmosphere>(); Atmosphere=AtmosphereActor->GetComponent(); Atmosphere->SetMieScatteringScale(.003996f); Atmosphere->SetRayleighScatteringScale(.0331f);
     Sky=GetWorld()->SpawnActor<ASkyLight>(); Sky->GetLightComponent()->SetMobility(EComponentMobility::Movable);
     Sky->GetLightComponent()->SetRealTimeCaptureEnabled(true); Sky->GetLightComponent()->SetIntensity(1.1f);
     Fog=GetWorld()->SpawnActor<AExponentialHeightFog>(); auto FC=Fog->GetComponent();
     FC->SetFogDensity(.012f); FC->SetFogHeightFalloff(.22f); FC->SetVolumetricFog(true);
     auto PP=GetWorld()->SpawnActor<APostProcessVolume>(); PP->bUnbound=true;
+    PP->Settings.bOverride_AmbientOcclusionIntensity=true;PP->Settings.AmbientOcclusionIntensity=.68f;
+    PP->Settings.bOverride_AmbientOcclusionRadius=true;PP->Settings.AmbientOcclusionRadius=62.f;
     PP->Settings.bOverride_AutoExposureMinBrightness=true; PP->Settings.AutoExposureMinBrightness=.2f;
     PP->Settings.bOverride_AutoExposureMaxBrightness=true; PP->Settings.AutoExposureMaxBrightness=2.f;
     PP->Settings.bOverride_BloomIntensity=true; PP->Settings.BloomIntensity=.25f;
@@ -441,7 +472,7 @@ void AETWorld::BuildStory()
     for(const TCHAR* Name:{TEXT("ForestDay"),TEXT("ForestNight"),TEXT("CityWind")}) {
         auto A=NewObject<UAudioComponent>(this); A->bAutoActivate=false; A->bAllowSpatialization=false; A->SetSound(Sounds.FindRef(Name)); A->RegisterComponent(); A->SetVolumeMultiplier(0); A->Play(); Ambience.Add(A);
     }
-    InitAtmosphere();
+    InitAtmosphere(); ETFlora::Start(this);
     // Interactive story actors remain persistent, but rendering and AI obey player distance.
     for(TActorIterator<AETItem> It(GetWorld());It;++It) if(!It->GetOwner()) StoryActors.Add(*It);
     for(TActorIterator<AETAgent> It(GetWorld());It;++It) if(!It->GetOwner()) StoryActors.Add(*It);
@@ -481,7 +512,8 @@ bool AETRegion::AdvanceGenerate()
         H->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
         W->DressMesh(H,Mat); H->SetCollisionEnabled(ECollisionEnabled::NoCollision); H->SetCullDistances(20000,W->State->ViewDistance*100); H->SetCastShadow(Asset!=TEXT("SM_Grass")); H->RegisterComponent(); Instances.Add(H); return H;
     };
-    auto Rocks=Instance(TEXT("SM_Rock"),TEXT("Concrete")); auto Grass=Instance(TEXT("SM_Grass"),TEXT("Grass")); auto Trees=Instance(TEXT("SM_Tree"),TEXT("Bark")); auto Pines=Instance(TEXT("SM_Pine"),TEXT("Pine"));
+    auto Rocks=Instance(TEXT("SM_Rock"),TEXT("Concrete")); auto Grass=Instance(TEXT("SM_BladePatch"),TEXT("GreenBlade")); auto Weeds=Instance(TEXT("SM_RoadWeed"),TEXT("GreenBlade"));
+    for(auto* Cover:{Grass,Weeds}) {Cover->ComponentTags.Add(TEXT("ET_DetailNear"));Cover->SetCastShadow(false);Cover->SetCullDistances(8500,12500);} auto Trees=Instance(TEXT("SM_Tree"),TEXT("Bark")); auto Pines=Instance(TEXT("SM_Pine"),TEXT("Pine"));
     auto PinesB=Instance(TEXT("SM_PineB"),TEXT("Pine")); auto Birches=Instance(TEXT("SM_Birch"),TEXT("BirchBark"));
     auto Trunks=Instance(TEXT("SM_Trunk"),TEXT("Bark")); Trunks->SetCollisionProfileName(TEXT("BlockAll")); Trunks->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); Trunks->SetCastShadow(false);
     for(int32 I=0;I<1100;++I)
@@ -496,6 +528,18 @@ bool AETRegion::AdvanceGenerate()
         if(I<300&&W->State->Consumed.Contains(W->TreeId(WP))) continue;
         H->AddInstance(T);
         if(I<300) Trunks->AddInstance(T);
+    }
+    FRandomStream Meadow(W->SeedFor(C,8467));
+    for(int I=0;I<44;++I) {
+        const FVector2D Root(Meadow.FRandRange(1400,30600),Meadow.FRandRange(1400,30600));
+        const FVector Mid=Origin+FVector(Root,0);
+        if(W->InCity(Mid)||InHighwayGrounds(FVector2D(Mid))||FVector::Dist2D(Mid,W->HouseAnchor(C,0))<2250||FVector::Dist2D(Mid,W->HouseAnchor(C,1))<2250) continue;
+        for(int J=0;J<34;++J) {
+            FVector P(Root+FVector2D(Meadow.FRandRange(-1120,1120),Meadow.FRandRange(-1120,1120)),0);const auto WP=Origin+P;
+            if(OnHighway(FVector2D(WP),15)||W->Geology->SurfaceOpening(WP.X,WP.Y)<25) continue;
+            P.Z=W->SurfaceHeight(WP.X,WP.Y)-2;const float S=Meadow.FRandRange(.75,1.60);
+            (J%8==0?Weeds:Grass)->AddInstance(FTransform(FRotator(0,Meadow.FRandRange(0,360),0),P,FVector(S)));
+        }
     }
     } else if(Stage==2) {
     for(int32 I=0;I<2;++I)
@@ -556,7 +600,7 @@ bool AETRegion::AdvanceGenerate()
     {
         FVector P=Origin+FVector(R.FRandRange(1500,30000),R.FRandRange(1500,30000),0); if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+8;
         auto Trap=W->Item(FString::Printf(TEXT("r%d,%d-trap%d"),C.X,C.Y,I),TEXT("trap"),TEXT("Disarm rusted trap"),P); if(Trap) Residents.Add(Trap);
-    }    } else if(Stage==5) {AddDetails(); BuildHighwaySites();}
+    }    } else if(Stage==5) {AddDetails(); BuildHighwaySites(); AddTownLandmarks();}
     ++Stage;
     if(Stage>=6) {
         for(auto A:Residents) if(IsValid(A)) A->SetOwner(this);
@@ -568,7 +612,10 @@ bool AETRegion::AdvanceGenerate()
 void AETRegion::EndPlay(const EEndPlayReason::Type Reason)
 {
     for(auto A:Residents) if(IsValid(A)) {
-        if(IsValid(World)) if(auto* Frame=Cast<AETConstruction>(A)) World->LiveBuilds.Remove(Frame->Id);
+        if(IsValid(World)) {
+            if(auto* Frame=Cast<AETConstruction>(A)) World->LiveBuilds.Remove(Frame->Id);
+            if(auto* Drop=Cast<AETItem>(A);Drop&&World->LooseActors.FindRef(Drop->Id).Get()==Drop) World->LooseActors.Remove(Drop->Id);
+        }
         if(IsValid(World)&&World->Geology) if(auto* Prop=Cast<AStaticMeshActor>(A)) World->Geology->ForgetGroundProp(Prop);
         A->Destroy();
     }

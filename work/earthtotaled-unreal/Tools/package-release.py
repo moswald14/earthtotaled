@@ -11,7 +11,10 @@ game=options.game_root.resolve()
 outputs=options.output_dir.resolve()
 outputs.mkdir(parents=True,exist_ok=True)
 assert (game/'EARTHtotaled.exe').is_file(), 'Package the native game first'
-instructions='''EARTHtotaled 1.11.0 / Unreal Windows edition
+kit=game/'EARTHtotaled/Content/ModWorkshop'
+for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
+    assert (kit/name).is_file(), f'Missing player author kit file: {name}'
+instructions='''EARTHtotaled 1.12.0 / Unreal Windows edition
 
 Double-click EARTHtotaled.exe. Keep this entire folder together.
 Install or update from https://github.com/moswald14/earthtotaled/releases/latest
@@ -21,6 +24,17 @@ then launch EARTHtotaled.exe and choose Continue. Windows stores saves separatel
 You can back up any slot under Survivor saves > Export.
 The game opens fullscreen. F11 switches between fullscreen and a window.
 To pin it: start the game, right-click its taskbar icon, and choose Pin to taskbar.
+
+RECLAMATION
+Shelter 09 is safe. Most other towns have zombies. Clear the streets, then use
+the settlement board to fund watch shifts, build walls and add powered turrets.
+Boards can mark a hill cistern. Draw bottles at its tap. It refills each dawn.
+The shield takes incoming hits first and recharges after ten quiet seconds.
+Use Q with a medkit to heal. Stand beside fallen loot and hold Ctrl to crouch.
+The pickup radius grows to 36 metres in five seconds and needs a clear path.
+Mod workshop is on the title and pause menus. Preview the starter or use your
+own ChatGPT to create a loot pack. Open Author kit for the complete guide.
+For testing use a spare survivor slot and press Ctrl + Shift + F10 during play.
 
 M opens your north-up field atlas and pauses survival. Drag with the left mouse
 to pan, and scroll to zoom around the cursor. Right-click to drop a blue pin.
@@ -57,7 +71,8 @@ Salvage pieces from the top down if you want to reclaim their materials.
 SALT-7 sells six wood frame kits for twenty wrappers. Human supply runs also award kits.
 With the survey borer equipped, R switches between round and square tunnel cuts.
 
-From 19:00 until 06:00, Supertech patrols, Bug raiders and predators emerge.
+From 19:00 until 06:00, roaming Supertech patrols, Bug raiders and predators emerge.
+Infested cities and faction front lines stay dangerous by day.
 Use daylight to harvest and build. Deer, settlers and Greenline stay in the world.
 At dawn roaming hostiles withdraw and raids pause. Highway factions keep fighting.
 Each destroyed Supertech hull releases two flying shard drones. Take cover from
@@ -89,7 +104,7 @@ water bottles and two building kits. Search armories and complete quests for gun
 
 The journal follows your survivor through both possible endings. You can keep
 exploring afterward and return to HELIOS to reread your chosen epilogue.
-A full day and night takes 48 minutes. Roofs provide cover in thunderstorms.
+Daylight lasts 52 minutes and night lasts 22 minutes. Roofs provide cover in thunderstorms.
 
 Escape opens the display and audio settings. View distance ranges from 350 to
 700 m. Render detail ranges from 100% to 150%. The music and weather sounds
@@ -115,7 +130,7 @@ Enter runs a command, Up recalls it, and Escape returns to mouse look.
 Escape > Display / native shows the new 2K material detail at full resolution.
 '''
 (game/'READ ME.txt').write_text(instructions,encoding='utf-8')
-archive=outputs/'EARTHtotaled-Unreal-Windows-v1.11.0.zip'
+archive=outputs/'EARTHtotaled-Unreal-Windows-v1.12.0.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
     for p in sorted(game.rglob('*')):
         if p.is_file() and p.suffix.lower() not in {'.pdb','.debug','.map'} and 'Saved' not in p.relative_to(game).parts:
@@ -123,6 +138,6 @@ with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=
 with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
     assert 'EARTHtotaled-Unreal/EARTHtotaled.exe' in z.namelist()
-record={'version':'1.11.0-unreal','engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
+record={'version':'1.12.0-unreal','engine':'5.8.4','executable':str(game/'EARTHtotaled.exe'),'zip':str(archive),'zip_bytes':archive.stat().st_size,'zip_sha256':hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),'published':False}
 (outputs/'EARTHtotaled-Unreal-release.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
 print(json.dumps(record,indent=2))

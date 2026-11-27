@@ -11,6 +11,10 @@ const TCHAR* UETGeology::DigRestriction(const FBox2D& Area) const
     const FVector2D Nearest(FMath::Clamp(Town.X,Area.Min.X,Area.Max.X),FMath::Clamp(Town.Y,Area.Min.Y,Area.Max.Y));
     if(FVector2D::DistSquared(Town,Nearest)<=FMath::Square(27000.)) return TEXT("Protected city ground / mine outside the district");
 
+    if(FVector2D::Distance(Center,Town)<43500.+Area.GetExtent().Size()) {
+        const FVector2D Tank(World->TowerLocation(ETNav::District(Center)));
+        if(Area.Intersect(FBox2D(Tank-FVector2D(430.),Tank+FVector2D(430.)))) return TEXT("Protected water tower foundation");
+    }
     const TCHAR* Reason=nullptr;
     ETNav::Sites(Area,[&](const ETNav::FSite& Site){
         const auto E=Site.Along.GetAbs()*10400.+Site.Inward.GetAbs()*9000.;

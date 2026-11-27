@@ -63,7 +63,7 @@ void AETWorld::Loot(AETCharacter* P,const FString& Id,const FString& Table)
     if(Table==TEXT("armory")&&R.RandRange(0,7)==0) {
         const int32 Gun=R.RandRange(6,9); if(!State->Unlocked.Contains(Gun)) {State->Unlocked.Add(Gun); Summary+=TEXT(" / FOUND ")+Weapons[Gun].Name;}
     }
-    P->AddXP(20); Say(Summary+FString::Printf(TEXT(" / %d scrap"),Scrap)); State->Consumed.Add(Id);
+    ModCache(Id,Summary); P->AddXP(20); Say(Summary+FString::Printf(TEXT(" / %d scrap"),Scrap)); State->Consumed.Add(Id);
 }
 void AETCharacter::Inventory()
 {
@@ -75,8 +75,8 @@ void AETCharacter::UseSupply(const FString& Id)
 {
     auto S=World->State; if(S->Inventory.FindRef(Id)<=0) return;
     if(Id==TEXT("food")||Id==TEXT("bandage")) {
-        if(S->Health>=MaxHealth()) {PanelBody=TEXT("Health is already full."); return;}
-        S->Health=FMath::Min(MaxHealth(),S->Health+(Id==TEXT("food")?15:25));
+        if(Id==TEXT("food")) S->StimTime=FMath::Max(S->StimTime,90.f);
+        else {if(S->Inventory[Id]<2) {PanelBody=TEXT("Two bandages make a field medkit."); return;} --S->Inventory[Id];++S->Meds;}
     } else if(Id==TEXT("armorplate")) {
         if(S->Armor>=S->ArmorLimit()) {PanelBody=TEXT("Your suit is already fully repaired."); return;} S->Armor=FMath::Min(S->ArmorLimit(),S->Armor+35);
     } else if(Id==TEXT("stim")) S->StimTime=180;

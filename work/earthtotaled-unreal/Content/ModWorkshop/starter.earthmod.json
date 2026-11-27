@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "siltworks",
+  "name": "Siltworks Salvage",
+  "finds": [
+    {
+      "id": "cistern-seal",
+      "name": "Stamped cistern seal",
+      "source": "cache",
+      "chance": 100,
+      "use": "wrappers",
+      "yield": 6
+    },
+    {
+      "id": "optic",
+      "name": "Surveyor optic",
+      "source": "supertech",
+      "chance": 60,
+      "use": "scrap",
+      "yield": 3
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+newmtl AlloyHull
+Kd 0.5 0.5 0.5
+newmtl CircuitLight
+Kd 0.5 0.5 0.5
+newmtl DarkMetal
+Kd 0.5 0.5 0.5

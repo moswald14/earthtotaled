@@ -22,30 +22,58 @@ function lattice(n) {
 }
 const clamp=x=>Math.max(0,Math.min(1,x));
 const palettes={Ground:[[44,39,30],[134,119,87]],Bark:[[31,28,25],[130,104,78]],Concrete:[[73,72,68],[176,174,159]],FaultShale:[[34,38,42],[116,121,123]],FaultIron:[[44,39,35],[174,102,55]],FaultGold:[[42,44,44],[218,174,62]]};
+palettes.AlloyHull=[[32,40,45],[160,175,170]]; palettes.Carapace=[[22,27,22],[117,92,56]];
+palettes.Pallor=[[62,62,56],[173,172,140]]; palettes.RotCloth=[[28,36,35],[95,111,102]];
 for(const [name,[dark,light]] of Object.entries(palettes)){
     const noise=[4,16,64,256,1024].map(lattice), height=new Float32Array(size*size);
+    if(process.argv.length>2&&!process.argv.slice(2).includes(name)) continue;
     const stride=size*3+1, color=Buffer.alloc(stride*size), normal=Buffer.alloc(color.length), rough=Buffer.alloc(color.length);
     const mineral=name.startsWith('Fault'), gold=name==='FaultGold', iron=name==='FaultIron';
     for(let y=0;y<size;y++)for(let x=0;x<size;x++){
         const u=x/size,v=y/size, a=noise[0](u,v),b=noise[1](u,v),c=noise[2](u,v),grain=noise[3](u,v),pore=noise[4](u,v);
-        let h,t,r;
+        let h,t,r,tint=[0,0,0];
         if(name==='Bark'){
             const fissure=Math.pow(.5+.5*Math.cos(tau*(u*19+1.6*a+.45*b+.12*c)),5);
             h=.44*(1-fissure)+b*.18+c*.13+grain*.10+pore*.04; t=.18+.52*h+.25*b-.20*fissure;r=.69+.22*grain;
         }else if(mineral){
-            const bed=.5+.5*Math.sin(tau*(v*12+u*3+1.3*a+.37*b+.09*c));
-            const seam=Math.pow(bed,iron?3:9)*clamp((b-.26)*2.6);
-            h=.23*bed+.28*b+.15*c+.18*grain+.055*pore+seam*.16;
-            t=(gold||iron)?clamp(.08+.22*c+.16*grain+seam*(gold?1.12:.89)):clamp(.22+bed*.21+b*.19+grain*.23);
-            r=.83-.51*seam+.09*pore;
+            const fold=v*8+u*3+1.55*a+.54*b+.11*c;
+            const fracture=Math.abs(Math.sin(tau*fold)),cross=Math.abs(Math.sin(tau*(u*7-v*4+1.7*b+.2*c)));
+            const seam=clamp((.30-fracture)*5.5)*clamp((b-.24)*3.4);
+            const crystal=clamp((grain-.56)*5.5)*clamp((c-.31)*5);
+            const ore=clamp(seam*(.66+.66*crystal)+clamp((.13-cross)*7)*crystal+crystal*clamp((b-.63)*4));
+            const flake=Math.floor((.58*c+.42*grain)*9)/9;
+            h=.22*a+.17*b+.21*flake+.15*fracture+.09*pore+ore*.16-.16*clamp((.085-cross)*11);
+            t=gold||iron?clamp(.08+.16*flake+.10*pore+ore*.98):clamp(.13+.41*flake+.23*fracture+.17*b);
+            tint=gold?[ore*30,ore*14,-ore*18]:iron?[ore*24,-ore*6,-ore*12]:[0,2,5];
+            r=clamp(.84+.12*pore-(gold?.64:.36)*ore);
+        }else if(name==='Carapace'){
+            const ridge=Math.abs(Math.sin(tau*(v*6+u*2+.64*a+.22*b)));
+            const joint=clamp((.23-ridge)*5);const pit=clamp((.30-grain)*4);
+            h=.28*b+.22*c+.20*ridge-.21*joint-.08*pit;t=.22+.35*b+.28*ridge+.12*pore-.32*joint;
+            r=.37+.35*joint+.16*grain;tint=[6*c,5*(1-a),-4];
+        }else if(name==='Pallor'){
+            const stain=clamp((.60-b)*4)*c,crease=clamp((.08-Math.abs(Math.sin(tau*(u*6+v*3+1.4*b))))*9)*grain;
+            h=.17*b+.06*grain+.035*pore-.08*crease;t=.53+.26*b+.13*grain-.27*stain;tint=[stain*19,stain*-8,stain*2];r=.62+.16*grain;
+        }else if(name==='RotCloth'){
+            const warp=.5+.5*Math.cos(tau*(u*180+b*.55)),weft=.5+.5*Math.sin(tau*(v*131+c*.45));
+            const dirt=clamp((a*.65+b*.35-.5)*3.8);
+            h=.055*warp+.045*weft+.1*grain+.09*b;t=.30+.22*c+.18*grain+.12*warp-.21*dirt;tint=[dirt*25,dirt*9,-8*dirt];r=.83+.1*grain;
+        }else if(name==='AlloyHull'){
+            const brush=noise[3](u,v*8),scratch=clamp((.052-Math.abs(Math.sin(tau*(v*42+u+1.2*b))))*19)*clamp((a-.4)*4);
+            const patina=clamp((.31-b)*5)*(.4+.6*c);
+            h=.15*b+.04*brush+.045*grain-.12*scratch+.06*patina;
+            t=.23+.29*b+.18*brush+.18*scratch-.16*patina;tint=[patina*42,patina*9,-patina*13];r=.32+.27*grain+.32*patina;
         }else if(name==='Concrete'){
             const pit=clamp((.31-grain)*5),chip=clamp((pore-.79)*5);
             h=.27*b+.16*c+.09*grain-.22*pit+.12*chip;t=.48+.29*b+.12*pore-.33*pit-.14*(1-c);r=.64+.25*grain;
         }else{
-            const gravel=clamp((grain-.59)*4.5),soil=clamp((b-.36)*2.3);
-            h=b*.27+c*.21+gravel*.24+pore*.08;t=.13+.32*b+.23*c+.27*gravel+.10*pore;r=.62+.25*soil+.11*pore;
+            const gravel=clamp((grain-.59)*5.7),moss=clamp((.58*a+.42*b-.45)*4);
+            const root=clamp((.055-Math.abs(Math.sin(tau*(u*9+v*4+1.5*a+.35*b))))*17)*clamp((c-.29)*3.8);
+            const leaf=clamp((noise[2](u+v,v*3)-.71)*6);
+            h=.28*b+.19*c+.21*gravel+.16*root+.10*leaf+.065*pore;
+            t=.12+.27*b+.15*c+.32*gravel+.19*root+.16*leaf;tint=[14*leaf-12*moss,11*moss-4*leaf,-13*moss-7*leaf];r=.71+.14*pore+.11*moss-.22*gravel;
         }
-        height[y*size+x]=h;const i=y*stride+1+x*3; for(let k=0;k<3;k++){color[i+k]=Math.round(dark[k]+(light[k]-dark[k])*clamp(t));rough[i+k]=Math.round(255*clamp(r));}
+        height[y*size+x]=h;const i=y*stride+1+x*3; for(let k=0;k<3;k++){color[i+k]=Math.max(0,Math.min(255,Math.round(dark[k]+(light[k]-dark[k])*clamp(t)+tint[k])));rough[i+k]=Math.round(255*clamp(r));}
     }
     const mask=size-1;
     for(let y=0;y<size;y++)for(let x=0;x<size;x++){

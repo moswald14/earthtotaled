@@ -143,6 +143,7 @@ for key in ['GameDefaultMap','EditorStartupMap']:
 config.write_text(text,encoding='utf-8')
 runpy.run_path(str(root/'Tools/import-outposts.py'))
 runpy.run_path(str(root/'Tools/import-warfront.py'))
+runpy.run_path(str(root/'Tools/import-reclamation.py'))
 editor_assets.save_directory(base,only_if_is_dirty=False,recursive=True)
 (root/'Saved').mkdir(exist_ok=True)
 (root/'Saved/content-ready.txt').write_text('Original art imported and map saved by Unreal Editor.\n')

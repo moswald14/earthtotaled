@@ -19,7 +19,7 @@
 // Opt-in rendered scenarios, never run in a normal survivor. Story checkpoints stage
 // the player beside real actors and require a clear, in-range interaction ray.
 // The endurance section uses CharacterMovement, collision, finite supplies and AI.
-// Only the weather/day clock is accelerated (8x); movement and survival stay at 1x.
+// Only the weather/day clock is accelerated (13x); movement and survival stay at 1x.
 namespace
 {
 struct FJourney
@@ -33,8 +33,9 @@ struct FJourney
     double Start=0, Last=0, NextSample=0, NextLoot=0, Distance=0, Stuck=0, HouseWaitUntil=0;
     double MinMemory=DBL_MAX, MaxMemory=0, FirstMemory=0, LastMemory=0;
     float Seconds=720, StartClock=0, MissingGround=0;
-    FVector Previous=FVector::ZeroVector,ProgressAnchor=FVector::ZeroVector;
-    double LastProgress=0,JetUntil=0,NextBoost=0;
+    FVector Previous=FVector::ZeroVector;
+    double LastProgress=0,JetUntil=0,NextBoost=0,BestRange=DBL_MAX;
+    int32 RangeWaypoint=INDEX_NONE;
     TArray<FVector> Route;
     TArray<double> Frames;
     TSet<FIntPoint> VisitedRegions, Cities;
@@ -155,7 +156,7 @@ struct FJourney
             Check(W->State->Health>0&&W->State->Ending==W->JourneyEnding,TEXT("Survivor remains alive with the same ending after the journey"));
             Check(Distance/100>Seconds*3.5,TEXT("Continuous travel made sustained progress through the world"));
             Check(VisitedForest&&Cities.Num()>0&&CityTransitions>=2,TEXT("Journey crosses forest and city boundaries in both directions"));
-            Check(Seconds<700||(WasDay&&WasNight&&W->State->Elapsed-StartClock>=5700&&WeatherKinds.Num()==5),TEXT("Long run includes two accelerated day/night cycles and all five weather types"));
+            Check(Seconds<700||(WasDay&&WasNight&&W->State->Elapsed-StartClock>=2*ETDay::Period&&WeatherKinds.Num()==5),TEXT("Long run includes two accelerated day/night cycles and all five weather types"));
             Check(BoundsOK&&MaxRegions<=80,TEXT("Region retention stays bounded throughout exploration"));
             Check(GroundOK,TEXT("Terrain collision remains present under the moving character"));
             Check(UniqueItems,TEXT("Active loot IDs stay unique and consumed caches stay empty"));
@@ -174,7 +175,7 @@ struct FJourney
         const double P95=Frames.Num()?Frames[FMath::FloorToInt((Frames.Num()-1)*.95)]:0;
         const double P99=Frames.Num()?Frames[FMath::FloorToInt((Frames.Num()-1)*.99)]:0;
         int32 Hitches=0; for(double T:Frames) if(T>100) ++Hitches;
-        const FString Json=FString::Printf(TEXT("{\"ending\":\"%s\",\"checks\":%d,\"failures\":%d,\"wall_seconds\":%.3f,\"clock_seconds\":%.3f,\"clock_rate\":8,\"movement_rate\":1,\"distance_m\":%.1f,\"regions_visited\":%d,\"cities_visited\":%d,\"city_transitions\":%d,\"max_loaded_regions\":%d,\"max_actors\":%d,\"weather_types\":%d,\"looted_containers\":%d,\"water_trades\":%d,\"bottles_drunk\":%d,\"frame_samples\":%d,\"average_ms\":%.3f,\"p95_ms\":%.3f,\"p99_ms\":%.3f,\"frames_over_100ms\":%d,\"first_working_set_mb\":%.1f,\"last_working_set_mb\":%.1f,\"peak_working_set_mb\":%.1f,\"scope\":\"Scripted story interactions; continuous character movement with collision; 8x weather clock, normal survival; no manual playthrough\"}"),*W->JourneyEnding,Checks,Failures,Duration,W->State->Elapsed-StartClock,Distance/100,VisitedRegions.Num(),Cities.Num(),CityTransitions,MaxRegions,MaxActors,WeatherKinds.Num(),Looted,Trades,Drinks,Frames.Num(),Average,P95,P99,Hitches,FirstMemory,LastMemory,MaxMemory);
+        const FString Json=FString::Printf(TEXT("{\"ending\":\"%s\",\"checks\":%d,\"failures\":%d,\"wall_seconds\":%.3f,\"clock_seconds\":%.3f,\"clock_rate\":13,\"movement_rate\":1,\"distance_m\":%.1f,\"regions_visited\":%d,\"cities_visited\":%d,\"city_transitions\":%d,\"max_loaded_regions\":%d,\"max_actors\":%d,\"weather_types\":%d,\"looted_containers\":%d,\"water_trades\":%d,\"bottles_drunk\":%d,\"frame_samples\":%d,\"average_ms\":%.3f,\"p95_ms\":%.3f,\"p99_ms\":%.3f,\"frames_over_100ms\":%d,\"first_working_set_mb\":%.1f,\"last_working_set_mb\":%.1f,\"peak_working_set_mb\":%.1f,\"scope\":\"Scripted story interactions; continuous character movement with collision; 13x weather clock, normal survival; no manual playthrough\"}"),*W->JourneyEnding,Checks,Failures,Duration,W->State->Elapsed-StartClock,Distance/100,VisitedRegions.Num(),Cities.Num(),CityTransitions,MaxRegions,MaxActors,WeatherKinds.Num(),Looted,Trades,Drinks,Frames.Num(),Average,P95,P99,Hitches,FirstMemory,LastMemory,MaxMemory);
         FFileHelper::SaveStringToFile(Json,*(FPaths::ProjectSavedDir()/TEXT("journey-metrics.json")));
         FPlatformMisc::RequestExitWithStatus(true,Failures?1:0);
     }
@@ -217,7 +218,7 @@ void AETWorld::TickJourneyVerification(float Delta)
         Add(320000-1600,-750); Add(320000-1600,-1700); Add(190000,-1700);
         Add(160000-1600,-1700); Add(160000-1600,-750); Add(160000-1600,40);
         Add(160000-1600,-750); Add(160000-1600,-1700); Add(40000,-22000);
-        Q.ProgressAnchor=Start; Q.LastProgress=FPlatformTime::Seconds(); Q.Previous=Start; Q.StartClock=State->Elapsed; Q.Start=FPlatformTime::Seconds(); Q.Last=Q.Start; Q.NextSample=Q.Start+5;
+        Q.LastProgress=FPlatformTime::Seconds(); Q.Previous=Start; Q.StartClock=State->Elapsed; Q.Start=FPlatformTime::Seconds(); Q.Last=Q.Start; Q.NextSample=Q.Start+5;
         Q.LastCity=InCity(Start); P->SprintStart();
         FFileHelper::SaveStringToFile(TEXT("seconds,x_m,y_m,clock,regions,actors,working_set_mb,health,water,hydration,weather,waypoint,looted,regenerated_loot\n"),*(FPaths::ProjectSavedDir()/TEXT("journey-samples.csv")));
         return;
@@ -227,15 +228,17 @@ void AETWorld::TickJourneyVerification(float Delta)
     if(State->Health<=0) {Q.Check(false,TEXT("Survivor died during continuous traversal")); Q.Finish(this,P,true); return;}
     if(Age>=Q.Seconds) {Q.Finish(this,P,true); return;}
     if(!P->Panel.IsEmpty()) P->ClosePanel();
-    State->Elapsed+=Delta*7; // Weather and daylight only, explicitly recorded in the report.
+    State->Elapsed+=Delta*12; // Weather and daylight only, explicitly recorded in the report.
     const FVector At=P->GetActorLocation();
     const double Moved=FVector::Dist2D(At,Q.Previous); Q.Distance+=Moved; Q.Previous=At;
     if(Now-Q.LastProgress>=1.0) {
-        Q.Stuck=FVector::DistSquared2D(At,Q.ProgressAnchor)<FMath::Square(75.)?Q.Stuck+(Now-Q.LastProgress):0;
-        Q.ProgressAnchor=At; Q.LastProgress=Now;
+        const double Remaining=FVector::Dist2D(At,Q.Route[Q.Waypoint]);
+        if(Q.RangeWaypoint!=Q.Waypoint||Remaining<Q.BestRange-65.) {Q.BestRange=Remaining;Q.RangeWaypoint=Q.Waypoint;Q.Stuck=0;}
+        else Q.Stuck+=Now-Q.LastProgress;
+        Q.LastProgress=Now;
     }
     if(Q.JetUntil>0&&Now>=Q.JetUntil) {P->JumpRelease(); Q.JetUntil=0;}
-    else if(Q.JetUntil>0&&Q.JetUntil-Now<.68&&P->GetCharacterMovement()->IsFalling()&&!P->AirJumpSpent) {
+    else if(Q.JetUntil>0&&Q.JetUntil-Now<1.50&&P->GetCharacterMovement()->IsFalling()&&!P->AirJumpSpent) {
         P->JumpRelease(); P->JumpPress();
     }
     if(Q.Stuck>25) {Q.Check(false,TEXT("Physical route blocked at ")+At.ToCompactString()+TEXT(" waypoint ")+FString::FromInt(Q.Waypoint)); Q.Finish(this,P,true); return;}
@@ -281,8 +284,14 @@ void AETWorld::TickJourneyVerification(float Delta)
             const FString Id=I->Id, Kind=I->Kind;
             auto Region=Cast<AETRegion>(I->GetOwner());
             if(!Q.Use(this,P,I,false)) continue;
-            if(Kind==TEXT("human")) {if(State->Scrap>=12) {P->Action(TEXT("supply-run")); ++Q.Trades;} P->ClosePanel();}
-            else if(Kind==TEXT("loot")||Kind==TEXT("container")) {++Q.Looted; Q.LootIDs.Add(Id); if(Region) Q.LootHomes.Add(Id,Region->Coord);}
+            if(Kind==TEXT("human")) {
+                const int Before=State->Water;
+                if(State->Scrap>=12) P->Action(TEXT("supply-run"));
+                if(State->Water>Before) ++Q.Trades;
+                P->ClosePanel();
+            } else if((Kind==TEXT("loot")||Kind==TEXT("container"))&&State->Consumed.Contains(Id)&&!Q.LootIDs.Contains(Id)) {
+                ++Q.Looted; Q.LootIDs.Add(Id); if(Region) Q.LootHomes.Add(Id,Region->Coord);
+            }
         }
     }
     FVector Goal=Q.Route[Q.Waypoint]; Goal.Z=At.Z;
@@ -293,6 +302,9 @@ void AETWorld::TickJourneyVerification(float Delta)
         }
         Q.HouseWaitUntil=0; Q.Waypoint=(Q.Waypoint+1)%Q.Route.Num(); Goal=Q.Route[Q.Waypoint]; Goal.Z=At.Z;
     }
+    // Steer back toward the centerline after avoiding an obstruction on a long straight leg.
+    if(Q.FollowRoad&&FMath::IsNearlyEqual(Goal.Y,-1700.,1.)&&FMath::Abs(At.X)>190000.&&FMath::Abs(Goal.X-At.X)>4200.)
+        Goal.X=At.X+FMath::Sign(Goal.X-At.X)*4200.;
     FVector Direction=(Goal-At).GetSafeNormal2D();
     // Steer around real tree trunks, walls and wildlife without teleporting through them.
     double Best=-DBL_MAX; FVector Move=Direction;
@@ -308,8 +320,9 @@ void AETWorld::TickJourneyVerification(float Delta)
         if(Score>Best) {Best=Score; Move=Candidate;}
     }
     if(Q.Stuck>1.8&&Now>=Q.NextBoost&&State->JetFuel>=25) {
-        P->JumpPress(); Q.JetUntil=Now+.9; Q.NextBoost=Now+4;
+        P->JumpPress(); Q.JetUntil=Now+1.75; Q.NextBoost=Now+4;
     } else if(!Q.JetUntil) P->StopJumping();
+    if(Q.JetUntil>Now) Move=Direction;
     P->SprintStart(); P->AddMovementInput(Move,1); P->GetController()->SetControlRotation(Move.Rotation());
     // Fight only a threat in range, using the survivor's actual ammunition and reload.
     AETAgent* Threat=nullptr; double Nearest=DBL_MAX;

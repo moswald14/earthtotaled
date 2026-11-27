@@ -80,9 +80,9 @@ void AETWorld::StepDevices(float D)
             B->Work=FMath::Max(0.f,B->Work-D); if(B->Work<=0) Turrets.Add(A);
         }
     }
-    if(Turrets.IsEmpty()||!IsNight()) return;
+    if(Turrets.IsEmpty()) return;
     TArray<AETAgent*> Targets;
-    for(TActorIterator<AETAgent> It(GetWorld());It;++It) if(It->IsMachine()||It->IsBrood()) Targets.Add(*It);
+    for(TActorIterator<AETAgent> It(GetWorld());It;++It) if(It->Kind==TEXT("walker")||(IsNight()&&(It->IsMachine()||It->IsBrood()))) Targets.Add(*It);
     for(auto* Turret:Turrets) {
         FCollisionQueryParams Trace(SCENE_QUERY_STAT(ETSentry),false,Turret);
         auto Origin=Turret->Mechanism->GetComponentLocation()+FVector(0,0,10);

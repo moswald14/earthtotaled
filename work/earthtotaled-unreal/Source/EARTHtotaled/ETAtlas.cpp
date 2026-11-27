@@ -185,9 +185,9 @@ void AETHUD::DrawChart(AETCharacter* P,const ETNav::FChart& Chart,bool Small)
         }
     }
     if(!Small) for(int Y=From.Y;Y<=To.Y;++Y) for(int X=From.X;X<=To.X;++X) {
-        const FIntPoint Cell(X,Y); if(Cell!=Home) Marker(ETNav::Refuge(Cell),true,false,ETNav::RefugeName(Cell));
+        const FIntPoint Cell(X,Y); if(Cell!=Home) Marker(ETNav::Refuge(Cell),true,false,P->World->TownStatus(Cell));
     }
-    Marker(City,true,true,ETNav::RefugeName(Home));
+    Marker(City,true,true,Small?FString(ETNav::RefugeName(Home)):P->World->TownStatus(Home));
     for(int I=0;I<S.MapPins.Num();++I) Marker(S.MapPins[I],false,I==S.TrackedPin,FString::Printf(TEXT("Pin %d"),I+1));
     const auto PlayerPos=Chart.Plot(Here);
     if(FBox2D(Screen.Min+FVector2D(9*U),Screen.Max-FVector2D(9*U)).IsInsideOrOn(PlayerPos))

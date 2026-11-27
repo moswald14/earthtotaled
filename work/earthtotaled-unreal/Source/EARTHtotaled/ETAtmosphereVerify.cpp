@@ -38,7 +38,7 @@ void AETWorld::RunAtmosphereChecks(TFunctionRef<void(bool,const FString&)> Check
     Check(Seen[0]&&Seen[1]&&Seen[2]&&Seen[3]&&Seen[4]&&Bounded,TEXT("Endless weather includes clear, overcast, mist, rain and storm with bounded intensity"));
     Check(Continuous,TEXT("Weather fronts transition continuously across saved time boundaries"));
     State->Elapsed=0; Check(MusicFor(FVector::ZeroVector)==1&&MusicFor(FVector(70000,0,0))==0,TEXT("Daytime travel selects city and forest themes"));
-    State->Elapsed=780; Check(MusicFor(FVector::ZeroVector)==2&&MusicFor(FVector(70000,0,0))==2,TEXT("Night selects the night theme in both biomes"));
+    State->ClockOffset=ETDay::At(16.5); State->Elapsed=1080; Check(MusicFor(FVector::ZeroVector)==2&&MusicFor(FVector(70000,0,0))==2,TEXT("Night selects the night theme in both biomes"));
     State->Elapsed=0; Weather=ETClimate::Profile(ETClimate::Clear); UpdateDaylight();
     const float ClearSun=Sun->GetLightComponent()->Intensity,ClearFog=Fog->GetComponent()->FogDensity;
     Weather=ETClimate::Profile(ETClimate::Storm); UpdateDaylight();

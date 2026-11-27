@@ -67,11 +67,18 @@ void AETRegion::BuildRoadSurface()
             const double Edge=District==FIntPoint::ZeroValue?16000.:(Horizontal?22400.:22000.);
             const double Half=Road.Highway?FMath::Lerp(395.,930.,FMath::SmoothStep(0.,5200.,Run-Edge)):Road.Width*.5;
             const double Edges[]={-Half,-Half*.89,-Half*.46,0.,Half*.46,Half*.89,Half};
+            const int Corridor=Horizontal?District.Y:District.X;
+            const int Loss=Road.Highway&&Run>Edge+4800?ETNav::HighwayDamage(World->State->Seed,Axis,Cell,Corridor):0;
+            auto Lost=[&](int Lane){return Loss==3||(Loss>0&&Lane>=6-Loss)||(Loss<0&&Lane<-Loss);};
             for(int L=0;L<6;++L) {
+                if(Lost(L)) continue;
                 const double A=Edges[L],B=Edges[L+1];
-                Quad(L==0||L==5?0:1,Point(T,A),Point(Next,A),Point(T,B),Point(Next,B),5);
+                const double Jag=(Cell%2==0?31.:-27.);
+                const double Left=L>0&&Lost(L-1)?Jag:0.,Right=L<5&&Lost(L+1)?Jag:0.;
+                Quad(L==0||L==5?0:1,Point(T,A+Left),Point(Next,A-Left),Point(T,B+Right),Point(Next,B-Right),5);
             }
             auto Stripe=[&](int Slot,double Offset,double Width) {
+                if(Loss==3||(Loss>0&&Offset>Edges[6-Loss]-12)||(Loss<0&&Offset<Edges[-Loss]+12)) return;
                 Quad(Slot,Point(T,Offset-Width),Point(Next,Offset-Width),Point(T,Offset+Width),Point(Next,Offset+Width),8);
             };
             if(Road.Highway) {

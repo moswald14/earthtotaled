@@ -44,7 +44,7 @@ namespace
 }
 void AETWorld::RunFrontierChecks(AETCharacter* P,TFunctionRef<void(bool,const FString&)> Check)
 {
-    State->Elapsed=780; UpdateNightWatch(P->GetActorLocation());
+    State->ClockOffset=ETDay::At(16.5);State->Elapsed=1080; UpdateNightWatch(P->GetActorLocation());
     Check(SaveSlot==TEXT("EARTHtotaled-QA-Preview"),TEXT("Transient review sessions never address the normal survivor slot"));
     if(!P->Panel.IsEmpty()) P->ClosePanel();
     if(P->Borer) P->ToggleBorer();
@@ -70,9 +70,9 @@ void AETWorld::RunFrontierChecks(AETCharacter* P,TFunctionRef<void(bool,const FS
         AETEnemyBolt* Bolt=nullptr; for(TActorIterator<AETEnemyBolt> It(GetWorld());It;++It) if(It->GetOwner()==Drone) Bolt=*It;
         Check(Bolt!=nullptr,TEXT("A detached drone independently pursues and fires a physical projectile"));
         if(Bolt) {
-            const float Before=State->Health+State->Armor;
+            const float Before=State->Health+State->Armor+State->Shield;
             for(int32 I=0;I<35&&IsValid(Bolt);++I) Bolt->Tick(.02f);
-            Check(State->Health+State->Armor<Before,TEXT("Shard fire lands against the survivor capsule"));
+            Check(State->Health+State->Armor+State->Shield<Before,TEXT("Shard fire lands against the survivor capsule"));
         }
         Drone->TakeDamage(999,FDamageEvent(),PC,P);
         Check(!State->Threats.Contains(TEXT("qa-hull/shard0"))&&!State->Threats.Contains(TEXT("qa-hull/shard0/shard0")),TEXT("Drone death is final and never recursively splits"));
@@ -89,29 +89,29 @@ void AETWorld::RunFrontierChecks(AETCharacter* P,TFunctionRef<void(bool,const FS
     const FString PatrolId=TEXT("qa-restored-robot");
     const FVector BotSite=Eye+FVector(0,950,-120);
     auto* Patrol=AddThreat(PatrolId,TEXT("robot"),BotSite);
-    const float BeforeSuit=State->Health+State->Armor;
+    const float BeforeSuit=State->Health+State->Armor+State->Shield;
     auto FindBolt=[&]()->AETEnemyBolt* {
         for(TActorIterator<AETEnemyBolt> It(GetWorld());It;++It) if(It->GetOwner()==Patrol) return *It;
         return nullptr;
     };
     const FVector Standing=P->GetActorLocation();
     AtRefuge=false; P->EnemyReacquireTime=8; Patrol->AttackTime=0; Patrol->Tick(.02f);
-    Check(!FindBolt()&&BeforeSuit==State->Health+State->Armor,TEXT("A ready patrol cannot fire on the survivor during checkpoint re-entry"));
+    Check(!FindBolt()&&BeforeSuit==State->Health+State->Armor+State->Shield,TEXT("A ready patrol cannot fire on the survivor during checkpoint re-entry"));
     if(auto* Stray=GetWorld()->SpawnActor<AETEnemyBolt>(BotSite+FVector(0,0,120),FRotator::ZeroRotator)) {
         Stray->Launch(Patrol,Standing,false);
         for(int I=0;I<40&&IsValid(Stray);++I) Stray->Tick(.02f);
-        Check(!IsValid(Stray)&&BeforeSuit==State->Health+State->Armor,TEXT("A stray patrol bolt that reaches the returning survivor cannot bypass checkpoint protection"));
+        Check(!IsValid(Stray)&&BeforeSuit==State->Health+State->Armor+State->Shield,TEXT("A stray patrol bolt that reaches the returning survivor cannot bypass checkpoint protection"));
     }
     P->EnemyReacquireTime=0; Patrol->Tick(.02f);
     auto* Incoming=FindBolt();
-    const bool InFlight=Incoming&&BeforeSuit==State->Health+State->Armor;
+    const bool InFlight=Incoming&&BeforeSuit==State->Health+State->Armor+State->Shield;
     P->SetActorLocation(Standing+FVector(550,0,0));
     if(Incoming) for(int32 I=0;I<40&&IsValid(Incoming);++I) Incoming->Tick(.02f);
-    Check(InFlight&&BeforeSuit==State->Health+State->Armor,TEXT("A HELIOS bolt travels visibly and misses a survivor who steps out of its path"));
+    Check(InFlight&&BeforeSuit==State->Health+State->Armor+State->Shield,TEXT("A HELIOS bolt travels visibly and misses a survivor who steps out of its path"));
     if(IsValid(Incoming)) Incoming->Destroy();
     P->SetActorLocation(Standing); Patrol->AttackTime=0; Patrol->Tick(.02f); Incoming=FindBolt();
     if(Incoming) for(int32 I=0;I<40&&IsValid(Incoming);++I) Incoming->Tick(.02f);
-    Check(FMath::IsNearlyEqual(BeforeSuit-State->Health-State->Armor,13.f,.01f),TEXT("An unobstructed HELIOS bolt still deals its thirteen damage on impact"));
+    Check(FMath::IsNearlyEqual(BeforeSuit-State->Health-State->Armor-State->Shield,13.f,.01f),TEXT("An unobstructed HELIOS bolt still deals its thirteen damage on impact"));
     Patrol->AttackTime=1.375f; Patrol->Snapshot(State->Threats[PatrolId]);
     Patrol->Destroy(); LiveThreats.Remove(PatrolId); Patrol=AddThreat(PatrolId,TEXT("robot"),BotSite);
     Check(Patrol&&FMath::IsNearlyEqual(Patrol->AttackTime,1.375f),TEXT("Restoring a live patrol preserves its remaining attack cooldown"));

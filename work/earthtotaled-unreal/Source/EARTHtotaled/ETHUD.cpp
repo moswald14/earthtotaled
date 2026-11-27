@@ -40,6 +40,7 @@ void AETHUD::DrawHUD()
     Super::DrawHUD(); auto P=Cast<AETCharacter>(GetOwningPawn()); if(!P||!P->World) return;
     auto W=P->World; auto S=W->State; const float SW=Canvas->SizeX,SH=Canvas->SizeY;
     if(P->Panel==TEXT("console")) return;
+    if(P->Panel==TEXT("mods")||P->Panel==TEXT("devtools")||P->Panel==TEXT("town")) {DrawReclamation(P);return;}
     if(P->Panel==TEXT("map")) {DrawAtlas(P); return;}
     if(P->Panel==TEXT("controls")) {DrawControls(P); return;}
     if(P->Panel==TEXT("slots")) {
@@ -75,7 +76,7 @@ void AETHUD::DrawHUD()
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
-        if(Title) Text(FString::Printf(TEXT("1.11.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
+        if(Title) Text(FString::Printf(TEXT("1.12.0     SURVIVOR %02d"),W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
         if(Title) {
@@ -83,7 +84,8 @@ void AETHUD::DrawHUD()
             Button(TEXT("new"),W->HadSave?TEXT("New survivor"):TEXT("Start at Shelter 09"),X,Row,Width*.72f);
             Button(TEXT("slots"),TEXT("Survivor saves  /  import and export"),X,Row+42,Width*.72f);
             Button(TEXT("controls"),TEXT("Field guide & controls   /   F2"),X,Row+84,Width*.72f);
-            Button(TEXT("quit"),TEXT("Exit to desktop"),X,Row+126,Width*.72f);
+            Button(TEXT("mods"),TEXT("Mod workshop"),X,Row+126,Width*.72f);
+            Button(TEXT("quit"),TEXT("Exit to desktop"),X,Row+168,Width*.72f);
         } else {
             Button(TEXT("cancel"),TEXT("Keep my survivor"),X,Row,Width*.72f);
             Button(TEXT("confirm"),TEXT("Back up and start again"),X,Row+46,Width*.72f);
@@ -99,13 +101,14 @@ void AETHUD::DrawHUD()
     Text(W->StoryTitle(),32,83,Mint,1.1f);
     Text(W->StoryObjective(),32,105,Bone,1.1f);
     const float Hour=W->Hour(); const int32 Minutes=FMath::FloorToInt(Hour*60);
-    Text(FString::Printf(TEXT("DAY %d   %02d:%02d   /   %s"),1+FMath::FloorToInt((16.5f+S->Elapsed/120.f)/24),Minutes/60,Minutes%60,W->IsNight()?TEXT("DAWN AT 06:00"):TEXT("NIGHTFALL AT 19:00")),SW-410,30,W->IsNight()?Amber:Mint,1.0f);
+    Text(FString::Printf(TEXT("DAY %d   %02d:%02d   /   %s"),1+FMath::FloorToInt((S->ClockOffset+S->Elapsed)/ETDay::Period),Minutes/60,Minutes%60,W->IsNight()?TEXT("DAWN AT 06:00"):TEXT("NIGHTFALL AT 19:00")),SW-410,30,W->IsNight()?Amber:Mint,1.0f);
     Text(W->PlaceName(P->GetActorLocation()),SW-410,57,Muted,.85f);
     Text(W->WeatherName()+(W->Sheltered?TEXT(" / UNDER COVER"):TEXT("")),SW-410,79,Mint,.9f);
     Text(TEXT("M  MAP     F2  GUIDE     B  BUILD     G  BORER     ESC  MENU"),SW-410,103,Bone,.85f);
+    if(P->SweepHeld) Text(P->SweepArmed?FString::Printf(TEXT("SALVAGE SWEEP  /  %.1f m"),2.5f+6.7f*P->SweepHold):TEXT("Crouch within 2.5 m of loose loot to start a sweep"),32,SH-159,Mint,.92f);
     if(S->StimTime>0) Text(FString::Printf(TEXT("ENDURANCE / %ds"),FMath::CeilToInt(S->StimTime)),32,SH-189,Mint,.85f);
     if(W->Review) Text(TEXT("TEST SESSION / PROGRESS IS NOT SAVED"),32,176,Amber,.85f);
-    FString Vitals=FString::Printf(TEXT("HEALTH %d  /  SUIT %d"),FMath::CeilToInt(S->Health),FMath::CeilToInt(S->Armor));
+    FString Vitals=FString::Printf(TEXT("HEALTH %d  /  SHIELD %d  /  SUIT %d"),FMath::CeilToInt(S->Health),FMath::CeilToInt(S->Shield),FMath::CeilToInt(S->Armor));
     if(S->Health<=25&&S->Health>0) Vitals+=S->Meds>0?TEXT("   CRITICAL / Q MEDKIT"):TEXT("   CRITICAL / TAKE COVER");
     Text(Vitals,32,SH-94,S->Health<=25?Amber:Bone,1.15f);
     Text(FString::Printf(TEXT("WATER %d%%    %d bottles [H]"),FMath::CeilToInt(S->Hydration),S->Water),32,SH-65,S->Hydration<25?Amber:Mint,1.2f);
@@ -171,7 +174,7 @@ void AETHUD::DrawHUD()
             const float Angle=FMath::FindDeltaAngleDegrees(float(P->GetControlRotation().Yaw),float(To.Rotation().Yaw));
             Text(FString::Printf(TEXT("NEST  /  %.0f m   %s"),To.Size2D()/100,FMath::Abs(Angle)<10?TEXT("ahead"):Angle>0?TEXT("turn right"):TEXT("turn left")),32,150,Amber,1); break;
         }
-        if(IsValid(P->Focus)) Text(TEXT("[E] ")+P->Focus->Label,SW/2-180,SH/2+51,Bone,1.15f);
+        if(IsValid(P->Focus)) Text((S->DropPositions.Contains(P->Focus->Id)?FString(TEXT("[Hold Ctrl] Sweep  /  ")):FString(TEXT("[E] ")))+P->Focus->Label,SW/2-180,SH/2+51,Bone,1.15f);
         else if(P->TreeInReach) Text(TEXT("[E] Fell tree   +8 wood"),SW/2-106,SH/2+51,Mint,1.05f);
         if(auto* A=P->Sighted.Get();A&&!P->Building&&!P->Borer) {
             const FString Name=A->Kind==TEXT("drone")?TEXT("SUPERTECH / SHARD DRONE"):A->Kind==TEXT("robot")?TEXT("SUPERTECH / PATROL"):A->IsBrood()?TEXT("BUG / ")+A->Kind.ToUpper():A->Kind.ToUpper();
@@ -245,7 +248,8 @@ void AETHUD::DrawHUD()
         if(P->Panel==TEXT("pause")) {
             const float ControlWidth=FMath::Min(300.f,(Width-24)/3);
             BY=Y+SH*.22f;
-            Button(TEXT("controls"),TEXT("Field guide & controls   /   F2"),X,Y+54,FMath::Min(340.f,Width));
+            Button(TEXT("controls"),TEXT("Field guide & controls   /   F2"),X,Y+54,Width*.46f);
+            Button(TEXT("mods"),TEXT("Mod workshop"),X+Width*.49f,Y+54,Width*.46f);
             Button(TEXT("view"),FString::Printf(TEXT("View distance / %d m"),S->ViewDistance),X,BY,ControlWidth);
             Button(TEXT("render"),FString::Printf(TEXT("Render detail / %d%%"),S->RenderScale),X+ControlWidth+12,BY,ControlWidth);
             Button(TEXT("field-display"),S->RetroDisplay?TEXT("Display / PS1"):TEXT("Display / native"),X+2*(ControlWidth+12),BY,ControlWidth);

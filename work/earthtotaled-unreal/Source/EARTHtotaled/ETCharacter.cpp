@@ -43,6 +43,7 @@ AETCharacter::AETCharacter()
 {
     PrimaryActorTick.bCanEverTick=true;
     GetCapsuleComponent()->InitCapsuleSize(34,92); BaseEyeHeight=72;
+    GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch=true; GetCharacterMovement()->SetCrouchedHalfHeight(54);
     Camera=CreateDefaultSubobject<UCameraComponent>(TEXT("Eyes")); Camera->SetupAttachment(GetCapsuleComponent());
     Camera->SetRelativeLocation(FVector(0,0,72)); Camera->bUsePawnControlRotation=true; Camera->FieldOfView=90;
     Gun=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon")); Gun->SetupAttachment(Camera);
@@ -94,6 +95,11 @@ void AETCharacter::SetupPlayerInputComponent(UInputComponent* I)
     I->BindKey(EKeys::T,IE_Pressed,this,&AETCharacter::UpgradeFrame);
     I->BindKey(EKeys::F2,IE_Pressed,this,&AETCharacter::Controls).bExecuteWhenPaused=true;
     I->BindAction("Map",IE_Pressed,this,&AETCharacter::ToggleMap).bExecuteWhenPaused=true;
+    I->BindKey(EKeys::LeftControl,IE_Pressed,this,&AETCharacter::CrouchLoot);
+    I->BindKey(EKeys::LeftControl,IE_Released,this,&AETCharacter::ReleaseLoot).bExecuteWhenPaused=true;
+    I->BindKey(EKeys::RightControl,IE_Pressed,this,&AETCharacter::CrouchLoot);
+    I->BindKey(EKeys::RightControl,IE_Released,this,&AETCharacter::ReleaseLoot).bExecuteWhenPaused=true;
+    I->BindKey(FInputChord(EKeys::F10,true,true,false,false),IE_Pressed,this,&AETCharacter::HiddenTools).bExecuteWhenPaused=true;
     I->BindKey(EKeys::F1,IE_Pressed,this,&AETCharacter::OpenConsole).bExecuteWhenPaused=true;
     I->BindAction("Drink",IE_Pressed,this,&AETCharacter::Drink); I->BindAction("Heal",IE_Pressed,this,&AETCharacter::Heal);
     I->BindAction("Skills",IE_Pressed,this,&AETCharacter::Skills).bExecuteWhenPaused=true;
@@ -145,7 +151,7 @@ void AETCharacter::Tick(float D)
 {
     Super::Tick(D); if(!World||World->Weapons.IsEmpty()) return; auto S=World->State;
     if(!Panel.IsEmpty()||S->Health<=0) return;
-    TickImpact(D);
+    TickImpact(D); TickShield(D); TickSweep(D);
     XPNoticeTime=FMath::Max(0.f,XPNoticeTime-D); LevelNoticeTime=FMath::Max(0.f,LevelNoticeTime-D);
     EnemyReacquireTime=FMath::Max(0.f,EnemyReacquireTime-D);
     TickJet(D);
@@ -167,7 +173,7 @@ void AETCharacter::Tick(float D)
     float Drain=.055f*(Sprinting&&GetVelocity().Size2D()>20?1.7f:1)*(Has(TEXT("hydration"))?.8f:1)*(Has(TEXT("endurance"))?.9f:1);
     S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
     // Dehydration bypasses armor; menus pause all survival time.
-    if(S->Hydration<=0) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
+    if(S->Hydration<=0&&!TestInvincible) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
     if(ReloadTime>0)
     {
         ReloadTime-=D; if(ReloadTime<=0)
@@ -222,7 +228,10 @@ float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AControlle
 float AETCharacter::Hurt(float Damage,const FString& Cause)
 {
     if(!World||World->State->Health<=0||!Panel.IsEmpty()) return 0; auto S=World->State;
-    if(Damage<=0) return 0; float Absorbed=FMath::Min(S->Armor,Damage*(.6f+.08f*S->ArmorTier)); S->Armor-=Absorbed; S->Health=FMath::Max(0.f,S->Health-Damage+Absorbed);
+    if(Damage<=0||TestInvincible) return 0;
+    S->ShieldDelay=10.f;
+    const float Intercept=FMath::Min(S->Shield,Damage); S->Shield-=Intercept;
+    const float Passing=Damage-Intercept,Absorbed=FMath::Min(S->Armor,Passing*(.6f+.08f*S->ArmorTier)); S->Armor-=Absorbed; S->Health=FMath::Max(0.f,S->Health-Passing+Absorbed);
     if(S->Health<=0) Die(Cause); return Damage;
 }
 void AETCharacter::Die(const FString& Cause)
@@ -235,7 +244,7 @@ void AETCharacter::Shoot()
 {
     if(Borer) {FireBorer(); return;}
     auto S=World->State; int32 I=S->Weapon; const auto& W=World->Weapons[I];
-    if(S->Ammo[I]<=0) {Reload(); ShotTime=.15f; return;} --S->Ammo[I]; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
+    if(S->Ammo[I]<=0) {Reload(); ShotTime=.15f; return;} --S->Ammo[I]; S->ShieldDelay=10; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
     const FString SoundPath=FString::Printf(TEXT("/Game/EARTHtotaled/Art/S_Fire%d.S_Fire%d"),I,I);
     if(auto Sound=LoadObject<USoundBase>(nullptr,*SoundPath)) UGameplayStatics::PlaySound2D(this,Sound,.65f,FMath::FRandRange(.96f,1.04f));
     FVector Start=Camera->GetComponentLocation(), Direction=Camera->GetForwardVector(); FCollisionQueryParams Params; Params.AddIgnoredActor(this);
@@ -318,12 +327,14 @@ void AETCharacter::SetMouseMode(bool Menu)
 }
 void AETCharacter::OpenPanel(const FString& Kind,const FString& Title,const FString& Body)
 {
+    if(SweepHeld) ReleaseLoot();
     Panel=Kind; PanelTitle=Title; PanelBody=Body; Firing=Aiming=Sprinting=false; JumpRelease(); GetCharacterMovement()->StopMovementImmediately();
     if(IsValid(Preview)) Preview->SetActorHiddenInGame(true);
     UGameplayStatics::SetGamePaused(this,true); SetMouseMode(true);
 }
 void AETCharacter::ClosePanel()
 {
+    if(Panel==TEXT("mods")) {const auto From=WorkshopOrigin;WorkshopOrigin.Empty();ProposedMod.Empty();Panel.Empty();if(From==TEXT("title")) {Title();return;} if(From==TEXT("pause")) {Pause();return;}}
     if(Panel==TEXT("map")) CloseMapInput();
     if(Panel==TEXT("controls")) {
         const FString Origin=GuideOrigin; GuideOrigin.Empty(); Panel.Empty();
@@ -389,8 +400,11 @@ void AETCharacter::Interact()
     }
     auto I=Focus; auto S=World->State;
     const FString K=I->Kind;
+    if(K==TEXT("townboard")) {TownPanel(ETNav::District(FVector2D(I->GetActorLocation())));return;}
+    if(K==TEXT("tower")) {ReclamationAction(TEXT("draw-water"));return;}
+    if(S->DropPositions.Contains(I->Id)) {World->Say(TEXT("Stand by the salvage and hold Ctrl to sweep it up."));return;}
     if(K==TEXT("survey")) {OpenPanel(TEXT("survey"),TEXT("FAULTLINE / SHELTER SURVEY"),TEXT("The old shelter mine is open for passage. Its roof holds up the district. For a working claim, follow compass bearing 067 for 350 m from Shelter 09. Shallow gold and iron lie ten metres apart there.\n\nG equips the borer. Hold right mouse and sweep for ore. Left mouse cuts wilderness rock. R switches between round and square tunnels. Gold runs yellow through the shale and iron runs rust-red.\n\nV winches you back to the surface. Refine iron at a workbench or sell gold to SALT-7.")); return;}
-    if(K==TEXT("human")||K==TEXT("friend")) {ContactPanel(I->Value); return;}
+    if(K==TEXT("human")||K==TEXT("friend")) {const auto Cell=ETNav::District(FVector2D(I->GetActorLocation()));if(World->InCity(I->GetActorLocation())&&World->TownRemaining(Cell)>0) {TownPanel(Cell);return;} ContactPanel(I->Value); return;}
     if(K==TEXT("bench")) {OpenPanel(TEXT("bench"),TEXT("SHELTER WORKBENCH"),TEXT("Patch your suit or improve your kit. Candybar wrappers are currency. Machines carry wrappers; water comes from people and relief supplies.")); return;}
     if(K==TEXT("climb"))
     {
@@ -445,6 +459,9 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Id==TEXT("mods")) {Workshop();return;}
+    if(Panel==TEXT("mods")) {WorkshopAction(Id);return;}
+    if(Panel==TEXT("town")||Panel==TEXT("devtools")) {ReclamationAction(Id);return;}
     if(Id==TEXT("controls")) {Controls(); return;}
     if(Id==TEXT("skills")&&Panel==TEXT("pause")) {Skills();return;}
     if(Panel==TEXT("controls")) {
@@ -500,7 +517,7 @@ void AETCharacter::Action(const FString& Id)
         {
             SelectedPerk=Key;
             if(!Learn||Has(Key)||S->Points<P.Cost||!P.Neighbors.ContainsByPredicate([&](const FString& N){return Has(N);})) return;
-            const float Before=MaxHealth(); S->Skills.Add(Key); S->Points-=P.Cost; S->Health+=MaxHealth()-Before;
+            S->Skills.Add(Key); S->Points-=P.Cost;
             World->Sound(TEXT("OreChime"),.52f,1.1f); World->Save(); return;
         }
     }

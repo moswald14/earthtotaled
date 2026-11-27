@@ -7,6 +7,15 @@ namespace ETNav
     constexpr double DistrictSpacing=160000.;
     constexpr double MinSpan=11000., MaxSpan=420000.;
     constexpr int32 MaxPins=32;
+    // Signed lane loss for each two-metre highway slab, stable across streaming boundaries.
+    inline int HighwayDamage(uint32 Seed,int Axis,int Cell,int Corridor) {
+        const int Group=FMath::FloorToInt(Cell/64.),Local=Cell-64*Group;
+        FRandomStream R(HashCombineFast(Seed,HashCombineFast(GetTypeHash(FIntPoint(Group,Corridor)),uint32(Axis))));
+        const int Begin=R.RandRange(4,42),Span=R.RandRange(5,16),Side=R.RandRange(0,1)?1:-1;
+        if(Local<Begin||Local>=Begin+Span) return 0;
+        if(Span>12&&Local>Begin+3&&Local<Begin+Span-3) return 3;
+        return Side*((Local==Begin||Local==Begin+Span-1)?1:2);
+    }
     struct FRoad
     {
         FVector2D A,B;
