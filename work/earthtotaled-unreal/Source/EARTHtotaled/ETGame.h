@@ -628,7 +628,7 @@ public:
     UPROPERTY() AETWorld* Field;
     FVector Velocity=FVector::ZeroVector;
     float Power=0;
-    bool FrontBolt=false, BugBolt=false,WakeHostile=false,WakeAllied=false;
+    bool FrontBolt=false, BugBolt=false,DayHostile=false,WakeAllied=false;
     void Launch(AETAgent* Source,FVector Target,bool Acid);
     void Beam(AETWorld* World,FVector To);
     virtual void Tick(float Delta) override;

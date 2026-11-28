@@ -5,6 +5,7 @@
 #include "ETRingLine.h"
 #include "Components/BoxComponent.h"
 #include "ETLandfall.h"
+#include "ETHighwayContactTrial.h"
 #include "ETGeology.h"
 #include "Engine/World.h"
 #include "Camera/CameraComponent.h"
@@ -265,7 +266,7 @@ float AETCharacter::TakeDamage(float Damage,const FDamageEvent& Event,AControlle
     FString Cause=Source ? (Source->Kind==TEXT("robot")?FString(TEXT("Supertech patrol fire")):
         Source->IsBrood()?FString(TEXT("Bug "))+Source->Kind:Source->IsMachine()?FString(TEXT("Supertech shard drone")):Source->Kind) : TEXT("Hostile impact");
     const float Applied=Hurt(Damage,Cause);
-    if(Applied>0) {RememberEnemy(Source); ReceiveImpact(Applied,Event,Causer);}
+    if(Applied>0) {ETHighwayContactTrial::Hit(Causer,Applied); RememberEnemy(Source); ReceiveImpact(Applied,Event,Causer);}
     return Applied;
 }
 float AETCharacter::Hurt(float Damage,const FString& Cause)

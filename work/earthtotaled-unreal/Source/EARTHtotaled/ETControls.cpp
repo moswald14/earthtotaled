@@ -32,7 +32,7 @@ void AETHUD::DrawControls(AETCharacter* P)
          {TEXT("Metal   /   600 HP"),TEXT("Each piece costs 2 iron ore. Look for rust-red seams underground.")},
          {TEXT("Foundations"),TEXT("Frames and rock can span a gap. Removing the last support collapses the span.")}},
         {{TEXT("06:00 to 19:00"),TEXT("52 real minutes of daylight. Clear zombies in infested towns to reopen the refuge keeper.")},
-         {TEXT("19:00 to 06:00"),TEXT("Roaming creatures and patrols emerge at night. Dawn pauses raids. Highway soldiers focus on their rivals in daylight.")},
+         {TEXT("19:00 to 06:00"),TEXT("Night patrols emerge. Dawn pauses raids. Unallied highway guards return fire and defend within 12 m by day or 22 m at night.")},
          {TEXT("G   /   Left mouse"),TEXT("Mine open wilderness for stone and XP. City ground, streets and structure footprints are protected at every depth.")},
          {TEXT("Right mouse   /   R"),TEXT("Hold to survey for ore. R cycles round, square and irrigation. Tap fire at an inlet, then downhill.")},
          {TEXT("V with borer out"),TEXT("Winch to the surface from underground. Your jetpack also works in a shaft.")},

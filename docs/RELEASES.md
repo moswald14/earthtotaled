@@ -1,5 +1,11 @@
 # EARTHtotaled release record
 
+## Unreal 1.19.2 — Highway combat
+
+Bug and Supertech highway troops defend their positions when they see you within 12 m by day or 22 m at night. Shooting a guard also draws its attention from the opposing faction, and its projectiles can hit you. If your shots break a Warden apart, its shard drones can keep attacking. At night, fighters can also turn toward you when you are closer than their faction rival. The story truce and settlement protection still apply.
+
+Choose **Game updates → v1.19.2** from the title or pause menu to continue your survivor. [Windows release](https://github.com/moswald14/earthtotaled/releases/tag/v1.19.2)
+
 ## Unreal 1.19.1 — Enemy movement and startup
 
 Walkers and ground patrols follow the floors of buildings, paved streets and tunnels. They can turn around cover and attack from within reach. Flying enemies can steer past obstructions. Hives hatch guards on their own level. Highway troops patrol when neutral and still engage their faction rivals. Shelter 09 and reclaimed cities retain their protection.

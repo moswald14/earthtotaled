@@ -21,8 +21,10 @@ namespace ETCombat {
         {TEXT("bear"), TEXT("Woodland Bear"), TEXT("AlertBear"), TEXT("Bear roars")}
     };
     const FVoice* Voice(const FString& Kind);
+    bool HostileInDaylight(const AETAgent& Agent);
     FVector2D Bearing(FVector TowardSource, float ViewYaw);
     const TCHAR* Direction(FVector2D Bearing);
     void Trial(AETWorld& World, AETCharacter& Player, bool Visual);
     void EncounterTrial(AETWorld& World,AETCharacter& Player);
+    void HighwayContactTrial(AETWorld& World,AETCharacter& Player,const FString& Route);
 }

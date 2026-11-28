@@ -30,7 +30,7 @@ namespace Earthtotaled.Setup {
         internal static readonly HttpClient Http=MakeClient();
         static HttpClient MakeClient() {
             var http=new HttpClient { Timeout=System.Threading.Timeout.InfiniteTimeSpan };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.19.1");return http;
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.19.2");return http;
         }
         internal static Release Parse(Dictionary<string,object> row) {
             string tag=Convert.ToString(row["tag_name"]);

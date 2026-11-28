@@ -1,4 +1,6 @@
 #include "ETWake.h"
+#include "ETCombat.h"
+#include "ETHighwayContactTrial.h"
 #include "ETGame.h"
 #include "ETGeology.h"
 #include "EngineUtils.h"
@@ -50,7 +52,7 @@ void AETWorld::SplitRobot(AETAgent* Parent)
         const FVector At=Tight?FMath::Lerp(Center,Center+Offset,Block.Time*.8):Center+Offset;
         const FString Id=Parent->Id+FString::Printf(TEXT("/shard%d"),I);
         auto* Drone=Parent->FrontUnit?FrontFighter(Id,TEXT("drone"),At):AddThreat(Id,TEXT("drone"),At);
-        if(Drone) {Drone->AttackTime=.85f+I*.45f; Drone->Phase=I*PI;}
+        if(Drone) {Drone->AttackTime=.85f+I*.45f; Drone->Phase=I*PI;Drone->PlayerAggro=Parent->PlayerAggro;}
     }
     Sound(TEXT("ShardChirp"),.52f);
     if(!Parent->FrontUnit||Parent->PlayerAggro>0) Say(TEXT("Supertech hull breached / two shard drones detaching"));
@@ -148,7 +150,8 @@ AETEnemyBolt::AETEnemyBolt()
 void AETEnemyBolt::Launch(AETAgent* Source,FVector Target,bool Acid)
 {
     SetOwner(Source); Field=Source->World;
-    WakeHostile=Source->WakeEnemy();WakeAllied=Source->WakeTruce();FrontBolt=Source->FrontUnit; BugBolt=Source->IsBrood();
+    ETHighwayContactTrial::Shot(*this,*Source);
+    DayHostile=ETCombat::HostileInDaylight(*Source);WakeAllied=Source->WakeTruce();FrontBolt=Source->FrontUnit; BugBolt=Source->IsBrood();
     const FVector Aim=(Target-GetActorLocation()).GetSafeNormal();
     SetActorRotation(Aim.Rotation()); Velocity=Aim*(Acid?1250:2250); Power=Acid?11:(Source->Kind==TEXT("robot")?13:6);
     Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
@@ -166,14 +169,14 @@ void AETEnemyBolt::Beam(AETWorld* W,FVector End)
 void AETEnemyBolt::Tick(float D)
 {
     Super::Tick(D); if(!Field) return;
-    if(!FrontBolt&&!WakeHostile&&!Field->IsNight()) {Destroy(); return;}
+    if(!FrontBolt&&!DayHostile&&!Field->IsNight()) {Destroy(); return;}
     const FVector From=GetActorLocation(),To=From+Velocity*D;
     FHitResult Hit; FCollisionQueryParams Q(SCENE_QUERY_STAT(ETEnemyBolt),false,this);
     Q.AddIgnoredActor(GetOwner());
     if(!GetWorld()->SweepSingleByChannel(Hit,From,To,FQuat::Identity,ECC_Pawn,FCollisionShape::MakeSphere(6),Q)) {SetActorLocation(To); return;}
     if(auto* Enemy=Cast<AETAgent>(Hit.GetActor());Enemy&&((BugBolt&&Enemy->IsMachine())||(!BugBolt&&Enemy->IsBrood())))
         Enemy->TakeDamage(Power,FDamageEvent(),nullptr,this);
-    if(auto* P=Cast<AETCharacter>(Hit.GetActor());P&&!WakeAllied&&(Field->IsNight()||WakeHostile)&&!Field->AtRefuge&&P->EnemyReacquireTime<=0) P->TakeDamage(Power,FDamageEvent(),nullptr,this);
+    if(auto* P=Cast<AETCharacter>(Hit.GetActor());P&&!WakeAllied&&(Field->IsNight()||DayHostile)&&!Field->AtRefuge&&P->EnemyReacquireTime<=0) P->TakeDamage(Power,FDamageEvent(),nullptr,this);
     if(auto* Wall=Cast<AETConstruction>(Hit.GetActor());Wall&&(!FrontBolt||Field->IsNight())) Field->HitBuild(Wall,Power);
     Destroy();
 }

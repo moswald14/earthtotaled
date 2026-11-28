@@ -1,11 +1,27 @@
 #include "ETGame.h"
 #include "ETGeology.h"
 #include "ETAgentMovement.h"
+#include "ETCombat.h"
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
+
+namespace {
+    constexpr double GuardRadius=1200.;
+    constexpr double NightGuardRadius=2200.;
+    constexpr float ReturnFireTime=16.f;
+    bool SeesSurvivor(AETAgent& Agent,const AETCharacter& Player) {
+        FCollisionQueryParams Q(SCENE_QUERY_STAT(ETGuardSight),false,&Agent);
+        Q.AddIgnoredActor(&Player);
+        return !Agent.GetWorld()->LineTraceTestByChannel(Agent.AimPoint(),Player.GetActorLocation(),ECC_Visibility,Q);
+    }
+}
+
+bool ETCombat::HostileInDaylight(const AETAgent& Agent) {
+    return Agent.WakeEnemy()||(Agent.FrontUnit&&Agent.PlayerAggro>0);
+}
 
 AETAgent::AETAgent()
 {
@@ -90,6 +106,7 @@ void AETAgent::Fly(float D,AETCharacter* Player,AETAgent* Enemy)
     if((!Relay&&!Enemy&&Player->EnemyReacquireTime>0)||(Siege&&World->State->RaidStage==1)||AttackTime>0||To.SizeSquared()>FMath::Square(2700.)) return;
     const bool Blocked=GetWorld()->LineTraceSingleByChannel(H,Here,Target,ECC_Visibility,Q);
     if(Blocked&&H.GetActor()!=(Enemy?static_cast<AActor*>(Enemy):Player)&&!Cast<AETConstruction>(H.GetActor())) return;
+    if(FrontUnit&&!Relay&&!Enemy&&PlayerAggro>0)PlayerAggro=FMath::Max(PlayerAggro,4.f);
     if(auto* Bolt=GetWorld()->SpawnActor<AETEnemyBolt>(Here,To.Rotation())) Bolt->Launch(this,Target,Wing);
     AttackTime=1.55f; World->Sound(TEXT("ShardChirp"),.25f,1.25f);
 }
@@ -121,15 +138,23 @@ void AETAgent::Tick(float D)
         return;
     }
     const bool Siege=World->RaidMember(Id);
+    PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
     if(!Siege&&FVector::DistSquared2D(Player->GetActorLocation(),GetActorLocation())>FMath::Square(14000.)){
         AlertHold=0;ETAgentMovement::Patrol(*this,D);return;
     }
-    PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
-    AETAgent* Enemy=Siege||Kind==TEXT("walker")?nullptr:FindRival(D);
-    if((World->IsNight()||WakeEnemy())&&!WakeTruce()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
-       (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
-    const bool Protected=!Siege&&Kind!=TEXT("deer")&&(World->AtRefuge||(Kind!=TEXT("walker")&&!World->IsNight()&&!WakeEnemy()));
-    if(!Enemy&&(WakeTruce()||Protected)) {
+    const bool Truce=WakeTruce(),Ready=Player->EnemyReacquireTime<=0;
+    const double PlayerD2=FVector::DistSquared(GetActorLocation(),Player->GetActorLocation());
+    const bool Night=World->IsNight();
+    if(FrontUnit&&Ready&&!Truce&&!World->AtRefuge&&PlayerD2<FMath::Square(Night?NightGuardRadius:GuardRadius)&&SeesSurvivor(*this,*Player)){
+        if(PlayerAggro<=0)AttackTime=FMath::Max(AttackTime,.55f);
+        PlayerAggro=FMath::Max(PlayerAggro,4.f);
+    }
+    const bool Hostile=!Truce&&!World->AtRefuge&&(Night||Kind==TEXT("walker")||ETCombat::HostileInDaylight(*this));
+    const bool FocusPlayer=Hostile&&Ready&&(PlayerAggro>0||PlayerD2<FMath::Square(600.));
+    AETAgent* Enemy=Siege||Kind==TEXT("walker")||FocusPlayer?nullptr:FindRival(D);
+    if(Enemy&&Hostile&&Ready&&PlayerD2<FMath::Square(3800.)&&PlayerD2<FVector::DistSquared(GetActorLocation(),Enemy->GetActorLocation())*.64&&SeesSurvivor(*this,*Player))
+        Enemy=nullptr;
+    if(!Enemy&&(Truce||(!Siege&&Kind!=TEXT("deer")&&!Hostile))) {
         BearWindup=0;AlertHold=0;ETAgentMovement::Patrol(*this,D);return;
     }
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
@@ -149,7 +174,9 @@ void AETAgent::Tick(float D)
     bool Clear=!GetWorld()->LineTraceSingleByChannel(Sight,Eye,Aim,ECC_Visibility,Params)||Sight.GetActor()==Target;
     auto* Cover=Cast<AETConstruction>(Sight.GetActor());
     const bool Bear=Kind==TEXT("bear");
-    const float Engage=Bear?(PlayerAggro>0?6500:2900):Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
+    const bool Responding=FrontUnit&&Target==Player&&PlayerAggro>0;
+    if(Responding&&Clear&&Distance<8000)PlayerAggro=FMath::Max(PlayerAggro,4.f);
+    const float Engage=Responding?14000:Bear?(PlayerAggro>0?6500:2900):Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
     const bool Heard=!Flee&&Target==Player&&(PlayerAggro>0||Distance<1200);
     const bool Pursuing=Distance<Engage&&(Clear||Heard||Managed||TownIndex!=INDEX_NONE||Cover||Enemy);
     const bool CanEngage=Target!=Player||Player->EnemyReacquireTime<=0;
@@ -202,7 +229,11 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
         if(Bolt?Bolt->BugBolt:Fighter->IsBrood()) ++World->BugHits; else ++World->SupertechHits;
     }
     const bool Credited=Cast<AETCharacter>(Causer)||Cast<AETConstruction>(Causer);
-    if(auto* InstigatorPawn=Cast<AETCharacter>(Causer)) {InstigatorPawn->RememberEnemy(this);PlayerAggro=3.5f; World->State->ShieldDelay=10.f;}
+    if(auto* InstigatorPawn=Cast<AETCharacter>(Causer)) {
+        InstigatorPawn->RememberEnemy(this);
+        if(!WakeTruce()&&!World->AtRefuge)PlayerAggro=FrontUnit?ReturnFireTime:3.5f;
+        World->State->ShieldDelay=10.f;
+    }
     if(Managed) {if(auto* R=World->State->Threats.Find(Id)) R->Health=Health;}
     else if(!FrontUnit) World->State->AgentHealth.Add(Id,Health);
     if(Health<=0)

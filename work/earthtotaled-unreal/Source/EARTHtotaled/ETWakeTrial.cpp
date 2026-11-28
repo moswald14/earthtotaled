@@ -57,6 +57,7 @@ void ETWake::Trial(AETWorld& W,AETCharacter& P) {
         if(Shot&&Now-Opened>4){Ran=true;FPlatformMisc::RequestExit(false);}return;
     }
     if(Route=="encounters"){ETCombat::EncounterTrial(W,P);return;}
+    if(Route.StartsWith(TEXT("highway-contact-"))){ETCombat::HighwayContactTrial(W,P,Route);return;}
     if(Route=="combat"||Route=="combat-view"){ETCombat::Trial(W,P,Route=="combat-view");return;}
     if(Route=="deer-view"){ETFlora::DeerView(W,P);return;}
     if(Route=="woodland-view"){
