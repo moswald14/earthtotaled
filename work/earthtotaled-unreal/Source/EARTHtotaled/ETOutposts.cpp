@@ -9,6 +9,9 @@ using Site=AETConstruction;
 
 FIntPoint Site::Cost(int32 Piece)
 {
+    if(Piece==Cistern||Piece==Clinic) return {3,0};
+    if(Piece==Pump) return {2,0};
+    if(Piece==Bed) return {0,0};
     if(Piece==Core) return {2,1};
     if(Piece==Turret) return {3,1};
     if(Piece==Miner) return {4,1};
@@ -20,6 +23,7 @@ int32 Site::FrameCost(int32 T) {return T==2?2:4;}
 float Site::Durability(int32 P,int32 T) {return P==Core?450:P==Turret?230:P==Miner?200:T==2?600:T==1?320:160;}
 FString Site::Recipe(int32 P,int32 T)
 {
+    if(P==Bed)return TEXT("Prepare soil / free");
     const auto C=Cost(P);
     return P<Core?FString::Printf(TEXT("%d %s"),FrameCost(T),T==2?TEXT("iron ore"):T==1?TEXT("stone"):TEXT("wood")):FString::Printf(TEXT("%d iron + %d gold ore"),C.X,C.Y);
 }

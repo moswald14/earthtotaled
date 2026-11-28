@@ -1,4 +1,4 @@
-#include "ETGame.h"
+#include "ETField.h"
 #include "ETGeology.h"
 #include "ProceduralMeshComponent.h"
 
@@ -58,12 +58,16 @@ bool AETRegion::BuildTerrainSlice()
         const double WX=Origin.X+X*Step,WY=Origin.Y+Y*Step; FVector N;
         if(X==0||X==Grid||Y==0||Y==Grid) N=FVector(World->Height(WX-80,WY)-World->Height(WX+80,WY),World->Height(WX,WY-80)-World->Height(WX,WY+80),160);
         else N=FVector(TerrainVertices[Y*(Grid+1)+X-1].Z-TerrainVertices[Y*(Grid+1)+X+1].Z,TerrainVertices[(Y-1)*(Grid+1)+X].Z-TerrainVertices[(Y+1)*(Grid+1)+X].Z,2*Step);
+        const double Depth=World->DryDepth(WX,WY); double Stream,Lake; ETField::Basin({WX,WY},World->State->Seed,Stream,Lake);
+        const float Clay=FMath::SmoothStep(16.,130.,Depth);
+        const float Salt=Clay*FMath::Max(0.,1.-FMath::Abs(Lake-.86)/.14);
+        Colors.Add(FLinearColor(Clay,Salt,0,1));
         N.Normalize(); Normals.Add(N); UV.Add(FVector2D(WX/400,WY/400));
         Tangents.Add(FProcMeshTangent(FVector(1,0,-N.X/FMath::Max(.01,N.Z)).GetSafeNormal(),false));
     }
     TerrainIndices(Grid,Indices);
     // The old surface remains usable until the replacement's vertices and collision are ready.
     Terrain->CreateMeshSection_LinearColor(0,TerrainVertices,Indices,Normals,UV,Colors,Tangents,true);
-    Terrain->SetMaterial(0,World->Material(TEXT("Ground"))); TerrainGrid=Grid; TerrainBuildGrid=0; TerrainVertices.Reset();
+    Terrain->SetMaterial(0,World->Material(TEXT("DryGround"))); TerrainGrid=Grid; TerrainBuildGrid=0; TerrainVertices.Reset();
     BuildRoadSurface(); return true;
 }

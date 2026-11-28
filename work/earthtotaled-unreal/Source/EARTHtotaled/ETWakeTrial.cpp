@@ -23,6 +23,39 @@
 void ETWake::Trial(AETWorld& W,AETCharacter& P) {
     static bool Ran=false;if(Ran||W.WakeLayout==INDEX_NONE||!P.Controller)return;
     FString Route;FParse::Value(FCommandLine::Get(),TEXT("ETWakeTest="),Route);
+    if(Route=="dry-habitat"){W.RunFieldChecks(P,false);return;}
+    if(Route=="dry-season"||Route=="dry-resume"||Route=="dry-legacy"){
+        Ran=true;W.RunFieldChecks(P,Route=="dry-resume");return;
+    }
+    if(Route=="dry-farm-view"){
+        static double Since=0;static int Scene=0;static bool Shot=false;const double Now=FPlatformTime::Seconds();
+        if(!Since){
+            W.Review=true;P.TestInvincible=true;P.Panel.Empty();UGameplayStatics::SetGamePaused(&W,false);P.SetMouseMode(false);
+            W.WeatherOverride=ETClimate::Clear;W.State->ClockOffset=ETDay::At(11)-W.State->Elapsed;
+            if(Scene==0&&!W.State->Furrows.IsEmpty()){
+                const auto& Line=W.State->Furrows[0];FVector Target=Line.Outlet+FVector(25,-15,5);
+                W.StreamAround(Target,true);
+                for(auto& B:W.State->Builds)if(B.Value.Piece==AETConstruction::Bed&&FVector::Dist2D(B.Value.Anchor,Target)<1400){
+                    B.Value.Farm.Crop=3;B.Value.Farm.Growth=1;
+                    if(auto* A=W.LiveBuilds.FindRef(B.Key).Get())A->Configure(&W,B.Value);
+                }
+                const FVector Eye=Target+FVector(800,-930,580);
+                P.SetActorLocation(Eye-FVector(0,0,72),false,nullptr,ETeleportType::TeleportPhysics);
+                P.GetCharacterMovement()->DisableMovement();P.GetController()->SetControlRotation((Target-Eye).Rotation());
+                W.StepFarms(1);W.UpdateFlowView(Eye);
+            }else if(Scene==1){P.Pause();P.Action(TEXT("field-music"));}
+            else {P.Panel.Empty();P.Skills();P.Action(TEXT("perk:momentum"));}
+            Since=Now;
+        }
+        if(!Shot&&Now-Since>2){Shot=true;const TCHAR* Names[]={TEXT("irrigated-allotment.png"),TEXT("doodle-jazz-menu.png"),TEXT("survivor-ranks.png")};FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir()/Names[Scene],false,false);}
+        if(Shot&&Now-Since>4){if(++Scene==3){Ran=true;FPlatformMisc::RequestExit(false);}Since=0;Shot=false;}return;
+    }
+    if(Route=="dry-view"){
+        static double Opened=0;static bool Shot=false;const double Now=FPlatformTime::Seconds();
+        if(!Opened){P.Panel.Empty();P.Skills();P.Action(TEXT("perk:momentum"));Opened=Now;}
+        if(!Shot&&Now-Opened>2){Shot=true;FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir()/TEXT("ranked-web.png"),false,false);}
+        if(Shot&&Now-Opened>4){Ran=true;FPlatformMisc::RequestExit(false);}return;
+    }
     if(Route=="combat"||Route=="combat-view"){ETCombat::Trial(W,P,Route=="combat-view");return;}
     if(Route=="deer-view"){ETFlora::DeerView(W,P);return;}
     if(Route=="woodland-view"){

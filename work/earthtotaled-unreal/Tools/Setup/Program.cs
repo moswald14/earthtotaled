@@ -12,8 +12,8 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("EARTHtotaled Setup")]
 [assembly: AssemblyProduct("EARTHtotaled")]
-[assembly: AssemblyFileVersion("1.18.1.0")]
-[assembly: AssemblyVersion("1.18.1.0")]
+[assembly: AssemblyFileVersion("1.19.0.0")]
+[assembly: AssemblyVersion("1.19.0.0")]
 
 namespace Earthtotaled.Setup {
     internal sealed class SetupForm : Form {

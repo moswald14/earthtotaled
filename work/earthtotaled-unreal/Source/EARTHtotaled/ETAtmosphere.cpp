@@ -26,6 +26,8 @@ FString AETWorld::WeatherName() const
 
 int32 AETWorld::MusicFor(FVector Position) const
 {
+    const int Jazz=3+FMath::Clamp(State->JazzTrack,0,2);
+    if(State->JazzSource&&Music.IsValidIndex(Jazz)&&Music[Jazz]->Sound)return Jazz;
     return IsNight()?2:InCity(Position)?1:0;
 }
 
@@ -40,7 +42,7 @@ void AETWorld::InitAtmosphere()
         for(int32 I=0;I<5;++I) if(Override==Names[I]) WeatherOverride=I;
     }
     Weather=WeatherOverride>=0?ETClimate::Profile(WeatherOverride):ETClimate::Sample(State->Elapsed,State->Seed);
-    for(const TCHAR* Name:{TEXT("MusicForest"),TEXT("MusicCity"),TEXT("MusicNight"),TEXT("WeatherRain"),TEXT("WeatherWind"),TEXT("WeatherThunder")}) {
+    for(const TCHAR* Name:{TEXT("MusicForest"),TEXT("MusicCity"),TEXT("MusicNight"),TEXT("MusicJazzSaltline"),TEXT("MusicJazzPumpHouse"),TEXT("MusicJazzNightFurrow"),TEXT("WeatherRain"),TEXT("WeatherWind"),TEXT("WeatherThunder")}) {
         const FString Id=Name;
         auto Clip=LoadObject<USoundBase>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/S_")+Id+TEXT(".S_")+Id));
         Sounds.Add(Id,Clip);
@@ -117,9 +119,9 @@ void AETWorld::UpdateAtmosphereAudio(float Delta,bool Immediate)
 {
     auto P=Cast<AETCharacter>(UGameplayStatics::GetPlayerCharacter(this,0)); if(!P||!State) return;
     const int32 Track=MusicFor(P->GetActorLocation());
-    const float Duck=HasSubtitle()?.22f:P->Panel.IsEmpty()?1.f:.65f;
+    const float Duck=HasSubtitle()?.22f:P->CombatTime>0||P->AlertCaptionTime>0?.35f:P->Panel.IsEmpty()?1.f:.65f;
     for(int32 I=0;I<Music.Num();++I) {
-        const float Target=I==Track?State->MusicVolume*.01f*Duck:0;
+        const float Target=I==Track&&!State->MusicMuted?State->MusicVolume*.01f*Duck:0;
         Music[I]->SetVolumeMultiplier(Immediate?Target:FMath::FInterpTo(Music[I]->VolumeMultiplier,Target,Delta,.65f));
     }
     const float Outside=Sheltered?.23f:1.f, Menu=P->Panel.IsEmpty()?1.f:.5f;

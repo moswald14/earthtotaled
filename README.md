@@ -8,9 +8,11 @@ Run **EARTHtotaled-Setup.exe**, choose a version, and select **Install and play*
 
 Open **Game updates** from the title or pause menu to select a GitHub release. Confirm to save, install and relaunch, or keep playing. Setup preserves all ten slots and mods. Older versions use a separate copy of your progress. Return to the latest to resume your main survivor. You can also open **Manage EARTHtotaled versions** from Start. [All releases and portable ZIPs](https://github.com/moswald14/earthtotaled/releases)
 
+**Dry Season in 1.19.0.** Start a farm at the allotment southwest of Shelter 09 or at a restored glade. Build a pump and cistern, then use the Borer to channel water to Cinderbean, Saltroot and Mendleaf. Take an optional Threat Run at East Dispatch, spend points on ranked skills with **K**, or tune to Doodle Jazz under **Esc → Music**. [Dry Season field guide](work/earthtotaled-unreal/Docs/Dry-Season.md)
+
 **Woodland deer in 1.18.1.** Follow the west highway out of Shelter 09 and look into the woods on the south side. Small herds graze and flee there and in forest clearings across the map. The three deer at the shelter crossing are part of the MegaWAKE quest.
 
-**Combat Signals in 1.18.0.** HP and shield sit beside the reticle, and a named bar follows the enemy you're targeting or fighting. The left panel tracks your level and XP. Each enemy type has its own positional alert. Use **Esc** to change alert volume, directional captions and damage-flash intensity. Players on **1.16.0** can select **v1.18.1** in **Game updates**. If an older Setup is stuck, close it and open the Windows installer linked above. Choose **v1.18.1** to resume with your existing survivor.
+**Combat Signals in 1.18.0.** HP and shield sit beside the reticle, and a named bar follows the enemy you're targeting or fighting. The left panel tracks your level and XP. Each enemy type has its own positional alert. Use **Esc** to change alert volume, directional captions and damage-flash intensity. If an older Setup gets stuck, close it and open the Windows installer linked above to update your existing survivor.
 
 **Find Kit in the MegaWAKE campaign.** Speak to Thrum near SALT-7 at Shelter 09. Press **J** for the next objective and **M** for its location. Lead the first deer herd to safety to unlock the roadster. Gather relay records for either faction to trace Kit to Crown Field. Both vehicles use **E** to board or exit, **R** to start, **W** to accelerate, **A/D** to steer and **S** to brake. In the plane, **Space** climbs and **Ctrl** descends. The **F2** field guide keeps these controls handy. Eli's HELIOS investigation is available under **J → HELIOS and settlement jobs**.
 
@@ -24,7 +26,7 @@ Start a new survivor for the crash landing and the Drifter .44. Press **G** and 
 
 Daylight lasts 52 real minutes and night lasts 22. Shelter 09 is safe. Clear infected towns, then use their settlement boards to fund the watch, build walls and place powered sentries. Track the hill cistern for drinking water. Your shield recharges after combat. Medkits restore health. Approach spilled loot and hold **Ctrl** to sweep it into your pack.
 
-H7 Blackpine Highway and H2 Relay Highway link towns, Bug hives and Supertech cities. Press **M** to plot a route. Mine wilderness ground for resources. Cities, roadbeds and built foundations are protected against excavation at every depth. Earn survivor XP through quests, encounters, harvesting and mining. Press **K** to inspect the 18-node skill web and spend a point when you level up.
+H7 Blackpine Highway and H2 Relay Highway link towns, Bug hives and Supertech cities. Press **M** to plot a route. Mine wilderness ground for resources. Cities, roadbeds and built foundations are protected against excavation at every depth. Earn survivor XP through quests, encounters, harvesting and mining. Press **K** to see each skill's current rank, next effect and cost.
 
 ## Mods and contributions
 

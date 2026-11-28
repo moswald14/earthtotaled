@@ -67,7 +67,7 @@ void AETWorld::RefreshWake() {
         S.TrailHeard|=Visited&~S.TrailFound;S.TrailFound|=Visited;
     }
     Node("thrum","thrum",0,TEXT("Thrum / listen for Kit"),TEXT("SM_MoltSpitter"),.92,S.Chapter<=Triage);
-    Node("band","band",0,TEXT("Examine the evacuation wristband"),TEXT("SM_MedCase"),.55,S.Chapter==Triage,FVector(0,0,15));
+    Node("band","band",0,TEXT("Examine the evacuation wristband"),TEXT("SM_FieldKit"),.55,S.Chapter==Triage,FVector(0,0,15));
     Node("herd","herd",0,TEXT("Thrum / guide the crossing herd"),TEXT("SM_MoltSpitter"),.98,S.Chapter==FirstHerd);
     Node("glade0","glade",0,TEXT("Quiet glade / settle the first herd"),TEXT("SM_Sign"),1,S.Chapter>=FirstHerd&&S.Chapter<Home);
     Node("garage","garage",0,TEXT("SALT-7 / roadside motor pool"),TEXT("SM_Robot"),1,S.Chapter>=FirstHerd);
@@ -248,9 +248,11 @@ bool AETAgent::TickWakeDeer(float D,AETCharacter& P) {
     SetActorLocationAndRotation(FVector(Pos,World->SurfaceHeight(Pos.X,Pos.Y)+8),R);return true;
 }
 bool AETAgent::WakeEnemy() const {
+    if(Id.StartsWith(TEXT("run/")))return false;
     if(!World||!World->State)return false;int Side=World->State->Wake.Winner();return Side==Bug?IsMachine():Side==Frame&&IsBrood();
 }
 bool AETAgent::WakeTruce() const {
+    if(Id.StartsWith(TEXT("run/")))return false;
     if(!World||!World->State)return false;const auto& S=World->State->Wake;int Side=S.Winner();
     if(!Side&&S.Chapter>Missing&&FrontUnit)return IsMachine()||IsBrood();
     return Side==Bug?IsBrood():Side==Frame&&IsMachine();

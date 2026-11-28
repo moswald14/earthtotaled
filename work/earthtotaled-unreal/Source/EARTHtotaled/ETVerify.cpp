@@ -31,7 +31,7 @@ void AETWorld::RunSelfTest()
     Check(P!=nullptr,TEXT("Native first-person character spawned"));
     if(!P) {FPlatformMisc::RequestExitWithStatus(false,1); return;}
     RunAtmosphereChecks(Check);
-    Check(Weapons.Num()==10&&Perks.Num()==18&&Quests.Num()==5,TEXT("Ten weapons, original perk web and quests loaded in game"));
+    Check(Weapons.Num()==10&&Perks.Num()==21&&Quests.Num()==5,TEXT("Ten weapons, ranked perk web and quests loaded in game"));
     int32 Baked=0; for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("ET_BakedStart"))) ++Baked;
     Check(Baked>=250,TEXT("Pregenerated starting architecture is present in the cooked map"));
     Check(Supplies.Num()==11&&Recipes.Num()==6&&LootTables.Num()==6,TEXT("Supplies, mined ores, workbench recipes and container tables loaded"));

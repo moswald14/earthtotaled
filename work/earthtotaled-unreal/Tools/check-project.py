@@ -18,11 +18,11 @@ for r in expansion['recipes']:
 for name,entries in expansion['lootTables'].items():
     check(len(entries)>=2 and all(e['id'] in supplies|{'water','buildkit','medkit'} and 0<e['min']<=e['max'] for e in entries),'Valid loot table: '+name)
 check(supplies-{'goldore','ironore'}<={e['id'] for entries in expansion['lootTables'].values() for e in entries},'Non-mineral supplies can be scavenged')
-check(len(design['skills'])==18,'18 node web')
+check(len(design['skills'])==21,'21 node survivor web')
 check(len(design['quests'])==5,'Five community quests')
 check(len(design['story'])==6,'Recordings preserved')
 ids={p['id'] for p in design['skills']}
-check(len(ids)==18,'Unique perk IDs')
+check(len(ids)==21,'Unique perk IDs')
 known={'survivor'}
 while True:
     nxt=known|{p['id'] for p in design['skills'] if any(n in known for n in p['requires'])}
@@ -125,10 +125,11 @@ for name in ['Concrete','Steel','Ground','Wood']:
     data=(art/('T_'+name+'_BaseColor.png')).read_bytes()
     check(struct.unpack('>II',data[16:24])==(2048,2048),'2048px main surface texture: '+name)
 dialogue=json.loads((ROOT/'Content/Data/dialogue.json').read_text(encoding='utf-8-sig'))
-check(len(dialogue['lines'])==20,'Twenty spoken character and archive lines')
-check(len({line['id'] for line in dialogue['lines']})==20,'Unique voice identifiers')
+check(len(dialogue['lines'])==47,'Character, archive and MegaWAKE dialogue catalog')
+check(len({line['id'] for line in dialogue['lines']})==len(dialogue['lines']),'Unique voice identifiers')
 for line in dialogue['lines']:
-    check(bool(line['speaker']) and bool(line['text']) and (art/('S_Voice_'+line['id']+'.wav')).is_file(),'Spoken line has matching subtitles and audio: '+line['id'])
+    voice_dir=ROOT/'Content/Data/Voices' if line['id'].startswith('wake') else art
+    check(bool(line['speaker']) and bool(line['text']) and (voice_dir/('S_Voice_'+line['id']+'.wav')).is_file(),'Spoken line has matching subtitles and audio: '+line['id'])
 for cue in ['BorerPulse','OreChime','JetThrust','ShardChirp','BroodCall','FieldLatch']:
     check((art/('S_'+cue+'.wav')).is_file(),'Gameplay sound is present: '+cue)
 for model in ['ShardDrone','BroodRunner','BroodSpitter','FieldWall','FieldFloor','FieldRamp','FieldRoof']:

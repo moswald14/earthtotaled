@@ -60,7 +60,7 @@ namespace Earthtotaled.Setup {
                 "-UserDir=\""+separate+"\" -UserDir=\""+primary+"\""};
             Check(protectedArgs.All(arg=>!GameSessions.UsesSeparateSaves("game.exe "+arg,manager)),
                 "Default, managed, relative and ambiguous save profiles remain protected");
-            string tag="v1.18.1",name="EARTHtotaled-Unreal-Windows-"+tag+".zip",hash=new string('a',64);
+            string tag="v1.19.0",name="EARTHtotaled-Unreal-Windows-"+tag+".zip",hash=new string('a',64);
             string json=new JavaScriptSerializer().Serialize(new[]{new{tag_name=tag,draft=false,prerelease=false,assets=new[]{new{name=name,
                 browser_download_url=Catalog.Assets+tag+"/"+name,size=12,digest="sha256:"+hash}}}});
             var api=new TestHttp();

@@ -1,6 +1,6 @@
 #include "ETWakeVehicle.h"
 #include "ETWake.h"
-#include "ETGame.h"
+#include "ETField.h"
 #include "ETRingLine.h"
 #include "ETLandfall.h"
 #include "Engine/Canvas.h"
@@ -129,6 +129,7 @@ void AETHUD::DrawHUD()
     DrawRect(Amber,32,SH-74,350.f*FMath::Clamp(float(S->XP)/S->NextLevelXP(),0.f,1.f),4);
     if(S->Wake.Body)Text(S->Wake.Body==ETWake::Bug?TEXT("MOLT   /   WATER INDEPENDENT"):TEXT("OVERRIDE   /   CLOSED-CYCLE FRAME"),32,SH-65,Mint,1.12f);
     else Text(FString::Printf(TEXT("WATER %d%%    %d bottles [H]"),FMath::CeilToInt(S->Hydration),S->Water),32,SH-65,S->Hydration<25?Amber:Mint,1.2f);
+    if(S->Wake.Body!=ETWake::Bug) DrawMedkitIcon(8,SH-40,22);
     Text(S->Wake.Body==ETWake::Bug?TEXT("Survivor pack sealed   /   Tab to inspect"):FString::Printf(TEXT("WRAPPERS %d / SCRAP %d / MEDS %d [Q]"),S->Gold,S->Scrap,S->Meds),32,SH-36,Muted,1);
     DrawRect(FLinearColor(.012,.019,.015,.8),20,SH-135,204,29);
     Text(FString::Printf(TEXT("JET %d%%"),FMath::RoundToInt(S->JetFuel)),30,SH-130,P->Jetting?Amber:Mint,.85f);
@@ -145,7 +146,7 @@ void AETHUD::DrawHUD()
     if(P->Building) {
         const bool Frame=P->BuildPiece<AETConstruction::Core;
         const auto Tier=P->BuildMaterial;
-        const FString Name=Frame?FString(AETConstruction::MaterialName(Tier))+TEXT(" ")+AETConstruction::Name(P->BuildPiece):FString(AETConstruction::Name(P->BuildPiece));
+        const FString Name=Frame?FString(AETConstruction::MaterialName(Tier))+TEXT(" ")+AETConstruction::Name(P->BuildPiece):P->BuildPiece>=AETConstruction::Cistern?FString(ETField::FarmName(P->BuildPiece,S->Wake.Body)):FString(AETConstruction::Name(P->BuildPiece));
         Text(Name.ToUpper(),SW-300,SH-96,Amber,1.08f);
         FString Cost=AETConstruction::Recipe(P->BuildPiece,Tier);
         if(Frame) Cost+=FString::Printf(TEXT("  /  carrying %d"),S->Inventory.FindRef(AETConstruction::Resource(Tier)));
@@ -157,8 +158,8 @@ void AETHUD::DrawHUD()
         Text(P->BuildHint,SW*.5f-105,SH*.5f+27,Bone,.95f);
     } else if(P->Borer)
     {
-        Text(S->SquareBorer?TEXT("BORER / SQUARE"):TEXT("BORER / ROUND"),SW-300,SH-90,Amber,1.2f);
-        Text(TEXT("LMB  Blast     RMB  Survey"),SW-300,SH-63,Bone,1.05f);
+        Text(S->FurrowHead?TEXT("BORER / IRRIGATION"):S->SquareBorer?TEXT("BORER / SQUARE"):TEXT("BORER / ROUND"),SW-300,SH-90,Amber,1.2f);
+        Text(S->FurrowHead?(P->FurrowStart.IsSet()?TEXT("LMB   Mark outlet"):TEXT("LMB   Mark inlet")):TEXT("LMB  Blast     RMB  Survey"),SW-300,SH-63,Bone,1.05f);
         Text(TEXT("R shape   V winch   G stow"),SW-300,SH-38,Mint,.95f);
         if(P->Aiming&&P->Panel.IsEmpty()) {
             DrawRect(FLinearColor(.025f,.025f,.018f,.9f),SW*.5f-149,SH*.5f+18,298,28);
@@ -183,7 +184,8 @@ void AETHUD::DrawHUD()
         DrawLine(SW/2-7,SH/2,SW/2+7,SH/2,ReticleOutline,3); DrawLine(SW/2,SH/2-7,SW/2,SH/2+7,ReticleOutline,3);
         DrawLine(SW/2-6,SH/2,SW/2+6,SH/2,Mint,1.35f); DrawLine(SW/2,SH/2-6,SW/2,SH/2+6,Mint,1.35f);
         if(P->HitTime>0) {DrawLine(SW/2-10,SH/2-10,SW/2-4,SH/2-4,Amber,2); DrawLine(SW/2+10,SH/2+10,SW/2+4,SH/2+4,Amber,2); DrawLine(SW/2+10,SH/2-10,SW/2+4,SH/2-4,Amber,2); DrawLine(SW/2-10,SH/2+10,SW/2-4,SH/2+4,Amber,2);}
-        if(auto* Site=P->FocusBuild.Get();Site&&Site->Design.Piece>=AETConstruction::Core) Text(FString(TEXT("[E] "))+Site->Name(Site->Design.Piece),SW*.5f-100,SH*.5f+48,Mint,1.12f);
+        if(auto* Site=P->FocusBuild.Get();Site&&Site->Design.Piece>=AETConstruction::Core) Text(FString(TEXT("[E] "))+(Site->Design.Piece>=AETConstruction::Cistern?ETField::FarmName(Site->Design.Piece,Site->Design.Farm.Style):Site->Name(Site->Design.Piece)),SW*.5f-100,SH*.5f+48,Mint,1.12f);
+        if(S->Run.Type){const auto D=S->Run.Rally-P->GetActorLocation();Text(FString::Printf(TEXT("%s / %d left / %.0f m / %03d deg / night"),ETField::RunName(S->Run.Type),S->Run.Remaining.Num(),D.Size2D()/100,FMath::RoundToInt(FMath::Fmod(D.Rotation().Yaw+360.f,360.f))),32,185,Amber,.90f);}
         if(S->RaidStage) Text(W->IsNight()?FString::Printf(TEXT("RELAY  /  %s   %ds"),S->RaidStage==1?TEXT("Bug raiders forming"):TEXT("Under attack"),FMath::CeilToInt(S->RaidTime)):TEXT("RELAY  /  Raid resumes at nightfall"),32,151,Amber,1.15f);
         else for(const auto& It:S->Threats) if(It.Value.Kind==TEXT("hive")) {
             const FVector To=It.Value.Position-P->GetActorLocation();
@@ -248,6 +250,7 @@ void AETHUD::DrawHUD()
     {
         Wrapped(P->PanelBody,X,Y+48,Width,SH<800?.9f:1.1f);
         float BY=SH*.65f;
+        if(P->Panel==TEXT("music")||P->Panel==TEXT("farm")||P->Panel==TEXT("threatruns"))FieldButtons(*P,X,SH*.60f,Width);
         if(P->Panel==TEXT("journal"))Button(TEXT("wake-journal"),TEXT("Kit / MegaWAKE field journal"),X,BY,325);
         if(P->Panel==TEXT("contact"))
         {
@@ -279,7 +282,7 @@ void AETHUD::DrawHUD()
             Button(TEXT("alert-volume"),FString::Printf(TEXT("Enemy alerts   %d%%"),S->AlertVolume),X,BY+40,ControlWidth);
             Button(TEXT("alert-captions"),S->AlertCaptions?TEXT("Alert captions   On"):TEXT("Alert captions   Off"),X+ControlWidth+12,BY+40,ControlWidth);
             Button(TEXT("hit-intensity"),FString::Printf(TEXT("Damage flash   %d%%"),S->HitFlashIntensity),X+2*(ControlWidth+12),BY+40,ControlWidth);
-            Button(TEXT("music-volume"),FString::Printf(TEXT("Music volume   %d%%"),S->MusicVolume),X,BY+80,ControlWidth);
+            Button(TEXT("field-music"),TEXT("Music / source and volume"),X,BY+80,ControlWidth);
             Button(TEXT("weather-volume"),FString::Printf(TEXT("Weather volume   %d%%"),S->WeatherVolume),X+ControlWidth+12,BY+80,ControlWidth);
             Button(TEXT("slots"),TEXT("Survivor saves"),X+2*(ControlWidth+12),BY+80,ControlWidth);
             Button(TEXT("aim-assist"),S->LightAimAssist?TEXT("Aim assist / light"):TEXT("Aim assist / off"),X+2*(ControlWidth+12),BY+122,ControlWidth);

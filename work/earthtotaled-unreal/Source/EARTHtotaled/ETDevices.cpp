@@ -8,6 +8,7 @@ void AETCharacter::OpenDevice(AETConstruction* A)
     const auto* B=A?World->State->Builds.Find(A->Id):nullptr;
     if(!B||B->Piece<AETConstruction::Core) return;
     DeviceId=A->Id; auto S=World->State;
+    if(B->Piece>=A->Cistern){FarmPanel();return;}
     if(B->Piece>=A->Nursery){
         WakePanelNode="structure";FString Info;
         if(!ETWake::CanBuild(S->Wake,B->Piece))Info=TEXT("This building answers to its faction's body.");

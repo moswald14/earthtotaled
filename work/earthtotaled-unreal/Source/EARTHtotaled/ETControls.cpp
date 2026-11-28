@@ -34,7 +34,7 @@ void AETHUD::DrawControls(AETCharacter* P)
         {{TEXT("06:00 to 19:00"),TEXT("52 real minutes of daylight. Clear zombies in infested towns to reopen the refuge keeper.")},
          {TEXT("19:00 to 06:00"),TEXT("Roaming creatures and patrols emerge at night. Dawn pauses raids. Highway soldiers focus on their rivals in daylight.")},
          {TEXT("G   /   Left mouse"),TEXT("Mine open wilderness for stone and XP. City ground, streets and structure footprints are protected at every depth.")},
-         {TEXT("Right mouse   /   R"),TEXT("Hold to survey for ore. Press R to switch between round and square cuts.")},
+         {TEXT("Right mouse   /   R"),TEXT("Hold to survey for ore. R cycles round, square and irrigation. Tap fire at an inlet, then downhill.")},
          {TEXT("V with borer out"),TEXT("Winch to the surface from underground. Your jetpack also works in a shaft.")},
          {TEXT("Relay   /   Turret"),TEXT("A relay costs 2 iron + 1 gold ore. A turret costs 3 + 1 and needs a relay within 75 m.")},
          {TEXT("Turtle miner   /   E"),TEXT("Build for 4 iron + 1 gold ore. Use E to collect the hopper or service a machine.")},

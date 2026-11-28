@@ -151,6 +151,7 @@ FVector2D ETWake::Waypoint(const AETWorld& W) {
 }
 bool ETWake::BugPack(const AETCharacter& P) {return P.World&&P.World->State&&P.World->State->Wake.Body==Bug;}
 bool ETWake::CanBuild(const FETWakeSave& S,int P) {
+    if(P>=AETConstruction::Cistern&&P<AETConstruction::Count)return true;
     if(P<AETConstruction::Nursery)return S.Body!=Bug;
     return P< AETConstruction::Fabricator ? S.Body==Bug : S.Body==Frame;
 }

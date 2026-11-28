@@ -23,7 +23,7 @@ void AETWorld::RunAtmosphereChecks(TFunctionRef<void(bool,const FString&)> Check
         Check(Clip&&Clip->GetDuration()>=7.9f&&Clip->NumChannels==(Score?2:1),FString(Name)+TEXT(" audio is cooked with its intended channel layout"));
         Check(Clip&&Clip->bLooping==(FString(Name)!=TEXT("WeatherThunder")),FString(Name)+TEXT(" has the intended loop behavior"));
     }
-    Check(Music.Num()==3&&WeatherAudio.Num()==2&&Music[0]->bIsUISound&&!Music[0]->bAutoDestroy,TEXT("A bounded set of persistent audio channels supports paused menus"));
+    Check(Music.Num()==6&&WeatherAudio.Num()==2&&Music[0]->bIsUISound&&!Music[0]->bAutoDestroy,TEXT("A bounded set of persistent audio channels supports paused menus"));
     Check(RainMesh&&RainMesh->GetInstanceCount()==256&&RainMesh->GetCollisionEnabled()==ECollisionEnabled::NoCollision,TEXT("Rain uses a fixed nonblocking instanced particle pool"));
     Check(CloudMaterial&&Material(TEXT("WeatherClouds"))&&Material(TEXT("WeatherRain")),TEXT("Moving cloud and rain materials are present in the cooked build"));
     bool Seen[5]={}; bool Bounded=true,Continuous=true;

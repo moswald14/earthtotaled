@@ -1,5 +1,7 @@
 # EARTHtotaled — The Last Signal / Unreal port
 
+[Dry Season field guide](Docs/Dry-Season.md) covers ranked skills, optional night hunts, waterworks, farming and offline Doodle Jazz.
+
 This is EARTHtotaled's native Unreal Engine 5.8 Windows game. The original browser source is preserved in the sibling `earthtotaled` folder. See the [release record](../../docs/RELEASES.md) for the build and playtest evidence, and the [full-release checklist](../../docs/RELEASE-CHECKLIST.md) for remaining verification.
 
 ## Combat Signals / 1.18

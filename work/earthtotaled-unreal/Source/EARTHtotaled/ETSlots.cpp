@@ -152,7 +152,7 @@ void AETCharacter::SlotAction(const FString& Id)
     UETSave* Source=Op==TEXT("slot-copy")?World->State:PendingImport;
     if(Op==TEXT("slot-new")) {
         Source=NewObject<UETSave>(this); Source->ArrivalStage=0; Source->RetroDisplay=false; Source->ModernDay=true; Source->ClockOffset=ETDay::At(9); Source->Seed=FMath::RandRange(1,MAX_int32-1); Source->LandscapeEdition=1; Source->BuildStock=0;
-        auto* Old=World->State; Source->MusicVolume=Old->MusicVolume; Source->WeatherVolume=Old->WeatherVolume;
+        auto* Old=World->State; Source->MusicVolume=Old->MusicVolume; Source->MusicMuted=Old->MusicMuted; Source->JazzSource=Old->JazzSource; Source->JazzTrack=Old->JazzTrack; Source->WeatherVolume=Old->WeatherVolume;
         Source->RetroDisplay=Old->RetroDisplay; Source->RenderScale=Old->RenderScale; Source->HasRingDisplay=true; Source->ViewDistance=Old->ViewDistance;
     }
     if(!StoreSlot(Source,SelectedSlot)) {SlotMessage=TEXT("Could not write the slot. Check available storage."); PendingSlotAction.Empty(); PendingImport=nullptr; return;}

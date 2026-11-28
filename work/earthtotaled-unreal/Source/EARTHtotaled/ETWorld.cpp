@@ -83,6 +83,7 @@ void AETWorld::LoadDesign()
     if((!Review||JourneyResume||MineResume)&&UGameplayStatics::DoesSaveGameExist(SaveSlot,0)) State=Cast<UETSave>(UGameplayStatics::LoadGameFromSlot(SaveSlot,0));
     HadSave=State&&State->Schema==1;
     if(!HadSave) {State=Cast<UETSave>(UGameplayStatics::CreateSaveGameObject(UETSave::StaticClass())); State->BuildStock=0; if(!Review&&!FrontierQA&&!BorerRecoveryQA) State->ArrivalStage=0;}
+    State->MigrateRanks(); DrySeasonMigration();
     if(!State->HasRingDisplay) {
         if(State->RenderScale==100) State->RenderScale=125;
         State->HasRingDisplay=true;
@@ -151,7 +152,7 @@ void AETWorld::LoadDesign()
 }
 void AETWorld::BeginPlay()
 {
-    Super::BeginPlay(); LoadDesign(); BuildStory(); SetWakePerks(); RefreshWake();
+    Super::BeginPlay(); LoadDesign(); BuildStory(); SetWakePerks(); RefreshWake(); InitFieldSites();
     for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("ET_BakedStart"))) {
         StoryActors.Add(*It);
         if(auto* Prop=Cast<AStaticMeshActor>(*It)) {
@@ -288,7 +289,7 @@ void AETWorld::DressMesh(UStaticMeshComponent* Component,const FString& BaseMate
     const auto& Slots=Component->GetStaticMesh()->GetStaticMaterials();
     for(int32 I=0;I<Slots.Num();++I) {
         FString Slot=Slots[I].MaterialSlotName.ToString(); FString Name=BaseMaterial;
-        for(const TCHAR* Known:{TEXT("Steel"),TEXT("DarkMetal"),TEXT("Rubber"),TEXT("Wood"),TEXT("Bark"),TEXT("Glass"),TEXT("Greenline"),TEXT("Skin"),TEXT("Signal"),TEXT("Gold"),TEXT("Leaf"),TEXT("Pine"),TEXT("Moss"),TEXT("BirchBark"),TEXT("Brick"),TEXT("Plaster"),TEXT("Concrete"),TEXT("Rust"),TEXT("Canvas"),TEXT("CircuitLight"),TEXT("ResinLight"),TEXT("AlloyHull"),TEXT("Carapace"),TEXT("Pallor"),TEXT("RotCloth"),TEXT("GreenBlade"),TEXT("DryBlade"),TEXT("Hide")})
+        for(const TCHAR* Known:{TEXT("Steel"),TEXT("DarkMetal"),TEXT("Rubber"),TEXT("Wood"),TEXT("Bark"),TEXT("Glass"),TEXT("Greenline"),TEXT("Skin"),TEXT("Signal"),TEXT("Gold"),TEXT("Leaf"),TEXT("Pine"),TEXT("Moss"),TEXT("BirchBark"),TEXT("Brick"),TEXT("Plaster"),TEXT("Concrete"),TEXT("Rust"),TEXT("Canvas"),TEXT("CircuitLight"),TEXT("ResinLight"),TEXT("AlloyHull"),TEXT("Carapace"),TEXT("Pallor"),TEXT("RotCloth"),TEXT("GreenBlade"),TEXT("DryBlade"),TEXT("Hide"),TEXT("KitTeal"),TEXT("Bandage"),TEXT("Stitch"),TEXT("Ground")})
             if(Slot==Known||Slot.EndsWith(FString(TEXT("_"))+Known)) {Name=Known; break;}
         if(Slot==TEXT("BearFur")||Slot.EndsWith(TEXT("_BearFur")))Name=TEXT("BearFur");
         if(Slot==TEXT("AmberCap")||Slot.EndsWith(TEXT("_AmberCap")))Name=TEXT("AmberCap");
@@ -313,17 +314,18 @@ AETItem* AETWorld::Item(const FString& Id,const FString& Kind,const FString& Lab
     FString Asset=(Kind==TEXT("human")||Kind==TEXT("friend"))?TEXT("SM_Contact"):Kind==TEXT("core")?TEXT("SM_Core"):Kind==TEXT("trap")?TEXT("SM_Trap"):TEXT("SM_Cache");
     if(Kind==TEXT("container")||Kind==TEXT("loot")) {
         FString Type=Kind==TEXT("loot")?(Amount==0?TEXT("pantry"):Amount==1?TEXT("medical"):Amount==2?TEXT("armory"):TEXT("tools")):Value;
-        Asset=Type==TEXT("medical")?TEXT("SM_MedCase"):Type==TEXT("armory")?TEXT("SM_WeaponCase"):Type==TEXT("tools")?TEXT("SM_Toolbox"):Type==TEXT("electronics")?TEXT("SM_ElectronicsCase"):TEXT("SM_PantryCase");
+        Asset=Type==TEXT("medical")?TEXT("SM_FieldKit"):Type==TEXT("armory")?TEXT("SM_WeaponCase"):Type==TEXT("tools")?TEXT("SM_Toolbox"):Type==TEXT("electronics")?TEXT("SM_ElectronicsCase"):TEXT("SM_PantryCase");
     }
     if(Kind==TEXT("weapon")) Asset=TEXT("SM_WeaponCase");
     if(const int Seed=ETLandfall::RelicSeed(Kind)) {Asset=FString::Printf(TEXT("SM_Weapon%d"),ETLandfall::FRoll(Seed).Frame);A->SetActorScale3D(FVector(1.4));}
+    if(Kind==TEXT("siltcache")) Asset=TEXT("SM_Toolbox");
     if(Kind==TEXT("tower")) Asset=TEXT("SM_HillCistern");
     if(Kind==TEXT("stake")) Asset=TEXT("SM_Sign");
-    if(Kind==TEXT("survey")) Asset=TEXT("SM_Sign");
+    if(Kind==TEXT("allotment")||Kind==TEXT("runboard")||Kind==TEXT("survey")) Asset=TEXT("SM_Sign");
     // "gold" is the legacy saved drop kind; new and previously dropped currency are wrappers.
     if(Kind==TEXT("gold")) Asset=TEXT("SM_Wrappers");
     else if(Kind==TEXT("townboard")) Asset=TEXT("SM_Sign");
-    else if(Kind==TEXT("medkit")) {Asset=TEXT("SM_MedCase");A->SetActorScale3D(FVector(.38));}
+    else if(Kind==TEXT("medkit")) {Asset=TEXT("SM_FieldKit");A->SetActorScale3D(FVector(.38));}
     else if(Kind==TEXT("gunparts")||Kind==TEXT("scrap")||Kind.StartsWith(TEXT("mod."))) {Asset=TEXT("SM_ElectronicsCase");A->SetActorScale3D(FVector(.30));}
     else if(Kind==TEXT("ironore")||Kind==TEXT("goldore")||Kind==TEXT("chitin")) {Asset=TEXT("SM_Rock");A->SetActorScale3D(FVector(.25));}
     else if(Kind==TEXT("cloth")||Kind==TEXT("harvest")) {Asset=TEXT("SM_PantryCase");A->SetActorScale3D(FVector(.24));}
@@ -332,7 +334,6 @@ AETItem* AETWorld::Item(const FString& Id,const FString& Kind,const FString& Lab
     if(Kind==TEXT("goldore")||Kind==TEXT("ironore")||Kind==TEXT("chitin"))
         A->Mesh->SetMaterial(0,Material(Kind==TEXT("goldore")?TEXT("FaultGold"):Kind==TEXT("ironore")?TEXT("FaultIron"):TEXT("Carapace")));
     A->Mesh->SetCullDistance(16000);
-    if(Kind==TEXT("container")&&Value==TEXT("medical")) A->Mesh->SetMaterial(0,Material(TEXT("Canvas")));
     return A;
 }
 void AETWorld::EnsureRegion(FIntPoint C)
@@ -416,7 +417,7 @@ void AETWorld::Tick(float Delta)
     }
     LightTime-=Delta; if(LightTime<=0) {LightTime=.25f; UpdateDaylight();}
     auto Pos=P->GetActorLocation(); UpdateNightWatch(Pos); StreamAround(Pos);
-    TickTowns(P,Delta); TickPatrols(P,Delta); TickWarFronts(P,Delta); TickOutposts(P,Delta);
+    TickFields(Delta,*P); TickTowns(P,Delta); TickPatrols(P,Delta); TickWarFronts(P,Delta); TickOutposts(P,Delta);
     VisibilityTime-=Delta; if(VisibilityTime<=0) {VisibilityTime=.5f; UpdateVisibility(Pos);}
     if(Ambience.Num()==3) {
         const float CityMix=InCity(Pos)?1.f:0.f, Night=IsNight()?1.f:0.f;
@@ -653,7 +654,7 @@ bool AETRegion::AdvanceGenerate()
     {
         FVector P=Origin+FVector(R.FRandRange(1500,30000),R.FRandRange(1500,30000),0); if(P.Size2D()<20000||ETWake::Reserved(W->State->Wake,FVector2D(P))) continue; P.Z=W->Height(P.X,P.Y)+8;
         auto Trap=W->Item(FString::Printf(TEXT("r%d,%d-trap%d"),C.X,C.Y,I),TEXT("trap"),TEXT("Disarm rusted trap"),P); if(Trap) Residents.Add(Trap);
-    }    } else if(Stage==5) {AddDetails(); BuildHighwaySites(); AddTownLandmarks(); AddRailQuarter();}
+    }    } else if(Stage==5) {AddDetails(); W->DrawDryBed(*this); BuildHighwaySites(); AddTownLandmarks(); AddRailQuarter();}
     ++Stage;
     if(Stage>=6) {
         for(auto A:Residents) if(IsValid(A)) A->SetOwner(this);

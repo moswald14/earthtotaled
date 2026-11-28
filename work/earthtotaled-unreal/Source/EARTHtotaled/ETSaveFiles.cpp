@@ -1,4 +1,4 @@
-#include "ETGame.h"
+#include "ETField.h"
 #include "ETSaveDisk.h"
 #include "JsonObjectConverter.h"
 #include "Serialization/JsonSerializer.h"
@@ -35,6 +35,14 @@ namespace
     bool Location(FVector V) {return !V.ContainsNaN()&&V.GetAbsMax()<2.e9;}
     bool Sensible(const UETSave& S,int32 Guns)
     {
+        if(S.Furrows.Num()>4096||S.Run.Type<0||S.Run.Type>3||S.Run.Serial<0||S.Run.Serial>=MAX_int32||S.Run.Remaining.Num()>3||
+           bool(S.Run.Type)!=!S.Run.Remaining.IsEmpty()||!Location(S.Run.Rally)||S.Streak<0||S.Streak>1000000||!FMath::IsFinite(S.LastHostileKill)||
+           S.ScrapRemainder<0||S.ScrapRemainder>99||S.JazzTrack<0||S.JazzTrack>2)return false;
+        for(const auto& K:S.Run.Remaining)if(!S.Threats.Contains(K)||!K.StartsWith(FString::Printf(TEXT("run/%d/"),S.Run.Serial)))return false;
+        for(const auto& Pair:S.FarmStores)if(Pair.Value<0||Pair.Value>100000000)return false;
+        for(const auto& Pair:S.SkillRanks)if(Pair.Value<1||Pair.Value>ETField::Cap(Pair.Key))return false;
+        for(const auto& L:S.Furrows){const double D=FVector::Dist2D(L.Inlet,L.Outlet),Fall=L.Inlet.Z-L.Outlet.Z;
+            if(!Location(L.Inlet)||!Location(L.Outlet)||D<294||D>1451||Fall<D*.004||Fall>D*.141)return false;}
         for(double Clock:{S.RingClock,S.EastRingClock,S.NorthLinkClock,S.SouthLinkClock})
             if(!FMath::IsFinite(Clock)||Clock<0||Clock>1000) return false;
         if(S.RailService<0||S.RailService>3||!Location(S.RingOffset)) return false;
@@ -64,6 +72,9 @@ namespace
         for(auto& It:S.AgentHealth) if(!Number(It.Value,0,1.e6f)) return false;
         for(auto& It:S.Builds) {
             auto& B=It.Value;
+            const auto& F=B.Farm;
+            if(F.Style<0||F.Style>2||F.Crop<0||F.Crop>3||!Number(F.Moisture,0,100)||!Number(F.Growth,0,1)||!Number(F.Time,0,B.Piece==AETConstruction::Bed?float(2*ETDay::Period):90.f)||F.Stock<0||F.Stock>8||F.Orders<0||F.Orders>4||F.Fertility<0||F.Fertility>3)return false;
+            if(B.Piece==AETConstruction::Clinic&&F.Stock+F.Orders>4)return false;
             if(!It.Key.IsValid()||B.Piece<0||B.Piece>=AETConstruction::Count||B.Facing<0||B.Facing>3||B.MaterialTier<0||B.MaterialTier>2||!Location(B.Anchor)||
                !Number(B.Integrity,.0001f,10000)||!Number(B.Work,-60,180)||B.Iron<0||B.Iron>10000||B.GoldOre<0||B.GoldOre>10000) return false;
         }

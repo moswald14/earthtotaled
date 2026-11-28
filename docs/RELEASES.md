@@ -1,5 +1,13 @@
 # EARTHtotaled release record
 
+## Unreal 1.19.0 — Dry Season
+
+The allotment southwest of Shelter 09 and restored glades support pumps, cisterns, crop beds and clinics. Carve downhill furrows with the Borer to irrigate Cinderbean, Saltroot and Mendleaf. Follow dry channels to find stranded docks and buried service hatches.
+
+Nine skills now have ranks. Existing learned skills carry over at rank one. East Dispatch and the faction relay boards offer optional night hunts for XP and salvage. Choose the world score or three offline Doodle Jazz tracks in **Esc → Music**.
+
+Choose **Game updates → v1.19.0** at the title or pause menu to continue your survivor. [Dry Season field guide](../work/earthtotaled-unreal/Docs/Dry-Season.md)
+
 ## Unreal 1.16.0 — MegaWAKE
 
 Meet Thrum at Shelter 09 to search for Mara’s son, Kit. Lead a glitched deer herd to safety, drive SALT-7’s roadster to East Dispatch and follow the relay records to fraudCORP. Bug crews silence relays and Supertech crews retune them. The journal warns on the third job for one faction. Its fourth job turns the rival faction hostile. Both friends stay with Mara.

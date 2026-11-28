@@ -26,6 +26,9 @@ if quarters:
     models=sorted(p.stem[3:] for p in (root/'ArtSource').glob('SM_Quarter*.obj'))
     if len(models)!=16: raise RuntimeError('Expected all sixteen rail district landmarks')
     surfaces=[]
+if 'field_models' in globals():
+    models=field_models
+    surfaces=[]
 maps = [('BaseColor',unreal.MaterialProperty.MP_BASE_COLOR),('Normal',unreal.MaterialProperty.MP_NORMAL),('Roughness',unreal.MaterialProperty.MP_ROUGHNESS)]
 files = ['SM_'+m+'.obj' for m in models]+['T_Relief'+m+'_'+s+'.png' for m in surfaces for s,_ in maps]
 tasks = []

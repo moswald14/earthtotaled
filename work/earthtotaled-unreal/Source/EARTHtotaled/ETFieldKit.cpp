@@ -69,8 +69,12 @@ void AETCharacter::TurnTool()
     if(auto* Vehicle=Ride()){Vehicle->StartEngine();return;}
     if(Building) {BuildFacing=(BuildFacing+1)%4; RefreshBuild();}
     else if(Borer) {
-        World->State->SquareBorer=!World->State->SquareBorer;
-        World->Say(World->State->SquareBorer?TEXT("Square head / level floors and straight walls"):TEXT("Round head / fracture pulse"));
+        auto& S=*World->State; FurrowStart.Reset();
+        if(S.Wake.Body==ETWake::Bug){ToggleBorer();return;}
+        if(S.FurrowHead){S.FurrowHead=false;S.SquareBorer=false;}
+        else if(S.SquareBorer){S.SquareBorer=false;S.FurrowHead=true;}
+        else S.SquareBorer=true;
+        World->Say(S.FurrowHead?TEXT("Irrigation / tap fire to mark inlet, then a downstream endpoint"):S.SquareBorer?TEXT("Square head / level floors and straight walls"):TEXT("Round head / fracture pulse"));
         World->Sound(TEXT("Switch"),.35f); World->Save();
     } else Reload();
 }
@@ -94,7 +98,7 @@ void AETCharacter::StartFresh()
     Fresh->RetroDisplay=false; Fresh->ModernDay=true; Fresh->ClockOffset=ETDay::At(9); Fresh->Seed=World->FrontierQA?84371:FMath::RandRange(1,MAX_int32-1);
     Fresh->ArrivalStage=World->Review?-1:0; Fresh->LandscapeEdition=1; Fresh->BuildStock=0;
     Fresh->RetroDisplay=World->State->RetroDisplay; Fresh->RenderScale=World->State->RenderScale; Fresh->HasRingDisplay=true;
-    Fresh->ViewDistance=World->State->ViewDistance; Fresh->MusicVolume=World->State->MusicVolume; Fresh->WeatherVolume=World->State->WeatherVolume;
+    Fresh->ViewDistance=World->State->ViewDistance; Fresh->MusicVolume=World->State->MusicVolume; Fresh->MusicMuted=World->State->MusicMuted; Fresh->JazzSource=World->State->JazzSource; Fresh->JazzTrack=World->State->JazzTrack; Fresh->WeatherVolume=World->State->WeatherVolume;
     Fresh->AlertVolume=World->State->AlertVolume; Fresh->AlertCaptions=World->State->AlertCaptions; Fresh->HitFlashIntensity=World->State->HitFlashIntensity;
     if(!ETSaveDisk::Write(Fresh,World->SaveSlot,true)) {PanelBody=TEXT("Could not start the new save. Check free disk space and try again."); return;}
     ContinueSurvivor();

@@ -6,13 +6,15 @@
 #include "Engine/StaticMeshActor.h"
 #include "Engine/StaticMesh.h"
 
-const TCHAR* UETGeology::DigRestriction(const FBox2D& Area) const
+const TCHAR* UETGeology::DigRestriction(const FBox2D& Area,bool ShallowField) const
 {
     const FVector2D Center=Area.GetCenter();
-    if(ETWake::Reserved(World->State->Wake,Center,Area.GetExtent().Size()))return TEXT("Protected wildlife or airfield ground");
+    const bool Lot=ShallowField&&World->FarmSite(Center);
+    if(Lot)for(const auto& Foundation:World->ShelterBuildings)if(Area.Intersect(Foundation))return TEXT("Protected Shelter 09 foundation");
+    if(!Lot&&ETWake::Reserved(World->State->Wake,Center,Area.GetExtent().Size()))return TEXT("Protected wildlife or airfield ground");
     const FVector2D Town(World->CityCenter(Center.X,Center.Y));
     const FVector2D Nearest(FMath::Clamp(Town.X,Area.Min.X,Area.Max.X),FMath::Clamp(Town.Y,Area.Min.Y,Area.Max.Y));
-    if(FVector2D::DistSquared(Town,Nearest)<=FMath::Square(27000.)) return TEXT("Protected city ground / mine outside the district");
+    if(!Lot&&FVector2D::DistSquared(Town,Nearest)<=FMath::Square(27000.)) return TEXT("Protected city ground / mine outside the district");
 
     // Keep the ground under each concrete pier, including piers in unloaded districts.
     constexpr double PierFoot=94.;

@@ -21,7 +21,8 @@ void AETCharacter::ToggleBorer()
 {
     if(!World||!Panel.IsEmpty()||Climbing) return;
     if(Ride())return;
-    if(ETWake::BugPack(*this)){WakeBurrow();return;}
+    FurrowStart.Reset();
+    if(ETWake::BugPack(*this)){if(Borer){Borer=false;Firing=false;World->Say(TEXT("Living claws ready"));}else WakeBurrow();return;}
     StopBuilding();
     if(Borer) {EquipFrame(World->State->Weapon); return;}
     LampBeforeBorer=Flashlight->IsVisible();
@@ -29,7 +30,7 @@ void AETCharacter::ToggleBorer()
     Gun->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Game/EARTHtotaled/Art/SM_SurveyBorer.SM_SurveyBorer")));
     World->DressMesh(Gun,TEXT("Steel"));
     Flashlight->SetVisibility(true); World->Sound(TEXT("Switch"),.32f,.72f);
-    World->Say(TEXT("Survey borer / R switches round or square cuts / hold right mouse to find ore"));
+    World->Say(TEXT("Survey borer / R cycles round, square and irrigation heads / hold right mouse to find ore"));
 }
 void AETCharacter::FireBorer()
 {
@@ -37,9 +38,35 @@ void AETCharacter::FireBorer()
     ShotTime=.64f;
     const FVector Eye=Camera->GetComponentLocation(),Forward=Camera->GetForwardVector();
     FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(ETBorePulse),false,this);
-    if(!GetWorld()->LineTraceSingleByChannel(Hit,Eye,Eye+Forward*ETRock::ToolRange,ECC_Visibility,Params)) {
-        World->Say(TEXT("No surface in range / move within 27 m")); return;
+    const bool HitSurface=GetWorld()->LineTraceSingleByChannel(Hit,Eye,Eye+Forward*ETRock::ToolRange,ECC_Visibility,Params);
+    if(World->State->FurrowHead){
+        Firing=false;
+        if(HitSurface){
+            if(!Cast<AETRegion>(Hit.GetActor())||!World->Geology->CanBore(Hit)||Hit.ImpactNormal.Z<.55||
+               FMath::Abs(Hit.ImpactPoint.Z-World->SurfaceHeight(Hit.ImpactPoint.X,Hit.ImpactPoint.Y))>150){
+                World->Say(TEXT("Aim at exposed surface soil"));return;
+            }
+            AimFurrow(Hit.ImpactPoint);return;
+        }
+        // Pick the same procedural surface while a freshly rebuilt patch's physics shape is being registered.
+        if(Eye.Z>World->SurfaceHeight(Eye.X,Eye.Y)&&Forward.Z<-.08){
+            double Last=0;
+            for(double D=50;D<=ETRock::ToolRange;D+=50){
+                FVector V=Eye+Forward*D;
+                if(V.Z<=World->SurfaceHeight(V.X,V.Y)){
+                    double Low=Last,High=D;
+                    for(int I=0;I<9;++I){const double Mid=(Low+High)*.5;V=Eye+Forward*Mid;
+                        if(V.Z>World->SurfaceHeight(V.X,V.Y))Low=Mid;else High=Mid;}
+                    V=Eye+Forward*High;
+                    const FIntPoint Cell(FMath::FloorToInt32(V.X/AETWorld::RegionSize),FMath::FloorToInt32(V.Y/AETWorld::RegionSize));
+                    if(World->Regions.Contains(Cell)&&!World->Geology->IsOpen(V-FVector(0,0,200))){AimFurrow(V);return;}
+                    break;
+                }
+                Last=D;
+            }
+        }
     }
+    if(!HitSurface){World->Say(TEXT("No surface in range / move within 27 m"));return;}
     FString Reward;
     if(!World->Geology->Blast(Hit,Reward,World->State->SquareBorer)) {World->Say(Reward.IsEmpty()?TEXT("Aim at fresh earth or a rock face in the wilderness"):Reward); return;}
     MuzzleTime=.09f; Muzzle->SetVisibility(true);

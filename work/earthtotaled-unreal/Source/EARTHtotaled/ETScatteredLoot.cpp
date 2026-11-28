@@ -51,6 +51,9 @@ void AETWorld::SpillLoot(AETAgent* Victim,bool Credited)
     FRandomStream R(GetTypeHash(Base)^State->Seed); int Slot=0;
     const auto From=Victim->GetActorLocation()+FVector(0,0,58);
     auto Spill=[&](const FString& Kind,int N) {
+        if(Kind==TEXT("scrap")&&Credited&&Victim->Kind!=TEXT("deer")&&!Victim->WakeTruce()){
+            State->ScrapRemainder+=N*5*State->Rank(TEXT("hunterscut")); N+=State->ScrapRemainder/100; State->ScrapRemainder%=100;
+        }
         const FString Id=Kind.StartsWith(TEXT("relic."))?Base+TEXT("/")+Kind:Slot==0?Base:Base+FString::Printf(TEXT("-%d"),Slot); ++Slot;
         const float Yaw=R.FRandRange(0.f,360.f),Radius=R.FRandRange(48.f,115.f);
         FVector End=From+FRotator(0,Yaw,0).Vector()*Radius; FHitResult Hit;
@@ -68,6 +71,7 @@ void AETWorld::SpillLoot(AETAgent* Victim,bool Credited)
     else if(Walker) {Spill(TEXT("gold"),R.RandRange(3,7));Spill(R.RandRange(0,4)?TEXT("cloth"):TEXT("medkit"),1);}
     else if(Victim->Kind==TEXT("bear")) {Spill(TEXT("harvest"),4);Spill(TEXT("cloth"),2);}
     else {Spill(Victim->IsBrood()?TEXT("chitin"):TEXT("harvest"),1);Spill(TEXT("scrap"),2);}
+    if(Credited&&!Victim->WakeTruce()&&(Walker||Hive||Victim->Kind==TEXT("robot"))) Spill(TEXT("scrap"),Hive?10:Walker?2:4);
     FRandomStream WeaponRoll(FMath::Rand());
     if(const int Seed=ETLandfall::RollDrop(WeaponRoll,Victim->Kind!=TEXT("deer")))
         Spill(FString::Printf(TEXT("relic.%d"),Seed),1);

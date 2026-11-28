@@ -1,5 +1,5 @@
 #include "ETWake.h"
-#include "ETGame.h"
+#include "ETField.h"
 #include "ETGeology.h"
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -12,7 +12,7 @@
 namespace
 {
     constexpr double Bay=400, Storey=280;
-    const TCHAR* const Names[]={TEXT("Wall"),TEXT("Floor"),TEXT("Ramp"),TEXT("Roof"),TEXT("Relay"),TEXT("Auto turret"),TEXT("Turtle miner"),TEXT("Molt nursery"),TEXT("Listening hive"),TEXT("Fabrication hall"),TEXT("Parallax spire")};
+    const TCHAR* const Names[]={TEXT("Wall"),TEXT("Floor"),TEXT("Ramp"),TEXT("Roof"),TEXT("Relay"),TEXT("Auto turret"),TEXT("Turtle miner"),TEXT("Molt nursery"),TEXT("Listening hive"),TEXT("Fabrication hall"),TEXT("Parallax spire"),TEXT("Field cistern"),TEXT("Well pump"),TEXT("Field clinic"),TEXT("Prepared bed")};
     FVector Facing(int32 Quarter) {return FRotator(0,Quarter*90,0).Vector();}
     FVector SideOf(FVector Offset)
     {
@@ -39,6 +39,10 @@ FVector AETConstruction::Extents(int32 Piece)
         case Turret:return FVector(60,60,50);
         case Nursery:case Hive:return FVector(125,125,110);
         case Fabricator:case Spire:return FVector(155,145,145);
+        case Cistern:return FVector(76,70,75);
+        case Pump:return FVector(60,48,50);
+        case Clinic:return FVector(69,45,53);
+        case Bed:return FVector(110,110,14);
         case Miner:return FVector(70,47,34);
         default:return FVector(200,200,70);
     }
@@ -65,13 +69,14 @@ void AETConstruction::Configure(AETWorld* W,const FETBuild& B,bool Ghost,bool Va
         }
         SetActorTransform(Pose);
     };
-    const int32 Style=(B.Piece*3+B.MaterialTier)*3+(Ghost?(Valid?1:2):0);
+    const int32 Style=(B.Farm.Style*100000+ETField::Stage(B.Farm)*10000+B.Farm.Crop*1000)+(B.Piece*3+B.MaterialTier)*3+(Ghost?(Valid?1:2):0);
     if(Style==Appearance){PositionMesh();return;}
     Appearance=Style;
-    const FString Asset=B.Piece==Nursery?TEXT("SM_HiveNursery"):B.Piece==Hive?TEXT("SM_BellowsHive"):B.Piece==Fabricator?TEXT("SM_ComputeHall"):B.Piece==Spire?TEXT("SM_ParallaxSpire"):B.Piece==Core?TEXT("SM_Relay"):B.Piece==Turret?TEXT("SM_SentryStand"):B.Piece==Miner?TEXT("SM_Turtle"):FString(TEXT("SM_Field"))+Name(B.Piece);
-    const FString Moving=B.Piece==Turret?TEXT("SM_SentryHead"):B.Piece==Miner?TEXT("SM_TurtleBit"):TEXT("");
+    const FString Asset=B.Piece>=Cistern?ETField::FarmMesh(B.Piece,B.Farm.Style):B.Piece==Nursery?TEXT("SM_HiveNursery"):B.Piece==Hive?TEXT("SM_BellowsHive"):B.Piece==Fabricator?TEXT("SM_ComputeHall"):B.Piece==Spire?TEXT("SM_ParallaxSpire"):B.Piece==Core?TEXT("SM_Relay"):B.Piece==Turret?TEXT("SM_SentryStand"):B.Piece==Miner?TEXT("SM_Turtle"):FString(TEXT("SM_Field"))+Name(B.Piece);
+    const FString Moving=B.Piece==Bed&&B.Farm.Crop?FString(TEXT("SM_"))+ETField::Crop(B.Farm.Crop):B.Piece==Turret?TEXT("SM_SentryHead"):B.Piece==Miner?TEXT("SM_TurtleBit"):TEXT("");
     Mechanism->SetStaticMesh(Moving.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Moving+TEXT(".")+Moving)));
     Mechanism->SetRelativeLocation(B.Piece==Miner?FVector(52,0,-7):FVector(0,0,23));
+    if(B.Piece==Bed){const float Scale=.23f+.19f*ETField::Stage(B.Farm);Mechanism->SetRelativeScale3D(FVector(Scale));Mechanism->SetRelativeLocation(FVector(0,0,24));}
     Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*(TEXT("/Game/EARTHtotaled/Art/")+Asset+TEXT(".")+Asset)));
     PositionMesh();
     Mesh->SetCollisionProfileName(Ghost?TEXT("NoCollision"):TEXT("BlockAll"));
@@ -83,7 +88,8 @@ void AETConstruction::Configure(AETWorld* W,const FETBuild& B,bool Ghost,bool Va
     } else if(B.Piece<Core) {
         auto* Skin=W->Material(B.MaterialTier==2?TEXT("Steel"):B.MaterialTier==1?TEXT("Brick"):TEXT("Wood"));
         for(int32 I=0;I<Mesh->GetNumMaterials();++I) Mesh->SetMaterial(I,Skin);
-    } else {W->DressMesh(Mesh,TEXT("Steel")); W->DressMesh(Mechanism,TEXT("Steel"));}
+    } else {W->DressMesh(Mesh,TEXT("Steel")); W->DressMesh(Mechanism,TEXT("Steel"));
+        if(B.Piece>=Cistern&&B.Farm.Style==ETWake::Frame){const auto& Slots=Mesh->GetStaticMesh()->GetStaticMaterials(); for(int I=0;I<Slots.Num();++I)if(Slots[I].MaterialSlotName.ToString().Contains(TEXT("Steel"))||Slots[I].MaterialSlotName.ToString().Contains(TEXT("Wood"))) Mesh->SetMaterial(I,W->Material(TEXT("AlloyHull")));}}
 }
 AETConstruction* AETWorld::SpawnBuild(FGuid Id,const FETBuild& B)
 {
@@ -153,7 +159,7 @@ bool AETCharacter::BuildTarget(FETBuild& B,FString& Reason) const
     if(!GetWorld()->LineTraceSingleByChannel(H,Eye,Eye+Ray*(Has(TEXT("override-span"))?3000:1500),ECC_Visibility,Trace)) {Reason=TEXT("Aim at ground or a frame within 15 m"); return false;}
     if(!ETWake::CanBuild(World->State->Wake,BuildPiece)){Reason=TEXT("This structure belongs to a different body");return false;}
     if(BuildPiece==AETConstruction::Spire&&!Has(TEXT("override-permit"))){Reason=TEXT("Learn Authorize in OVERRIDE [K]");return false;}
-    B.Piece=BuildPiece; B.Facing=BuildFacing; B.MaterialTier=BuildPiece<AETConstruction::Core?BuildMaterial:0;
+    B.Piece=BuildPiece; B.Farm.Style=World->State->Wake.Body; B.Facing=BuildFacing; B.MaterialTier=BuildPiece<AETConstruction::Core?BuildMaterial:0;
     B.Integrity=AETConstruction::Durability(B.Piece,B.MaterialTier);
     B.Anchor=H.ImpactPoint;
     const auto* Support=Cast<AETConstruction>(H.GetActor());
@@ -198,6 +204,11 @@ bool AETCharacter::BuildTarget(FETBuild& B,FString& Reason) const
                    Bearing.GetActor()==Foot.GetActor()&&Bearing.ImpactNormal.Z>.55) B.Anchor.Z=FMath::Max(B.Anchor.Z,Bearing.ImpactPoint.Z+4);
             }
         }
+    }
+    if(B.Piece>=AETConstruction::Cistern){
+        if(Support||FMath::Abs(B.Anchor.Z-World->SurfaceHeight(B.Anchor.X,B.Anchor.Y))>120){Reason=TEXT("Use open surface soil");return false;}
+        if((B.Piece==AETConstruction::Pump||B.Piece==AETConstruction::Cistern)&&!World->FarmSite(FVector2D(B.Anchor))){
+            Reason=TEXT("Waterworks: use Shelter 09 southwest allotment or a restored glade");return false;}
     }
     if(Support&&!AETConstruction::Joined(B,Support->Design)) {Reason=TEXT("Align a full edge with the supporting frame"); return false;}
     if(!Support&&!AETConstruction::HasFooting(*World,B)) {Reason=TEXT("The frame needs a solid footing"); return false;}
@@ -247,7 +258,7 @@ bool AETCharacter::BuildTarget(FETBuild& B,FString& Reason) const
 void AETCharacter::RefreshBuild()
 {
     if(!Building||!IsValid(Preview)) return;
-    FETBuild B; B.Piece=BuildPiece; B.Facing=BuildFacing;
+    FETBuild B; B.Piece=BuildPiece; B.Farm.Style=World->State->Wake.Body; B.Facing=BuildFacing;
     const bool Valid=BuildTarget(B,BuildHint);
     Preview->SetActorHiddenInGame(BuildHint.StartsWith(TEXT("Aim at")));
     Preview->Configure(World,B,true,Valid);

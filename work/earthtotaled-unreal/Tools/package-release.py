@@ -18,7 +18,13 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions=f'''EARTHtotaled {version} / Woodland deer and Windows updater repair
+instructions=f'''EARTHtotaled {version} / Dry Season / skill ranks, waterworks and Doodle Jazz
+K opens the ranked web. East Dispatch and faction relay boards offer optional night hunts.
+Southwest of Shelter 09, place a pump and cistern within 12 m. Build a bed, press E for
+starter seeds, then plant and water. At the cistern choose Shape irrigation furrows.
+Tap inlet then outlet downhill, finishing within 4 m of the bed. Mendleaf and scrap
+make medpacks at the clinic. Esc > Music tunes in the three offline Doodle Jazz tracks.
+
 Look for grazing herds in Blackpine Forest. From Shelter 09, follow the highway west
 and look into the woods south of the road. They graze until you get close.
 Enemy calls now come from their position. Esc changes alert volume, captions and damage flash.

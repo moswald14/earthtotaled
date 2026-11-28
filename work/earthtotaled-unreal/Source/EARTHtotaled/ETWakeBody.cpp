@@ -52,7 +52,7 @@ void AETCharacter::WakeClaw() {
     ShotTime=.33f;World->Sound(TEXT("FieldLatch"),.48f,1.3f);
     FVector Eye=Camera->GetComponentLocation();FHitResult Hit;FCollisionQueryParams Q(SCENE_QUERY_STAT(WakeClaw),false,this);
     if(GetWorld()->SweepSingleByChannel(Hit,Eye,Eye+Camera->GetForwardVector()*(Has(TEXT("molt-sense"))?560:380),FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(52),Q)){
-        if(auto* Target=Cast<AETAgent>(Hit.GetActor());Target&&Target->WakeHerd<0&&Target->TakeDamage(62,FDamageEvent(),GetController(),this)>0)HitTime=.17f;}
+        if(auto* Target=Cast<AETAgent>(Hit.GetActor());Target&&Target->WakeHerd<0&&Target->TakeDamage(62*DamageSkill(),FDamageEvent(),GetController(),this)>0)HitTime=.17f;}
 }
 void AETCharacter::WakeBurrow() {
     if(!Has(TEXT("molt-burrow"))){World->Say(TEXT("Claws ready / learn Burrow in the MOLT skill web [K]"));return;}

@@ -196,7 +196,7 @@
       "x": 65,
       "y": 60,
       "cost": 2,
-      "description": "Climb 40% faster. A quicker ascent leaves less time exposed to the machines below.",
+      "description": "Climb 15% faster per rank after learning Climbing Grip.",
       "requires": [
         "mantle"
       ]
@@ -208,7 +208,7 @@
       "x": 125,
       "y": 190,
       "cost": 2,
-      "description": "Move 12% faster and take 25% less fall damage.",
+      "description": "Gain 4% movement speed per rank. The first rank also reduces fall damage by 25%.",
       "requires": [
         "climb",
         "vitality"
@@ -221,7 +221,7 @@
       "x": 435,
       "y": 125,
       "cost": 1,
-      "description": "All weapons deal 15% more damage.",
+      "description": "Guns and Bug claws gain 6% damage per rank, up to 30%.",
       "requires": [
         "survivor"
       ]
@@ -233,7 +233,7 @@
       "x": 525,
       "y": 80,
       "cost": 1,
-      "description": "Reload every weapon 20% faster.",
+      "description": "Gain 6% reload speed per rank while using weapons.",
       "requires": [
         "marksman",
         "pressure"
@@ -271,7 +271,7 @@
       "x": 245,
       "y": 245,
       "cost": 1,
-      "description": "Increase maximum health by 25.",
+      "description": "Gain 10 maximum health per rank.",
       "requires": [
         "survivor",
         "parkour",
@@ -285,7 +285,7 @@
       "x": 155,
       "y": 300,
       "cost": 1,
-      "description": "Hydration drains 20% more slowly. Water is still essential to stay alive.",
+      "description": "Reduce water drain by 6% per rank while your body needs water.",
       "requires": [
         "vitality",
         "hardy"
@@ -381,6 +381,42 @@
         "scavenger",
         "hardy",
         "quartermaster"
+      ]
+    },
+    {
+      "id": "momentum",
+      "name": "Kill Momentum",
+      "branch": "Hunting",
+      "x": 180,
+      "y": 8,
+      "cost": 1,
+      "description": "Chain hostile kills within eight seconds. Each stack adds 2% speed and damage.",
+      "requires": [
+        "parkour"
+      ]
+    },
+    {
+      "id": "shieldharvest",
+      "name": "Shield Harvest",
+      "branch": "Hunting",
+      "x": 343,
+      "y": 8,
+      "cost": 1,
+      "description": "Each credited hostile kill restores two shield per rank.",
+      "requires": [
+        "marksman"
+      ]
+    },
+    {
+      "id": "hunterscut",
+      "name": "Hunter’s Cut",
+      "branch": "Hunting",
+      "x": 500,
+      "y": 8,
+      "cost": 1,
+      "description": "Gain 5% more scrap from hostile kills per rank. Small bonuses carry over.",
+      "requires": [
+        "shieldharvest"
       ]
     }
   ],

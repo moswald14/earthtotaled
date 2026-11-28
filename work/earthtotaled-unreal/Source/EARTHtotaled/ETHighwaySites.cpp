@@ -65,6 +65,10 @@ void AETRegion::BuildHighwaySites()
     for(const auto& S:HighwaySites) {
         const double Face=FVector(S.Inward,0).Rotation().Yaw-90.;
         const auto Prefix=S.Id();
+        const auto RelayBoard=S.At(650,-5900);
+        if(Belongs(RelayBoard))if(auto* Board=World->Item(Prefix+TEXT("/dispatch"),TEXT("runboard"),TEXT("Faction relay / optional Threat Runs"),Ground(RelayBoard,5))){
+            Board->SetOwner(this);Residents.Add(Board);
+        }
         auto Building=[&](const TCHAR* Mesh,FVector2D P,double Scale,double Stretch,double Turn=0.) {
             if(!Belongs(P)) return;
             auto* A=Prop(Mesh,S.Bug?TEXT("Hide"):TEXT("Steel"),Ground(P),FVector(Scale,Scale,Scale*Stretch),Face+Turn);

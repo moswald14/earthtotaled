@@ -9,6 +9,7 @@
 #include "ETNavigation.h"
 #include "ETDayCycle.h"
 #include "ETWakeState.h"
+#include "ETFieldState.h"
 #include "ETGame.generated.h"
 
 class UCameraComponent;
@@ -94,6 +95,7 @@ struct FETBuild
     UPROPERTY() int32 Facing=0;
     // 0 wood, 1 stone, 2 metal. Legacy frames were assembled from salvage kits.
     UPROPERTY() int32 MaterialTier=0;
+    UPROPERTY() FETFarm Farm;
     UPROPERTY() bool FromKit=true;
     UPROPERTY() bool Grown=false;
     UPROPERTY() float Integrity=160;
@@ -161,6 +163,21 @@ public:
     UPROPERTY() bool Allied=false;
     UPROPERTY() FString Ending;
     UPROPERTY() TArray<FString> Skills={TEXT("survivor")};
+    UPROPERTY() TMap<FString,int32> SkillRanks;
+    UPROPERTY() int32 Streak=0;
+    UPROPERTY() float LastHostileKill=-100;
+    UPROPERTY() int32 ScrapRemainder=0;
+    UPROPERTY() FETThreatRun Run;
+    UPROPERTY() bool FurrowHead=false;
+    UPROPERTY() bool DrySeason=false;
+    UPROPERTY() TSet<FIntPoint> DryPreserves;
+    UPROPERTY() TArray<FETFurrow> Furrows;
+    UPROPERTY() TMap<FString,int32> FarmStores;
+    UPROPERTY() bool MusicMuted=false;
+    UPROPERTY() bool JazzSource=false;
+    UPROPERTY() int32 JazzTrack=0;
+    void MigrateRanks();
+    int32 Rank(const FString& Id) const;
     UPROPERTY() TArray<int32> Ammo;
     UPROPERTY() TArray<int32> Reserve;
     UPROPERTY() TArray<int32> Unlocked={0};
@@ -245,7 +262,7 @@ public:
     static FTransform Shape(const FETBuild& Build);
     static FVector Extents(int32 Piece);
     int32 Appearance=-1;
-    static constexpr int32 Count=11, Core=4, Turret=5, Miner=6, Nursery=7, Hive=8, Fabricator=9, Spire=10;
+    static constexpr int32 Count=15, Core=4, Turret=5, Miner=6, Nursery=7, Hive=8, Fabricator=9, Spire=10, Cistern=11, Pump=12, Clinic=13, Bed=14;
     static FIntPoint Cost(int32 Piece);
     static float Durability(int32 Piece,int32 Tier=0);
     static FString Recipe(int32 Piece,int32 Tier=0);
@@ -401,6 +418,21 @@ public:
     void TickPatrols(AETCharacter* Player,float Delta);
     void TickOutposts(AETCharacter* Player,float Delta);
     void StepDevices(float Seconds);
+    bool FarmSite(FVector2D XY) const;
+    bool PumpLinked(const FETBuild& Cistern) const;
+    TSet<int32> FlowingFurrows() const;
+    void StepFarms(float Seconds);
+    void TickFields(float Delta,AETCharacter& Player);
+    void InitFieldSites();
+    float FieldClock=0,FlowClock=0;
+    TSet<int32> WetFurrows;
+    UPROPERTY() UInstancedStaticMeshComponent* FlowSurface=nullptr;
+    UPROPERTY() UInstancedStaticMeshComponent* FlowRipples=nullptr;
+    void UpdateFlowView(FVector Viewer);
+    void DrySeasonMigration();
+    double DryDepth(double X,double Y) const;
+    void RunFieldChecks(AETCharacter& Player,bool Reload);
+    void DrawDryBed(AETRegion& Region);
     void StepRaid(AETCharacter* Player,float Seconds);
     bool Muster(FGuid Core);
     void EndRaid(bool Won);
@@ -648,6 +680,16 @@ public:
     FGuid DeviceId;
     void OpenDevice(AETConstruction* Device);
     void ServiceDevice(const FString& Action);
+    void FarmPanel(const FString& Note=FString());
+    void ThreatPanel();
+    void MusicPanel();
+    void FieldAction(const FString& Id);
+    bool StartThreatRun(int32 Type);
+    void RecordHostileKill(AETAgent& Victim,bool Credit);
+    void AimFurrow(FVector Ground);
+    TOptional<FVector> FurrowStart;
+    float DamageSkill() const;
+    float MoveSkill() const;
     float Hurt(float Amount,const FString& Cause);
     void OpenConsole();
     void CloseConsole();
@@ -786,6 +828,8 @@ public:
     void DrawReclamation(AETCharacter* Player);
     void DrawLandfall(AETCharacter* Player);
     void DrawSkillWeb(AETCharacter* Player);
+    void FieldButtons(AETCharacter& Player,float X,float Y,float Width);
+    void DrawMedkitIcon(float X,float Y,float Size);
     void DrawWake(AETCharacter* Player);
     void DrawWakeTrail(AETCharacter* Player);
     void DrawNavigation(AETCharacter* Player);

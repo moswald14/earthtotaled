@@ -1,6 +1,7 @@
 #include "ETWakeVehicle.h"
 #include "ETWake.h"
 #include "ETGame.h"
+#include "ETField.h"
 #include "ETRingLine.h"
 #include "Components/BoxComponent.h"
 #include "ETLandfall.h"
@@ -144,7 +145,7 @@ void AETCharacter::FireStart() {if(Ride())return; if(!Panel.IsEmpty()||FireGuard
 void AETCharacter::AimStart() {if(Ride()||(ETWake::BugPack(*this)&&!Building))return; if(!Panel.IsEmpty()) return; if(Building) SalvageBuild(); else Aiming=true;} void AETCharacter::AimStop() {Aiming=false;}
 void AETCharacter::SprintStart() {Sprinting=true;} void AETCharacter::SprintStop() {Sprinting=false;}
 bool AETCharacter::Has(const FString& Id) const {return World && World->State->Skills.Contains(Id);}
-float AETCharacter::MaxHealth() const {return 100+(Has(TEXT("vitality"))?25:0)+(Has(TEXT("hardy"))?25:0);}
+float AETCharacter::MaxHealth() const {return World&&World->State?100+10*World->State->Rank(TEXT("vitality"))+(Has(TEXT("hardy"))?25:0):100;}
 float AETCharacter::LootRate() const {return 1+(Has(TEXT("scavenger"))?.2f:0)+(Has(TEXT("prospector"))?.2f:0)+(Has(TEXT("salvager"))?.15f:0)+(Has(TEXT("quartermaster"))?.1f:0);}
 void AETCharacter::AddXP(int32 Amount)
 {
@@ -175,7 +176,7 @@ void AETCharacter::Tick(float D)
     S->StimTime=FMath::Max(0.f,S->StimTime-D); HitTime=FMath::Max(0.f,HitTime-D); MuzzleTime=FMath::Max(0.f,MuzzleTime-D); Muzzle->SetVisibility(MuzzleTime>0);
     S->Elapsed+=D; ShotTime=FMath::Max(0.f,ShotTime-D); FireGuard=FMath::Max(0.f,FireGuard-D);
     if(CaptureRetry>0) {CaptureRetry-=D; if(CaptureRetry<=0) SetMouseMode(false);}
-    float Move=(Has(TEXT("parkour"))?1.12f:1)*(Has(TEXT("pressure"))?1.06f:1)*(Has(TEXT("endurance"))?1.05f:1);
+    float Move=MoveSkill()*(Has(TEXT("pressure"))?1.06f:1)*(Has(TEXT("endurance"))?1.05f:1);
     GetCharacterMovement()->MaxWalkSpeed=(Sprinting?670:430)*Move*(S->StimTime>0?1.1f:1.f);
     StepTime-=D;
     if(GetVelocity().Size2D()>80&&GetCharacterMovement()->IsMovingOnGround()&&StepTime<=0&&!Climbing) {
@@ -186,7 +187,7 @@ void AETCharacter::Tick(float D)
         SurveyTime-=D;
         if(SurveyTime<=0) {SurveyReading=World->Geology->Survey(Camera->GetComponentLocation(),Camera->GetForwardVector()); SurveyTime=.15f;}
     } else SurveyTime=0;
-    float Drain=.055f*(Sprinting&&GetVelocity().Size2D()>20?1.7f:1)*(Has(TEXT("hydration"))?.8f:1)*(Has(TEXT("endurance"))?.9f:1);
+    float Drain=.055f*(Sprinting&&GetVelocity().Size2D()>20?1.7f:1)*(1.f-.06f*S->Rank(TEXT("hydration")))*(Has(TEXT("endurance"))?.9f:1);
     if(!S->Wake.Body)S->Hydration=FMath::Max(0.f,S->Hydration-Drain*D*(S->StimTime>0?.7f:1.f));
     // Dehydration bypasses armor; menus pause all survival time.
     if(!S->Wake.Body&&S->Hydration<=0&&!TestInvincible) {S->Health=FMath::Max(0.f,S->Health-3*D); if(S->Health<=0) {Die(TEXT("Dehydration")); return;}}
@@ -209,7 +210,7 @@ void AETCharacter::Tick(float D)
     }
     if(Climbing)
     {
-        ClimbAlpha+=D/((Has(TEXT("climber2"))?1/1.4f:1)*2.0f);
+        ClimbAlpha+=D*(1.f+.15f*S->Rank(TEXT("climber2")))/2.f;
         const float T=FMath::Clamp(ClimbAlpha,0.f,1.f);
         // Lift outside the wall first, then cross above the parapet.
         FVector Target=FMath::Lerp(ClimbStart,ClimbEnd,FMath::Clamp((T-.75f)*4,0.f,1.f));
@@ -289,8 +290,8 @@ void AETCharacter::Die(const FString& Cause)
 }
 void AETCharacter::Shoot()
 {
-    if(ETWake::BugPack(*this)){WakeClaw();return;}
     if(Borer) {FireBorer(); return;}
+    if(ETWake::BugPack(*this)){WakeClaw();return;}
     auto S=World->State; int32 I=S->Weapon; const auto W=CurrentGun();
     if(CurrentMagazine()<=0) {Reload(); ShotTime=.15f; return;} --CurrentMagazine(); S->ShieldDelay=10; ShotTime=W.Rate; MuzzleTime=.045f; Muzzle->SetVisibility(true);
     const FString SoundPath=FString::Printf(TEXT("/Game/EARTHtotaled/Art/S_Fire%d.S_Fire%d"),I,I);
@@ -308,7 +309,7 @@ void AETCharacter::Shoot()
             End=Hit.ImpactPoint;
             if(auto Agent=Cast<AETAgent>(Hit.GetActor())) {
                 const bool Hostile=Agent->Kind!=TEXT("deer");
-                const float Power=W.Damage*(S->EquippedRelic==INDEX_NONE?1+.15f*(Rank-1):1.f)*(1+(Has(TEXT("marksman"))?.15f:0)+(Has(TEXT("steady"))?.15f:0));
+                const float Power=W.Damage*(S->EquippedRelic==INDEX_NONE?1+.15f*(Rank-1):1.f)*DamageSkill()*(Has(TEXT("steady"))?1.15f:1.f);
                 const float Dealt=UGameplayStatics::ApplyPointDamage(Agent,Power,Ray,Hit,GetController(),this,nullptr);
                 if(Hostile) Earned+=Dealt;
                 Killed|=Agent->Health<=0;
@@ -330,7 +331,7 @@ void AETCharacter::Reload()
     if(ETWake::BugPack(*this)||Ride())return;
     if(!World||Borer||ReloadTime>0||!Panel.IsEmpty()) return; const auto W=CurrentGun();
     if(CurrentMagazine()>=W.Mag) return;
-    ReloadTime=W.Reload*(Has(TEXT("reload"))?.8f:1)*(Has(TEXT("pressure"))?.9f:1)*(Has(TEXT("quartermaster"))?.9f:1); Firing=false;
+    ReloadTime=W.Reload/(1.f+.06f*World->State->Rank(TEXT("reload")))*(Has(TEXT("pressure"))?.9f:1)*(Has(TEXT("quartermaster"))?.9f:1); Firing=false;
     World->Sound(TEXT("Reload"),.5f,1.8f/W.Reload);
 }
 void AETCharacter::Drink()
@@ -460,7 +461,7 @@ void AETCharacter::Interact()
     if(Ride()){LeaveRide();return;}
     if(IsValid(Focus)&&Focus->Kind=="wake"&&!Focus->IsHidden()){WakeUse(FName(*Focus->Value));return;}
     for(auto* V:{World->WakeCar,World->WakePlane})if(IsValid(V)&&V->Boardable(*this)&&(!IsValid(Focus)||Focus->Kind=="wake")){EnterRide(V);return;}
-    if(!IsValid(Focus))if(auto* Object=NearbyWake()){WakeUse(FName(*Object->Value));return;}
+    if(!IsValid(Focus)&&!FocusBuild.IsValid())if(auto* Object=NearbyWake()){WakeUse(FName(*Object->Value));return;}
     // The edge of a lift yard can meet a shop. Aimed stock and workbenches own the use key there.
     if(!IsValid(Focus)&&!FocusBuild.IsValid()&&!TreeInReach&&!AETRingLine::PassengerLine(*this))
         for(auto* Line:World->RailLines) if(Line->UseStation(*this)) return;
@@ -474,6 +475,14 @@ void AETCharacter::Interact()
     auto I=Focus; auto S=World->State;
     const FString K=I->Kind;
     if(ETWake::BugPack(*this)&&(K=="bench"||K=="weapon"||K=="water")){World->Say(TEXT("Ordinary equipment is sealed in your survivor pack"));return;}
+    if(K==TEXT("allotment")){
+        OpenPanel(TEXT("allotment"),TEXT("SHELTER 09 / SOUTHWEST ALLOTMENT"),TEXT("Build here or at a restored glade. Press B, scroll to Well pump, Field cistern, Prepared bed or Field clinic, then click clear soil. Pump and cistern use 5 iron combined. Keep them within 12 m.\n\nPress E on a bed for starter seeds. Plant and water it, then harvest when ripe. A clinic turns Mendleaf and scrap into medpacks.\n\nG equips the Borer. R cycles to irrigation. Start 4-6 m from the tank, then mark a gentle downhill line ending 3-4 m from a bed. Further clicks extend the furrow."));return;
+    }
+    if(K==TEXT("siltcache")){
+        S->Scrap+=4;S->FarmStores.FindOrAdd(TEXT("Saltroot"))+=2;S->FarmStores.FindOrAdd(TEXT("silt"))+=2;
+        S->Consumed.Add(I->Id);I->Destroy();Focus=nullptr;AddXP(12);World->Say(TEXT("Service hatch / 4 scrap, 2 Saltroot seeds and 2 mineral silt"));World->Save();return;
+    }
+    if(K==TEXT("runboard")){ThreatPanel();return;}
     if(K==TEXT("stake")) {World->Say(TEXT("Equip your survey borer with G and fire at this marked bank."));return;}
     if(K==TEXT("townboard")) {TownPanel(ETNav::District(FVector2D(I->GetActorLocation())));return;}
     if(K==TEXT("tower")) {ReclamationAction(TEXT("draw-water"));return;}
@@ -535,6 +544,7 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Id==TEXT("field-music")||((Panel==TEXT("farm")||Panel==TEXT("threatruns")||Panel==TEXT("music"))&&Id.StartsWith(TEXT("field-")))){FieldAction(Id);return;}
     if(Panel=="wake"||Id=="wake-journal"){WakeAction(Id);return;}
     if(ETWake::BugPack(*this)&&Panel=="contact"&&Id!="resume"&&Id!="quest"){World->Say(TEXT("Your ordinary pack is safely sealed"));return;}
     if(Panel==TEXT("arrival")) {if(Id==TEXT("skip")) FinishArrival();return;}
@@ -611,8 +621,9 @@ void AETCharacter::Action(const FString& Id)
         for(const auto& P:World->Perks) if(P.Id==Key)
         {
             SelectedPerk=Key;
-            if(!Learn||Has(Key)||S->Points<P.Cost||!P.Neighbors.ContainsByPredicate([&](const FString& N){return Has(N);})) return;
-            S->Skills.Add(Key); S->Points-=P.Cost;
+            const int Owned=S->Rank(Key),Price=ETField::Cost(P,Owned);
+            if(!Learn||Owned>=ETField::Cap(Key)||S->Points<Price||(!Owned&&!P.Neighbors.ContainsByPredicate([&](const FString& N){return Has(N);}))) return;
+            S->Skills.AddUnique(Key); S->SkillRanks.Add(Key,Owned+1); S->Points-=Price;
             World->Sound(TEXT("OreChime"),.52f,1.1f); World->Save(); return;
         }
     }

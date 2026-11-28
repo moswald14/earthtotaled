@@ -235,6 +235,7 @@ float AETAgent::TakeDamage(float Amount,const FDamageEvent& Event,AController*,A
             if(Robot) ++World->State->Kills;
             P->AddXP(Hive?95:Kind==TEXT("bear")?65:Robot?35:Kind==TEXT("drone")?8:20);
         }
+        if(P) P->RecordHostileKill(*this,Credited);
         if(Robot) World->SplitRobot(this);
         World->SpillLoot(this,Credited);
         if(Hive) {World->State->Consumed.Add(Id); World->State->RaidWait+=90; World->Say(TEXT("Bug nest cleared / ore spilled from the chamber"));}

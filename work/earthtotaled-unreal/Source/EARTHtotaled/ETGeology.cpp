@@ -52,6 +52,13 @@ double FChunkField::AirDistance(FVector P,double SurfaceZ) const
     // The same small displacement is sampled on both sides of every chunk seam.
     if(D<250) D+=12*FMath::Sin(.008*P.X+.011*P.Z)+9*FMath::Sin(.014*P.Y-.006*P.Z);
     const FVector Absolute(P.X,P.Y,P.Z+SurfaceZ);
+    for(const auto& Line:Channels){
+        const FVector2D A(Line.Key),B(Line.Value),V(P);
+        const double T=FMath::Clamp(FVector2D::DotProduct(V-A,B-A)/FMath::Max(1.,(B-A).SizeSquared()),0.,1.);
+        const double Across=FVector2D::Distance(V,FMath::Lerp(A,B,T));
+        const double Floor=FMath::Lerp(Line.Key.Z,Line.Value.Z,T)-82.+FMath::Max(0.,Across-42.)*.82;
+        D=FMath::Min(D,FMath::Max(Across-158.,Floor-Absolute.Z));
+    }
     for(const FVector& Center:BoxCenters) D=FMath::Min(D,BoxDistance(Absolute,Center));
     if(!Fallen.IsEmpty()) {
         const FVector Grid=(P-FVector(0,0,ZOffset))/Step;
@@ -103,6 +110,7 @@ void UETGeology::Initialize(AETWorld* InWorld)
     AddCavity({FVector(3250,-2780,-810),FVector(3490,-3500,-930),220},Dirty);
     }
     for(int Side=0;Side<4;++Side) if(World->State->TrenchSides&(1<<Side)) IndexTrench(Side,Dirty);
+    for(const auto& L:World->State->Furrows) IndexFurrow(L,Dirty);
     for(FIntVector Cut:World->State->BoreCuts) IndexCut(Cut,Dirty,false,true);
     for(FIntVector Cut:World->State->SquareCuts) IndexCut(Cut,Dirty,true,true);
     for(FIntVector Node:World->State->FallenRock) IndexFallen(Node,Dirty);

@@ -1,4 +1,4 @@
-#include "ETGame.h"
+#include "ETField.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 
@@ -44,26 +44,29 @@ void AETHUD::DrawSkillWeb(AETCharacter* P)
         DrawRect(Ink,Pos.X-9*U,Pos.Y-9*U,18*U,18*U); Diamond(9,Color);
         if(Picked) Diamond(14,Paper);
         if(Owned) DrawRect(Color,Pos.X-3*U,Pos.Y-3*U,6*U,6*U);
-        float TW=0,TH=0; GetTextSize(N.Name,TW,TH,GEngine->GetSmallFont(),.85f*U);
+        const int Cap=ETField::Cap(N.Id); const FString Display=Cap>1?FString::Printf(TEXT("%s %d/%d"),*N.Name,Save.Rank(N.Id),Cap):N.Name;
+        float TW=0,TH=0; GetTextSize(Display,TW,TH,GEngine->GetSmallFont(),.85f*U);
         DrawRect(Ink,Pos.X-TW*.5-3*U,Pos.Y+12*U,TW+6*U,TH+2*U);
-        Text(N.Name,Pos.X-TW*.5,Pos.Y+12*U,Color,.85f*U);
+        Text(Display,Pos.X-TW*.5,Pos.Y+12*U,Color,.85f*U);
         const double HW=FMath::Max(double(18*U),TW*.5+2*U);
         AddHitBox(Pos-FVector2D(HW,12*U),FVector2D(HW*2,43*U),FName(*(TEXT("perk:")+N.Id)),true);
     }
     if(Selected) {
         const auto& N=*Selected;
-        const bool Owned=P->Has(N.Id),Adjacent=Connected(N);
+        const int Rank=Save.Rank(N.Id),Cap=ETField::Cap(N.Id),Price=ETField::Cost(N,Rank);
+        const bool Adjacent=Rank>0||Connected(N);
         Label(N.Branch.ToUpper(),722,126,Mint,1.f); Label(N.Name,722,167,Paper,1.55f);
         Wrapped(N.Description,X+722*U,Y+225*U,305*U,U*1.12f);
-        if(Owned) Label(TEXT("Learned"),722,368,Mint,1.18f);
+        if(Cap>1) Wrapped(FString::Printf(TEXT("Rank %d/%d   %s%s"),Rank,Cap,Rank<Cap?TEXT("Next: "):TEXT(""),*ETField::Effect(N.Id,FMath::Min(Cap,Rank+1))),X+722*U,Y+280*U,300*U,U);
+        if(Rank>=Cap) Label(TEXT("Fully learned"),722,368,Mint,1.18f);
         else {
-            Label(FString::Printf(TEXT("Cost   %d skill point%s"),N.Cost,N.Cost==1?TEXT(""):TEXT("s")),722,340,Amber,1.15f);
+            Label(FString::Printf(TEXT("Cost   %d skill point%s"),Price,Price==1?TEXT(""):TEXT("s")),722,340,Amber,1.15f);
             if(!Adjacent) {
                 TArray<FString> Paths;
                 for(const auto& Other:Perks) if(N.Neighbors.Contains(Other.Id)) Paths.Add(Other.Name);
                 Wrapped(TEXT("Reach this node through ")+FString::Join(Paths,TEXT(" or "))+TEXT("."),X+722*U,Y+385*U,296*U,U);
-            } else if(Save.Points<N.Cost) Label(TEXT("Earn more XP to gain a point"),722,388,Dim,.98f);
-            else Action(TEXT("learn-perk"),TEXT("Learn perk"),722,385,230);
+            } else if(Save.Points<Price) Label(TEXT("Earn more XP to gain a point"),722,388,Dim,.98f);
+            else Action(TEXT("learn-perk"),(Cap>1?TEXT("Learn next rank"):TEXT("Learn perk")),722,385,230);
         }
     }
     Label(TEXT("Select a node to inspect its perk."),26,545,Paper,1.08f);

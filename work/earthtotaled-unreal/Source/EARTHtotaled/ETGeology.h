@@ -4,6 +4,7 @@
 #include "UObject/Object.h"
 #include "ETGeology.generated.h"
 
+struct FETFurrow;
 class AETRegion;
 class AETWorld;
 class AStaticMeshActor;
@@ -39,6 +40,7 @@ namespace ETRock
     {
         TArray<FCavity> Voids;
         TArray<FVector> BoxCenters;
+        TArray<TPair<FVector,FVector>> Channels;
         TSet<FIntVector> Fallen;
         double AirDistance(FVector P,double SurfaceZ) const;
     };
@@ -59,7 +61,9 @@ public:
     bool BugCanStep(FVector From,FVector To) const;
     void IndexTrench(int32 Side,TSet<FIntVector>& Dirty);
     // All depths share the same surface ownership. A nonempty reason denies the whole edit.
-    const TCHAR* DigRestriction(const FBox2D& Footprint) const;
+    const TCHAR* DigRestriction(const FBox2D& Footprint,bool ShallowField=false) const;
+    bool CarveFurrow(FVector Start,FVector End,FString& Reason);
+    void IndexFurrow(const FETFurrow& Line,TSet<FIntVector>& Dirty);
     bool Blast(const FHitResult& Hit,FString& Reward,bool Square=false,bool Recover=true);
     bool ReplacesSurface(FIntPoint Patch) const;
     double SurfaceOpening(double X,double Y) const;

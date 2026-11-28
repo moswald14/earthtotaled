@@ -107,6 +107,6 @@ double AETWorld::Landscape(double X,double Y) const
             Blend=FMath::Min(Blend,FMath::SmoothStep(600.,5800.,FMath::Sqrt(DX*DX+DY*DY)));
         }
     }
-    return Old+CityEdge*Blend*ETMath::Relief(X,Y,Seed);
+    return Old+CityEdge*Blend*(ETMath::Relief(X,Y,Seed)-DryDepth(X,Y));
 }
 
