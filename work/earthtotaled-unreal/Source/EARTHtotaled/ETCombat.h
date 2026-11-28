@@ -24,4 +24,5 @@ namespace ETCombat {
     FVector2D Bearing(FVector TowardSource, float ViewYaw);
     const TCHAR* Direction(FVector2D Bearing);
     void Trial(AETWorld& World, AETCharacter& Player, bool Visual);
+    void EncounterTrial(AETWorld& World,AETCharacter& Player);
 }

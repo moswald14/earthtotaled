@@ -1,4 +1,5 @@
 #include "ETGame.h"
+#include "ETAgentMovement.h"
 #include "ETTerrainMath.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
@@ -109,7 +110,7 @@ void AETWorld::TickTowns(AETCharacter* P,float D)
         if(T.Wave) Spawn=FVector(Refuge+FVector2D(X,Y*.45),0);
         const FIntPoint Tile(FMath::FloorToInt(Spawn.X/RegionSize),FMath::FloorToInt(Spawn.Y/RegionSize));
         auto* Region=Regions.FindRef(Tile); if(!Region||!Region->TerrainGrid) continue;
-        Spawn.Z=SurfaceHeight(Spawn.X,Spawn.Y)+12;
+        if(!ETAgentMovement::FindGroundSpawn(*this,Spawn))continue;
         auto* A=GetWorld()->SpawnActor<AETAgent>(Spawn,FRotator::ZeroRotator); if(!A) continue;
         A->TownCell=Cell; A->TownIndex=I; A->SetOwner(Region); A->Configure(this,Id,TEXT("walker"));
         Region->Residents.Add(A);TownUnits.Add(Id,A);

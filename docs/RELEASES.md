@@ -1,5 +1,11 @@
 # EARTHtotaled release record
 
+## Unreal 1.19.1 — Enemy movement and startup
+
+Walkers and ground patrols follow the floors of buildings, paved streets and tunnels. They can turn around cover and attack from within reach. Flying enemies can steer past obstructions. Hives hatch guards on their own level. Highway troops patrol when neutral and still engage their faction rivals. Shelter 09 and reclaimed cities retain their protection.
+
+The game draws its title menu without starting an installer. The 1.19.1 Windows installer repairs standard shortcuts from a registered portable copy and updates the pinned launcher. Opening a registered 1.19.1 portable copy directly offers a choice between the installed game and the portable one. Use **Game updates → v1.19.1** or run the Windows installer if the old game cannot reach its title menu. [Windows release](https://github.com/moswald14/earthtotaled/releases/tag/v1.19.1)
+
 ## Unreal 1.19.0 — Dry Season
 
 The allotment southwest of Shelter 09 and restored glades support pumps, cisterns, crop beds and clinics. Carve downhill furrows with the Borer to irrigate Cinderbean, Saltroot and Mendleaf. Follow dry channels to find stranded docks and buried service hatches.

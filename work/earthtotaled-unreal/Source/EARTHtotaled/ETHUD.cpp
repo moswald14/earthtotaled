@@ -8,6 +8,10 @@
 #include "Engine/Font.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Misc/CommandLine.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "UnrealClient.h"
 
 namespace {const FLinearColor Bone(.89f,.88f,.78f), Mint(.61f,.82f,.63f), Muted(.52f,.57f,.52f), Amber(.93f,.65f,.34f);}
 void AETHUD::Text(const FString& V,float X,float Y,FLinearColor C,float Scale) {DrawText(V,C,X,Y,GEngine->GetSmallFont(),Scale,false);}
@@ -81,10 +85,28 @@ void AETHUD::DrawHUD()
         DrawRect(FLinearColor(.021,.036,.029,.93),X-28,Y-30,Width+56,SH*.54f+46);
         DrawRect(Mint,X-28,Y-30,4,SH*.54f+46);
         const bool Title=P->Panel==TEXT("title");
+        // An input-mode change happens before the window paints. Verify a real frame in isolated startup tests.
+        static const bool Probe=FParse::Param(FCommandLine::Get(),TEXT("ETTitleProbe"))&&
+            (FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="))||FCString::Strifind(FCommandLine::Get(),TEXT("-saveddirsuffix=ETStartup")));
+        if(Title&&Probe){
+            static int Frames=0; ++Frames;
+            const FString Image=FPaths::ProjectSavedDir()/TEXT("startup-title.png");
+            if(Frames==4)FScreenshotRequest::RequestScreenshot(Image,false,false);
+            if(Frames>4&&FPaths::FileExists(Image)){
+                FFileHelper::SaveStringToFile(P->InstalledChoice.IsEmpty()?TEXT("title"):P->InstalledChoice,*(FPaths::ProjectSavedDir()/TEXT("startup-title.txt")));
+                FPlatformMisc::RequestExit(false);
+            }
+        }
         Text(Title?TEXT("EARTHtotaled"):P->PanelTitle,X,Y,Bone,Title?FMath::Clamp(SW/420.f,2.f,4.8f):1.8f);
         if(Title) Text(FString::Printf(TEXT("%s     SURVIVOR %02d"),ETLandfall::Version+1,W->ActiveSlot),X,Y+SH*.10f,Mint,1.15f);
         if(!Title||P->PanelBody!=TEXT("FIELDWORKS")) Wrapped(P->PanelBody,X,Y+SH*.15f,Width,1.0f);
         float Row=Y+SH*.24f;
+        if(Title&&!P->InstalledChoice.IsEmpty()) {
+            Button(TEXT("installed-play"),TEXT("Play installed ")+P->InstalledChoice,X,Row,Width*.72f);
+            Button(TEXT("portable-play"),TEXT("Play this portable copy"),X,Row+42,Width*.72f);
+            Button(TEXT("quit"),TEXT("Exit to desktop"),X,Row+84,Width*.72f);
+            return;
+        }
         if(Title) {
             if(W->HadSave) {Button(TEXT("continue"),TEXT("Continue survivor"),X,Row,Width*.72f); Row+=44;}
             Button(TEXT("new"),W->HadSave?TEXT("New survivor"):TEXT("Start at Shelter 09"),X,Row,Width*.72f);

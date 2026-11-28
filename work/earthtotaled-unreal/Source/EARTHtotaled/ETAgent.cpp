@@ -1,5 +1,6 @@
 #include "ETGame.h"
 #include "ETGeology.h"
+#include "ETAgentMovement.h"
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -20,7 +21,9 @@ void AETAgent::UpdatePresence(FVector Viewer)
     if(!Present||Distance>=FMath::Square(14000.)) AlertHold=0;
     SetActorHiddenInGame(!Present);
     SetActorEnableCollision(Present);
-    SetActorTickEnabled(Present&&Distance<FMath::Square(14000.));
+    const float Interval=Distance<FMath::Square(9000.)?.04f:Distance<FMath::Square(14000.)?.14f:.85f;
+    SetActorTickInterval(Interval);
+    SetActorTickEnabled(Present);
 }
 bool AETAgent::IsBrood() const {return Kind==TEXT("runner")||Kind==TEXT("spitter")||Kind==TEXT("bulwark")||Kind==TEXT("skimmer")||Kind==TEXT("hive");}
 void AETAgent::Snapshot(FETThreat& Record) const
@@ -70,23 +73,20 @@ void AETAgent::Fly(float D,AETCharacter* Player,AETAgent* Enemy)
     const bool InRange=To.SizeSquared()<=FMath::Square(8500.);
     const bool CanEngage=Relay||Enemy||Player->EnemyReacquireTime<=0;
     UpdateAlert(InRange&&CanEngage,!Relay&&!Enemy,D);
-    if(!InRange) return;
+    if(!InRange){ETAgentMovement::Patrol(*this,D);return;}
     const FVector Radial=To.GetSafeNormal2D();
     const double Hand=Id.EndsWith(TEXT("1"))?-1.:1.;
     const FVector Orbit(-Radial.Y*Hand,Radial.X*Hand,0);
     const FVector Goal=Target-Radial*690+Orbit*(210+90*FMath::Sin(Phase))+FVector(0,0,95+65*FMath::Sin(Phase*2));
-    FVector Step=(Goal-Here).GetClampedToMaxSize((Siege&&World->State->RaidStage==1?65:Wing?610:485)*D);
+    FVector FlightGoal=Goal;
     if(Wing&&Here.Z>=World->SurfaceHeight(Here.X,Here.Y)-50) {
-        const auto Next=Here+Step;const double Soil=World->SurfaceHeight(Next.X,Next.Y);
-        if(World->Geology->SurfaceOpening(Next.X,Next.Y)<45) Step.Z=FMath::Max(Step.Z,Soil+100-Here.Z);
+        const auto Next=Here+(Goal-Here).GetClampedToMaxSize(610.*D);const double Soil=World->SurfaceHeight(Next.X,Next.Y);
+        if(World->Geology->SurfaceOpening(Next.X,Next.Y)<45) FlightGoal.Z=FMath::Max(FlightGoal.Z,Soil+100);
     }
+    ETAgentMovement::FlyTo(*this,FlightGoal,Siege&&World->State->RaidStage==1?65:Wing?610:485,D);
+    ETAgentMovement::Face(*this,To,D);
     FCollisionQueryParams Q(SCENE_QUERY_STAT(ETDrone),false,this);
     FHitResult H;
-    if(GetWorld()->SweepSingleByChannel(H,Here,Here+Step,FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(22),Q)) {
-        Step=FVector::VectorPlaneProject(Step,H.ImpactNormal)+Orbit*80*D;
-        if(GetWorld()->SweepSingleByChannel(H,Here,Here+Step,FQuat::Identity,ECC_Visibility,FCollisionShape::MakeSphere(22),Q)) Step*=H.Time*.85;
-    }
-    SetActorLocation(Here+Step); SetActorRotation(FRotator(5*FMath::Sin(Phase*4),To.Rotation().Yaw,11*FMath::Sin(Phase*3)));
     if((!Relay&&!Enemy&&Player->EnemyReacquireTime>0)||(Siege&&World->State->RaidStage==1)||AttackTime>0||To.SizeSquared()>FMath::Square(2700.)) return;
     const bool Blocked=GetWorld()->LineTraceSingleByChannel(H,Here,Target,ECC_Visibility,Q);
     if(Blocked&&H.GetActor()!=(Enemy?static_cast<AActor*>(Enemy):Player)&&!Cast<AETConstruction>(H.GetActor())) return;
@@ -101,27 +101,37 @@ void AETAgent::Tick(float D)
     Phase+=D; AttackTime-=D;
     if(TickWakeDeer(D,*Player))return;
     if(Kind==TEXT("hive")) {
-        const bool Calling=FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.);
-        UpdateAlert(Calling&&!WakeTruce(),true,D);
+        const bool Calling=!WakeTruce()&&!World->AtRefuge&&FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(4100.);
+        UpdateAlert(Calling,true,D);
         if(AttackTime<=0&&Calling) {
             AttackTime=14;
             for(int32 I=0;I<3;++I) {
                 const FString Guard=Id+FString::Printf(TEXT("/guard%d"),I);
                 if(World->State->Threats.Contains(Guard)) continue;
                 FVector Spot=GetActorLocation()+FRotator(0,I*120,0).Vector()*240;
-                Spot.Z=World->SurfaceHeight(Spot.X,Spot.Y)+9;
-                World->AddThreat(Guard,I==2&&World->ThreatTier()>=2?TEXT("skimmer"):TEXT("runner"),Spot); break;
+                FHitResult Floor;
+                FCollisionQueryParams GroundQuery(SCENE_QUERY_STAT(ETHiveFloor),false,this);
+                if(!GetWorld()->LineTraceSingleByChannel(Floor,Spot+FVector(0,0,90),Spot-FVector(0,0,300),ECC_Visibility,GroundQuery)||
+                    Floor.ImpactNormal.Z<.62||Cast<AETAgent>(Floor.GetActor())||Cast<APawn>(Floor.GetActor()))continue;
+                const bool Flier=I==2&&World->ThreatTier()>=2;
+                Spot.Z=Floor.ImpactPoint.Z+(Flier?120:9);
+                World->AddThreat(Guard,Flier?TEXT("skimmer"):TEXT("runner"),Spot); break;
             }
         }
         return;
     }
     const bool Siege=World->RaidMember(Id);
+    if(!Siege&&FVector::DistSquared2D(Player->GetActorLocation(),GetActorLocation())>FMath::Square(14000.)){
+        AlertHold=0;ETAgentMovement::Patrol(*this,D);return;
+    }
     PlayerAggro=FMath::Max(0.f,PlayerAggro-D);
     AETAgent* Enemy=Siege||Kind==TEXT("walker")?nullptr:FindRival(D);
     if((World->IsNight()||WakeEnemy())&&!WakeTruce()&&!World->AtRefuge&&Player->EnemyReacquireTime<=0&&
        (PlayerAggro>0||FVector::DistSquared(Player->GetActorLocation(),GetActorLocation())<FMath::Square(600.))) Enemy=nullptr;
-    if(!Enemy&&WakeTruce()){AlertHold=0;return;}
-    if(!Enemy&&!Siege&&Kind!=TEXT("deer")&&Kind!=TEXT("walker")&&(World->AtRefuge||(!World->IsNight()&&!WakeEnemy()))) {BearWindup=0;AlertHold=0;return;}
+    const bool Protected=!Siege&&Kind!=TEXT("deer")&&(World->AtRefuge||(Kind!=TEXT("walker")&&!World->IsNight()&&!WakeEnemy()));
+    if(!Enemy&&(WakeTruce()||Protected)) {
+        BearWindup=0;AlertHold=0;ETAgentMovement::Patrol(*this,D);return;
+    }
     if(Kind==TEXT("drone")||Kind==TEXT("skimmer")) {Fly(D,Player,Enemy); return;}
     AActor* Target=Enemy?static_cast<AActor*>(Enemy):Player;
     if(Siege) {
@@ -140,7 +150,8 @@ void AETAgent::Tick(float D)
     auto* Cover=Cast<AETConstruction>(Sight.GetActor());
     const bool Bear=Kind==TEXT("bear");
     const float Engage=Bear?(PlayerAggro>0?6500:2900):Kind==TEXT("walker")?9500:Robot?6000:Brood?5200:Flee?2200:1800;
-    const bool Pursuing=Distance<Engage&&(Clear||Managed||TownIndex!=INDEX_NONE||Cover||Enemy);
+    const bool Heard=!Flee&&Target==Player&&(PlayerAggro>0||Distance<1200);
+    const bool Pursuing=Distance<Engage&&(Clear||Heard||Managed||TownIndex!=INDEX_NONE||Cover||Enemy);
     const bool CanEngage=Target!=Player||Player->EnemyReacquireTime<=0;
     UpdateAlert(!Flee&&CanEngage&&(Pursuing||(Bear&&BearWindup>0)),Target==Player,D);
     if(Bear&&BearSwipe(*Player,D,Clear))return;
@@ -156,37 +167,9 @@ void AETAgent::Tick(float D)
     const float Speed=Bear?(Clear&&Distance<Engage?510:132):Staging?55:Kind==TEXT("walker")?170:Kind==TEXT("bulwark")?245:Robot?215:Flee?(Pursuing?475:95):Spitter?230:Brood?395:260;
     if((Distance>(Robot?1800:Spitter?850:145)||Flee)||!Clear)
     {
-        FVector Next=P+Direction*Speed*D; Next.Z=(Flee?World->SurfaceHeight(Next.X,Next.Y):World->Height(Next.X,Next.Y))+8;
-        if(Brood&&!World->Geology->BugCanStep(P,Next)) {Home=P-Direction*650;return;}
-        const auto Rock=ETRock::Chunk(Next);
-        if(FrontUnit||World->Geology->ReplacesSurface({Rock.X,Rock.Y})) {
-            FHitResult Ground;
-            if(GetWorld()->LineTraceSingleByChannel(Ground,FVector(Next.X,Next.Y,P.Z+80),FVector(Next.X,Next.Y,P.Z-160),ECC_Visibility,Params)&&Ground.ImpactNormal.Z>.65)
-                Next.Z=Ground.ImpactPoint.Z+8;
-            else {
-                // Stay on the bank. If the survivor excavates directly underneath,
-                // settle onto the uppermost remaining floor instead of hovering.
-                if(!Brood&&World->Geology->IsOpen(P-FVector(0,0,28))&&GetWorld()->LineTraceSingleByChannel(Ground,P+FVector(0,0,16),P-FVector(0,0,6000),ECC_Visibility,Params))
-                    SetActorLocation(Ground.ImpactPoint+FVector(0,0,8));
-                Home=P-Direction*650;
-                return;
-            }
-        }
-        FHitResult Obstacle;
-        bool Blocked=GetWorld()->LineTraceSingleByChannel(Obstacle,P+FVector(0,0,65),Next+Direction*90+FVector(0,0,65),ECC_Visibility,Params);
-        if(!Blocked&&FMath::Abs(Next.Z-P.Z)<90) SetActorLocation(Next);
-        else {
-            const float Hand=GetTypeHash(Id)%2?1.f:-1.f;
-            FVector Side=FVector(-Direction.Y,Direction.X,0)*Hand;
-            FVector Around=P+Side*Speed*D;
-            FHitResult Bank;
-            if((!Brood||World->Geology->BugCanStep(P,Around))&&!GetWorld()->LineTraceTestByChannel(P+FVector(0,0,60),Around+Side*70+FVector(0,0,60),ECC_Visibility,Params)&&
-               GetWorld()->LineTraceSingleByChannel(Bank,Around+FVector(0,0,68),Around-FVector(0,0,85),ECC_Visibility,Params)&&Bank.ImpactNormal.Z>.62)
-                SetActorLocation(Bank.ImpactPoint+FVector(0,0,8));
-            Home=P+Side*600;
-        }
-        SetActorRotation(Direction.Rotation());
+        ETAgentMovement::Walk(*this,Direction,Speed,D,Target);
     }
+    else if(Pursuing)ETAgentMovement::Face(*this,To,D);
     if(Bear){
         BearStride+=FVector::Dist2D(P,GetActorLocation())*.028f;
         PoseBear(BearStride,0);return;

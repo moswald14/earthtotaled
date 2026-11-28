@@ -544,6 +544,10 @@ void AETCharacter::ContactPanel(const FString& Name)
 void AETCharacter::Action(const FString& Id)
 {
     auto S=World->State;
+    if(Panel==TEXT("title")&&!InstalledChoice.IsEmpty()) {
+        if(Id==TEXT("installed-play")) {PlayInstalledGame();return;}
+        if(Id==TEXT("portable-play")) {StayPortable=true;InstalledChoice.Empty();Title();return;}
+    }
     if(Id==TEXT("field-music")||((Panel==TEXT("farm")||Panel==TEXT("threatruns")||Panel==TEXT("music"))&&Id.StartsWith(TEXT("field-")))){FieldAction(Id);return;}
     if(Panel=="wake"||Id=="wake-journal"){WakeAction(Id);return;}
     if(ETWake::BugPack(*this)&&Panel=="contact"&&Id!="resume"&&Id!="quest"){World->Say(TEXT("Your ordinary pack is safely sealed"));return;}

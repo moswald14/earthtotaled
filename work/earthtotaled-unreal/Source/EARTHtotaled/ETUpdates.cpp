@@ -22,6 +22,34 @@ namespace {
         FIntVector L,R;if(!ReadVersion(A,L)||!ReadVersion(B,R)) return false;
         return L.X!=R.X?L.X>R.X:L.Y!=R.Y?L.Y>R.Y:L.Z>R.Z;
     }
+    FString ManagedRoot() {
+        return FPlatformMisc::GetEnvironmentVariable(TEXT("LOCALAPPDATA")) / TEXT("Programs/EARTHtotaled");
+    }
+    bool SelectedGame(const FString& Root,FString& Tag,FString& Game,FString& Arguments) {
+        TArray<FString> Active;
+        FIntVector Number;
+        if(!FFileHelper::LoadFileToStringArray(Active,*(Root/TEXT("active.txt")))||Active.Num()<2||!ReadVersion(Active[0],Number))return false;
+        const FString Directory=Root/TEXT("Versions")/Active[0];
+        Game=Directory/TEXT("EARTHtotaled.exe");
+        if(!FPaths::FileExists(Game)||!FPaths::FileExists(Directory/TEXT(".release")))return false;
+        Arguments.Empty();
+        if(Active[1]!=TEXT("primary")) {
+            if(Active[1]!=Active[0])return false;
+            Arguments=FString::Printf(TEXT("-UserDir=\"%s\""),*(Root/TEXT("Profiles")/Active[1]));
+        }
+        Tag=Active[0];
+        return true;
+    }
+}
+void AETCharacter::PlayInstalledGame() {
+    FString Tag,Game,Arguments;
+    if(SelectedGame(ManagedRoot(),Tag,Game,Arguments)) {
+        const FString Directory=FPaths::GetPath(Game);
+        auto Handle=FPlatformProcess::CreateProc(*Game,*Arguments,true,false,false,nullptr,0,*Directory,nullptr);
+        if(Handle.IsValid()){FPlatformProcess::CloseProc(Handle);FPlatformMisc::RequestExit(false);return;}
+    }
+    InstalledChoice.Empty();
+    PanelBody=TEXT("Could not open the installed game. You can play this portable copy or choose Game updates.");
 }
 void AETCharacter::ShowVersions()
 {
@@ -36,27 +64,18 @@ void AETCharacter::ShowVersions()
 }
 void AETCharacter::CheckVersions(bool Automatic)
 {
-    if(Automatic&&!FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="))) {
-        const auto Managed=FPlatformMisc::GetEnvironmentVariable(TEXT("LOCALAPPDATA"))/TEXT("Programs/EARTHtotaled");
+    if(Automatic&&!StayPortable&&!FCString::Strifind(FCommandLine::Get(),TEXT("-UserDir="))) {
+        const auto Managed=ManagedRoot();
         const auto Executable=FPaths::ConvertRelativePathToFull(FPlatformProcess::ExecutablePath());
-#if PLATFORM_WINDOWS
-        // A legacy Setup may just have installed this game and copied its old version manager to Start.
-        const FString CurrentDir=Managed/TEXT("Versions")/ETLandfall::Version;
-        const FString Shipping=CurrentDir/TEXT("EARTHtotaled/Binaries/Win64/EARTHtotaled-Win64-Shipping.exe");
-        const FString Setup=CurrentDir/TEXT("EARTHtotaled/Content/UpdateTools/EARTHtotaled-Setup.exe");
-        static bool CheckedLauncher=false;
-        if(!CheckedLauncher&&FPaths::IsSamePath(Executable,Shipping)) {
-            CheckedLauncher=true;
-            if(FPlatformMisc::GetFileVersion(Setup)>FPlatformMisc::GetFileVersion(Managed/TEXT("EARTHtotaled.exe"))) {
-                auto Repair=FPlatformProcess::CreateProc(*Setup,TEXT("--refresh-launcher"),true,true,true,nullptr,0,nullptr,nullptr);
-                if(Repair.IsValid())FPlatformProcess::CloseProc(Repair);
+        // An old portable shortcut can offer the installed game without starting a second process before the first frame.
+        if(!FPaths::IsUnderDirectory(Executable,Managed/TEXT("Versions"))) {
+            TArray<FString> Origins;
+            FFileHelper::LoadFileToStringArray(Origins,*(Managed/TEXT("portable-origins.txt")));
+            FString Game,Arguments;
+            if(Origins.ContainsByPredicate([&](const FString& Origin){return FPaths::IsSamePath(Origin,Executable);})&&SelectedGame(Managed,InstalledChoice,Game,Arguments)){
+                PanelBody=TEXT("This shortcut opens a portable copy. Choose which game to play.");
+                return;
             }
-        }
-#endif
-        TArray<FString> Origins;FFileHelper::LoadFileToStringArray(Origins,*(Managed/TEXT("portable-origins.txt")));
-        if(Origins.ContainsByPredicate([&](const FString& Origin){return FPaths::IsSamePath(Origin,Executable);})&&FPaths::FileExists(Managed/TEXT("active.txt"))) {
-            auto H=FPlatformProcess::CreateProc(*(Managed/TEXT("EARTHtotaled.exe")),TEXT(""),true,false,false,nullptr,0,nullptr,nullptr);
-            if(H.IsValid()){FPlatformProcess::CloseProc(H);FPlatformMisc::RequestExit(false);return;}
         }
     }
     static double LastAutomatic=-1.e8;

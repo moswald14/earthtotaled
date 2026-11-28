@@ -18,7 +18,11 @@ assert setup.is_file() and (game/'EARTHtotaled/Content/Data/arrival-line.wav').i
 kit=game/'EARTHtotaled/Content/ModWorkshop'
 for name in ('README.md','starter.earthmod.json','mod.schema.json','AI-BRIEF.txt','Create a mod with ChatGPT.cmd','author.cjs'):
     assert (kit/name).is_file(), f'Missing player author kit file: {name}'
-instructions=f'''EARTHtotaled {version} / Dry Season / skill ranks, waterworks and Doodle Jazz
+instructions=f'''EARTHtotaled {version} / Dry Season
+Choose Game updates on the title or pause menu to install a release and continue
+your survivor. If your old shortcut opens to a black screen, run EARTHtotaled-Setup.exe
+and choose Install and play. Pin EARTHtotaled from Start to follow future updates.
+
 K opens the ranked web. East Dispatch and faction relay boards offer optional night hunts.
 Southwest of Shelter 09, place a pump and cistern within 12 m. Build a bed, press E for
 starter seeds, then plant and water. At the cistern choose Shape irrigation furrows.

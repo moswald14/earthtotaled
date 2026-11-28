@@ -60,7 +60,7 @@ namespace Earthtotaled.Setup {
                 "-UserDir=\""+separate+"\" -UserDir=\""+primary+"\""};
             Check(protectedArgs.All(arg=>!GameSessions.UsesSeparateSaves("game.exe "+arg,manager)),
                 "Default, managed, relative and ambiguous save profiles remain protected");
-            string tag="v1.19.0",name="EARTHtotaled-Unreal-Windows-"+tag+".zip",hash=new string('a',64);
+            string tag="v1.19.1",name="EARTHtotaled-Unreal-Windows-"+tag+".zip",hash=new string('a',64);
             string json=new JavaScriptSerializer().Serialize(new[]{new{tag_name=tag,draft=false,prerelease=false,assets=new[]{new{name=name,
                 browser_download_url=Catalog.Assets+tag+"/"+name,size=12,digest="sha256:"+hash}}}});
             var api=new TestHttp();
@@ -172,6 +172,20 @@ namespace Earthtotaled.Setup {
             string oldSetup=Path.Combine(m.Versions,old.Tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
             string currentSetup=Path.Combine(m.Versions,current.Tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
             File.Copy(oldSetup,m.Launcher);
+            m.InstallVersionLauncher(current.Tag,oldSetup);
+            Check(File.ReadAllBytes(currentSetup).SequenceEqual(File.ReadAllBytes(m.Launcher))&&intact(dir),
+                "Installing a new package updates the stable launcher before the game starts");
+            dynamic shell=Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+            string pin=Path.Combine(root,"test-play.lnk"),legacy=Path.Combine(root,"old-portable","EARTHtotaled-Win64-Shipping.exe");
+            dynamic link=shell.CreateShortcut(pin);link.TargetPath=legacy;link.Save();
+            m.RepairPlayLink(shell,pin,new[]{legacy});
+            Check(String.Equals((string)shell.CreateShortcut(pin).TargetPath,m.Launcher,StringComparison.OrdinalIgnoreCase),
+                "An existing shortcut to a recorded portable game follows the installed version");
+            link=shell.CreateShortcut(pin);link.TargetPath=legacy;link.Arguments="-windowed";link.Save();
+            m.RepairPlayLink(shell,pin,new[]{legacy});
+            Check(String.Equals((string)shell.CreateShortcut(pin).TargetPath,legacy,StringComparison.OrdinalIgnoreCase),
+                "A customized shortcut keeps its target and options");
+            File.Copy(oldSetup,m.Launcher,true);
             m.RefreshLauncher(currentSetup);
             Check(File.ReadAllBytes(currentSetup).SequenceEqual(File.ReadAllBytes(m.Launcher))&&intact(dir),
                 "Launching a legacy upgrade refreshes the stable Start menu launcher without touching saves");

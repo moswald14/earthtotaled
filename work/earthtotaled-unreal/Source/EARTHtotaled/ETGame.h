@@ -797,6 +797,9 @@ public:
     void ReadReleasePage(int Page,bool Automatic); void CheckVersions(bool Automatic); void UpdateAction(const FString& Id); void ShowVersions();
     TArray<FString> ReleaseTags; FString UpdateOrigin, UpdateNote; int32 ReleaseIndex=0;
     bool CheckingVersions=false, ConfirmVersion=false;
+    FString InstalledChoice;
+    bool StayPortable=false;
+    void PlayInstalledGame();
     void Weapon1(); void Weapon2(); void Weapon3(); void Weapon4(); void Weapon5(); void Weapon6();
     void Weapon7(); void Weapon8(); void Weapon9(); void Weapon10();
     void NextWeapon(); void PreviousWeapon(); void CycleWeapon(int32 Direction);

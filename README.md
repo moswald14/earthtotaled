@@ -8,6 +8,8 @@ Run **EARTHtotaled-Setup.exe**, choose a version, and select **Install and play*
 
 Open **Game updates** from the title or pause menu to select a GitHub release. Confirm to save, install and relaunch, or keep playing. Setup preserves all ten slots and mods. Older versions use a separate copy of your progress. Return to the latest to resume your main survivor. You can also open **Manage EARTHtotaled versions** from Start. [All releases and portable ZIPs](https://github.com/moswald14/earthtotaled/releases)
 
+**Enemy movement and startup in 1.19.1.** Ground enemies follow the floor under their feet and work around cover. Neutral highway guards patrol during daylight. If an older copy opens to a black screen, run the Windows installer above, select **v1.19.1**, then **Install and play**. If your title menu opens, choose **Game updates → v1.19.1**.
+
 **Dry Season in 1.19.0.** Start a farm at the allotment southwest of Shelter 09 or at a restored glade. Build a pump and cistern, then use the Borer to channel water to Cinderbean, Saltroot and Mendleaf. Take an optional Threat Run at East Dispatch, spend points on ranked skills with **K**, or tune to Doodle Jazz under **Esc → Music**. [Dry Season field guide](work/earthtotaled-unreal/Docs/Dry-Season.md)
 
 **Woodland deer in 1.18.1.** Follow the west highway out of Shelter 09 and look into the woods on the south side. Small herds graze and flee there and in forest clearings across the map. The three deer at the shelter crossing are part of the MegaWAKE quest.

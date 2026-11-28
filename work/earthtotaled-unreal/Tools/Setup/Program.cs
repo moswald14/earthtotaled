@@ -12,8 +12,8 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("EARTHtotaled Setup")]
 [assembly: AssemblyProduct("EARTHtotaled")]
-[assembly: AssemblyFileVersion("1.19.0.0")]
-[assembly: AssemblyVersion("1.19.0.0")]
+[assembly: AssemblyFileVersion("1.19.1.0")]
+[assembly: AssemblyVersion("1.19.1.0")]
 
 namespace Earthtotaled.Setup {
     internal sealed class SetupForm : Form {
@@ -100,8 +100,7 @@ namespace Earthtotaled.Setup {
                 await GameSessions.WaitForSaves(manager,wait,Status,cancel);
                 string sibling=Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"EARTHtotaled-Unreal-Windows-"+r.Tag+".zip");
                 var latest=((Release)choices.Items[0]).Number;
-                await Task.Run(()=>manager.Install(r,old,latest,sibling,Status,Runtime.Ensure,true,cancel));
-                manager.RememberPortable(origin);
+                await Task.Run(()=>manager.Install(r,old,latest,sibling,Status,Runtime.Ensure,true,cancel,origin));
                 if(Runtime.RestartRecommended) {MessageBox.Show(this,"Installation is complete. Restart Windows, then open EARTHtotaled from Start.","EARTHtotaled Setup",MessageBoxButtons.OK,MessageBoxIcon.Information);}
                 else if(!closeWhenIdle&&!cancel.IsCancellationRequested)manager.Play();
                 done=true;message=r.Tag+" installed.";
@@ -125,11 +124,11 @@ namespace Earthtotaled.Setup {
                 }
                 return;
             }
-            ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
-            Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
             try {
                 string name=Path.GetFileName(Assembly.GetExecutingAssembly().Location);
                 if(name.Equals("EARTHtotaled.exe",StringComparison.OrdinalIgnoreCase)&&args.Length==0&&File.Exists(Manager.Standard().Pointer)) {Manager.Standard().Play();return;}
+                ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
+                Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
                 string tag=null,from=null,origin=null;int pid=0;
                 for(int i=0;i<args.Length;i++) {
                     if(args[i]=="--manage")continue;

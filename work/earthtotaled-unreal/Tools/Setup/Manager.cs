@@ -30,7 +30,7 @@ namespace Earthtotaled.Setup {
         internal static readonly HttpClient Http=MakeClient();
         static HttpClient MakeClient() {
             var http=new HttpClient { Timeout=System.Threading.Timeout.InfiniteTimeSpan };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.19.0");return http;
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("EARTHtotaled-Setup/1.19.1");return http;
         }
         internal static Release Parse(Dictionary<string,object> row) {
             string tag=Convert.ToString(row["tag_name"]);
@@ -172,7 +172,7 @@ namespace Earthtotaled.Setup {
                 }
             }
         }
-        internal async Task Install(Release release,string from,Version latest,string sibling,Action<string> status,Action prereqs,bool register,CancellationToken cancel=default(CancellationToken)) {
+        internal async Task Install(Release release,string from,Version latest,string sibling,Action<string> status,Action prereqs,bool register,CancellationToken cancel=default(CancellationToken),string portableOrigin=null) {
             cancel.ThrowIfCancellationRequested();
             if(!Catalog.TagPattern.IsMatch(release.Tag)) throw new InvalidDataException("Invalid release.");
             Directory.CreateDirectory(Versions);string target=Path.Combine(Versions,release.Tag);
@@ -216,7 +216,10 @@ namespace Earthtotaled.Setup {
                         }
                     }
                     status("Finishing the installation…");
-                    if(register) InstallLauncher();
+                    if(register) {
+                        RememberPortable(portableOrigin);
+                        InstallLauncher(release.Tag);
+                    }
                     AtomicText(Pointer,new[]{release.Tag,profile,"v"+high});
                 } finally {
                     string name=Path.GetFileName(work);
@@ -248,13 +251,42 @@ namespace Earthtotaled.Setup {
                     CopyNewerLauncher(bundled);
             }
         }
-        void InstallLauncher() {
-            CopyNewerLauncher(Assembly.GetExecutingAssembly().Location);
-            string menu=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),"EARTHtotaled");Directory.CreateDirectory(menu);
+        internal void InstallVersionLauncher(string tag,string installer) {
+            string bundled=Path.Combine(Versions,tag,"EARTHtotaled","Content","UpdateTools","EARTHtotaled-Setup.exe");
+            string source=File.Exists(bundled)&&ToolVersion(bundled)>ToolVersion(installer)?bundled:installer;
+            try { CopyNewerLauncher(source); }
+            catch(IOException ex) {
+                // A running version manager can keep playing the selected game until the next install.
+                int error=ex.HResult&65535;
+                if(!File.Exists(Launcher)||(error!=32&&error!=33))throw;
+            }
+        }
+        internal void RepairPlayLink(dynamic shell,string file,string[] origins) {
+            if(!File.Exists(file))return;
+            dynamic link=shell.CreateShortcut(file);
+            string target=link.TargetPath;
+            if(!String.IsNullOrEmpty((string)link.Arguments)||!origins.Contains(target,StringComparer.OrdinalIgnoreCase))return;
+            link.TargetPath=Launcher;link.WorkingDirectory=Root;link.Save();
+        }
+        void InstallLauncher(string tag) {
+            InstallVersionLauncher(tag,Assembly.GetExecutingAssembly().Location);
+            string programs=Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            string menu=Path.Combine(programs,"EARTHtotaled");Directory.CreateDirectory(menu);
             dynamic shell=Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
             foreach(var title in new[]{"EARTHtotaled","Manage EARTHtotaled versions"}) {
                 dynamic link=shell.CreateShortcut(Path.Combine(menu,title+".lnk"));link.TargetPath=Launcher;link.WorkingDirectory=Root;
                 link.Arguments=title=="EARTHtotaled"?"":"--manage";link.Save();
+            }
+            string recorded=Path.Combine(Root,"portable-origins.txt");
+            if(File.Exists(recorded)) {
+                string[] origins=File.ReadAllLines(recorded);
+                string taskbar=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft","Internet Explorer","Quick Launch","User Pinned","TaskBar");
+                foreach(string directory in new[]{taskbar,programs}) foreach(string name in new[]{"EARTHtotaled.lnk","EARTHtotaled Unreal.lnk"}) {
+                    try { RepairPlayLink(shell,Path.Combine(directory,name),origins); }
+                    catch(System.Runtime.InteropServices.COMException) {}
+                    catch(UnauthorizedAccessException) {}
+                    catch(IOException) {}
+                }
             }
         }
         internal void RememberPortable(string executable) {

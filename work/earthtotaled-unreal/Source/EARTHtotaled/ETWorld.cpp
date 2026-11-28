@@ -1,5 +1,6 @@
 #include "ETWake.h"
 #include "ETGame.h"
+#include "ETAgentMovement.h"
 #include "ETLandfall.h"
 #include "ETRingLine.h"
 #include "ETRailDistricts.h"
@@ -496,7 +497,9 @@ void AETWorld::BuildStory()
         Item(FString::Printf(TEXT("core-%d"),I),TEXT("core"),Labels[I],Sites[I]+FVector(0,100,100),I);
         FString GuardId=FString::Printf(TEXT("guard-%d"),I);
         FVector Border=Sites[I].GetSafeNormal2D()*29100.; Border.Z=SurfaceHeight(Border.X,Border.Y)+10;
-        if(!State->Consumed.Contains(GuardId)&&!SettledCity(Border)) if(auto* A=GetWorld()->SpawnActor<AETAgent>(Border,FRotator::ZeroRotator)) A->Configure(this,GuardId,TEXT("robot"));
+        if(!State->Consumed.Contains(GuardId)&&!SettledCity(Border)) if(auto* A=GetWorld()->SpawnActor<AETAgent>(Border,FRotator::ZeroRotator)) {
+            A->Configure(this,GuardId,TEXT("robot"));StoryActors.Add(A);
+        }
     }
     Item(TEXT("filter"),TEXT("quest"),TEXT("Ceramic water filter"),Sites[0]+FVector(220,200,40),0,TEXT("filter"));
     Item(TEXT("pump"),TEXT("quest"),TEXT("Pump fuse"),Sites[1]+FVector(220,200,40),0,TEXT("pump"));
@@ -646,9 +649,11 @@ bool AETRegion::AdvanceGenerate()
         FVector P=Origin+FVector(R.FRandRange(3000,29000),R.FRandRange(3000,29000),0);
         // Keep the two legacy random draws so existing traps and other residents keep their sites.
         if(I>=3){AddDeerHerd(I-3);continue;}
-        if(P.Size2D()<20000) continue; P.Z=W->Height(P.X,P.Y)+30;
+        if(P.Size2D()<20000) continue;
         FString Id=FString::Printf(TEXT("r%d,%d-agent%d"),C.X,C.Y,I); if(W->State->Consumed.Contains(Id)||W->SettledCity(P)) continue;
-        auto A=GetWorld()->SpawnActor<AETAgent>(P,FRotator::ZeroRotator); A->SetOwner(this); A->Configure(W,Id,I==0?TEXT("robot"):I==1?TEXT("wolf"):TEXT("boar")); Residents.Add(A);
+        if(ETAgentMovement::FindGroundSpawn(*W,P)) if(auto* A=GetWorld()->SpawnActor<AETAgent>(P,FRotator::ZeroRotator)) {
+            A->SetOwner(this);A->Configure(W,Id,I==0?TEXT("robot"):I==1?TEXT("wolf"):TEXT("boar"));Residents.Add(A);
+        }
     }
     for(int32 I=0;I<3;++I)
     {
